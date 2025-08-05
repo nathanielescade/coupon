@@ -83,6 +83,7 @@
         </div>
     </div>
 </div>
+<!-- coupon_card.html -->
 <script>
 function copyCode(code, couponId, event) {
     // Don't prevent default on mobile as it can interfere with the copy
@@ -95,6 +96,7 @@ function copyCode(code, couponId, event) {
         // Use modern clipboard API in secure contexts
         navigator.clipboard.writeText(code).then(function() {
             showCopySuccess(event);
+            // Track the copy_code event immediately
             trackCopyEvent(couponId, code);
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
@@ -145,6 +147,7 @@ function fallbackCopyTextToClipboard(text, event, couponId) {
         var successful = document.execCommand('copy');
         if (successful) {
             showCopySuccess(event);
+            // Track the copy_code event
             trackCopyEvent(couponId, text);
         } else {
             console.error('Unable to copy using fallback');

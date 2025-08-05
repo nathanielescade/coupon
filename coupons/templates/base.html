@@ -168,10 +168,15 @@
         <a href="{% url 'analytics:dashboard' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Analytics</a>
         {% endif %}
         <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Admin</a>
-        <a href="{% url 'logout' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 border-t border-blue-700">Logout</a>
+        <!-- <a href="{% url 'logout' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 border-t border-blue-700">Logout</a> -->
+         <form method="post" action="{% url 'logout' %}" class="block">
+                                    {% csrf_token %}
+                                    <button type="submit" class="block w-full text-left px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Logout</button>
+                                </form>
     </div>
 </div>
                         </div>
+
                     </div>
                     {% else %}
                     <a href="{% url 'login' %}" class="text-blue-300 hover:text-blue-400 whitespace-nowrap">Login</a>
@@ -366,6 +371,7 @@
     </script>
     <!-- Add this before the closing body tag in base.html -->
 <script src="{% static 'js/analytics.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

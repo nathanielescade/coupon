@@ -17,7 +17,7 @@ class AnalyticsMiddleware:
         session, created = Session.objects.get_or_create(
             session_id=session_id,
             defaults={
-                'user': request.user if not isinstance(request.user, AnonymousUser) else None,
+                'user': request.user if request.user.is_authenticated else None,
                 'start_time': timezone.now(),
                 'last_activity': timezone.now(),
             }
@@ -41,7 +41,7 @@ class AnalyticsMiddleware:
             
             # Create page view record
             page_view = PageView(
-                user=request.user if not isinstance(request.user, AnonymousUser) else None,
+                user=request.user if request.user.is_authenticated else None,
                 session_id=session_id,
                 path=request.path,
                 full_path=request.get_full_path(),
@@ -51,14 +51,14 @@ class AnalyticsMiddleware:
             )
             page_view.save()
             
-            # Parse user agent info asynchronously
+            # Parse user agent info
             page_view.parse_user_agent()
             
             # Update or create analytics records for specific pages
             self.update_analytics_records(request, page_view)
             
             # Log user activity
-            if not isinstance(request.user, AnonymousUser):
+            if request.user.is_authenticated:
                 UserActivity.objects.create(
                     user=request.user,
                     session_id=session_id,
@@ -77,6 +77,7 @@ class AnalyticsMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
     
+    # analytics/middleware.py
     def update_analytics_records(self, request, page_view):
         from coupons.models import Coupon, Store, Category
         from .models import CouponAnalytics, StoreAnalytics, CategoryAnalytics
@@ -87,9 +88,16 @@ class AnalyticsMiddleware:
         if path.startswith('/coupon/') and len(path.split('/')) >= 3:
             try:
                 coupon_id = path.split('/')[2]
-                coupon = Coupon.objects.get(id=coupon_id)
-                coupon_analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
-                coupon_analytics.increment_views()
+                # Check if the ID is a valid UUID before querying
+                try:
+                    uuid.UUID(coupon_id)
+                    # If it's a valid UUID, try to get the coupon
+                    coupon = Coupon.objects.get(id=coupon_id)
+                    coupon_analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
+                    coupon_analytics.increment_views()
+                except ValueError:
+                    # Not a valid UUID, skip analytics tracking
+                    pass
             except (Coupon.DoesNotExist, ValueError):
                 pass
         

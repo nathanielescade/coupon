@@ -13,6 +13,7 @@ from django.http import JsonResponse
 def is_admin_user(user):
     return user.is_authenticated and user.is_staff
 
+# In your analytics/views.py file
 @login_required
 @user_passes_test(is_admin_user)
 def analytics_dashboard(request):
@@ -150,17 +151,20 @@ def analytics_dashboard(request):
     
     return render(request, 'analytics/dashboard.html', context)
 
+# In your analytics/views.py file
+# analytics/views.py
 @login_required
 @user_passes_test(is_admin_user)
 def coupon_analytics(request):
-    coupons = Coupon.objects.all()
-    
     # Get date range (default: last 30 days)
     days = int(request.GET.get('days', 30))
     end_date = timezone.now()
     start_date = end_date - timedelta(days=days)
     
+    # Get all coupons with their analytics
     coupon_stats = []
+    coupons = Coupon.objects.all()
+    
     for coupon in coupons:
         try:
             analytics = CouponAnalytics.objects.get(coupon=coupon)
@@ -181,7 +185,9 @@ def coupon_analytics(request):
             
             coupon_stats.append(stats)
         except CouponAnalytics.DoesNotExist:
-            coupon_stats.append({
+            # If no analytics record exists, create one with default values
+            analytics = CouponAnalytics.objects.create(coupon=coupon)
+            stats = {
                 'id': coupon.id,
                 'title': coupon.title,
                 'store': coupon.store.name,
@@ -190,7 +196,8 @@ def coupon_analytics(request):
                 'code_copies': 0,
                 'uses': 0,
                 'conversion_rate': 0,
-            })
+            }
+            coupon_stats.append(stats)
     
     # Sort by views
     coupon_stats.sort(key=lambda x: x['views'], reverse=True)
@@ -202,6 +209,7 @@ def coupon_analytics(request):
     
     return render(request, 'analytics/coupon_analytics.html', context)
 
+# In your analytics/views.py file
 @login_required
 @user_passes_test(is_admin_user)
 def store_analytics(request):
@@ -300,6 +308,7 @@ def category_analytics(request):
     
     return render(request, 'analytics/category_analytics.html', context)
 
+# In your analytics/views.py file
 @login_required
 @user_passes_test(is_admin_user)
 def user_analytics(request):
@@ -336,17 +345,33 @@ def user_analytics(request):
     return render(request, 'analytics/user_analytics.html', context)
 
 # In analytics/views.py, update the track_event function
+# analytics/views.py
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views import View
+import json
 
-@login_required
-@user_passes_test(is_admin_user)
+# analytics/views.py
+@csrf_exempt
 def track_event(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)
+            # Parse JSON data
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError as e:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': f'Invalid JSON: {str(e)}'
+                }, status=400)
             
-            # Make sure data is a dictionary
+            # Validate required fields
             if not isinstance(data, dict):
-                return JsonResponse({'status': 'error', 'message': 'Invalid data format'}, status=400)
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid data format'
+                }, status=400)
                 
             event_type = data.get('event_type')
             page = data.get('page', '')
@@ -357,6 +382,7 @@ def track_event(request):
             if not isinstance(event_data, dict):
                 event_data = {}
             
+            # Get session ID
             session_id = getattr(request, 'analytics_session_id', '')
             
             # Create the event record
@@ -374,46 +400,36 @@ def track_event(request):
                 coupon_id = event_data.get('coupon_id')
                 coupon_code = event_data.get('coupon_code')
                 
-                if coupon_id or coupon_code:
+                if coupon_id:
                     try:
-                        # Try to find coupon by ID or code
-                        from django.db.models import Q
-                        query = Q()
-                        
-                        # Add ID filter if provided and valid
-                        if coupon_id:
-                            try:
-                                # Try to convert to UUID if it's a valid UUID string
-                                import uuid
-                                uuid.UUID(coupon_id)
-                                query |= Q(id=coupon_id)
-                            except (ValueError, TypeError):
-                                # If not a valid UUID, try treating it as a code
-                                query |= Q(code=coupon_id)
-                        
-                        # Add code filter if provided
-                        if coupon_code:
-                            query |= Q(code=coupon_code)
-                        
-                        coupon = Coupon.objects.filter(query).first()
+                        # Try to find coupon by ID
+                        try:
+                            import uuid
+                            uuid.UUID(coupon_id)
+                            coupon = Coupon.objects.get(id=coupon_id)
+                        except (ValueError, TypeError):
+                            # If not a valid UUID, try to find by code
+                            coupon = Coupon.objects.get(code=coupon_id)
                         
                         if coupon:
                             analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
                             analytics.increment_code_copies()
                     except Exception as e:
-                        # Log the error but don't fail the request
                         print(f"Error updating coupon analytics: {e}")
             
-            # Handle other event types similarly
+            # Handle other event types
             elif event_type == 'save_coupon':
                 coupon_id = event_data.get('coupon_id')
                 if coupon_id:
                     try:
-                        # Try to find coupon by ID or code
-                        from django.db.models import Q
-                        coupon = Coupon.objects.filter(
-                            Q(id=coupon_id) | Q(code=coupon_id)
-                        ).first()
+                        # Try to find coupon by ID
+                        try:
+                            import uuid
+                            uuid.UUID(coupon_id)
+                            coupon = Coupon.objects.get(id=coupon_id)
+                        except (ValueError, TypeError):
+                            # If not a valid UUID, try to find by code
+                            coupon = Coupon.objects.get(code=coupon_id)
                         
                         if coupon:
                             analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
@@ -425,11 +441,14 @@ def track_event(request):
                 coupon_id = event_data.get('coupon_id')
                 if coupon_id:
                     try:
-                        # Try to find coupon by ID or code
-                        from django.db.models import Q
-                        coupon = Coupon.objects.filter(
-                            Q(id=coupon_id) | Q(code=coupon_id)
-                        ).first()
+                        # Try to find coupon by ID
+                        try:
+                            import uuid
+                            uuid.UUID(coupon_id)
+                            coupon = Coupon.objects.get(id=coupon_id)
+                        except (ValueError, TypeError):
+                            # If not a valid UUID, try to find by code
+                            coupon = Coupon.objects.get(code=coupon_id)
                         
                         if coupon:
                             analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
@@ -439,9 +458,13 @@ def track_event(request):
             
             return JsonResponse({'status': 'success'})
         
-        except json.JSONDecodeError as e:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
     
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=400)

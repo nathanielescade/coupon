@@ -99,40 +99,38 @@
 
 <!-- Charts Row 1 -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Page Views Over Time -->
-    <div class="analytics-card rounded-xl p-6 shadow-lg">
-        <h2 class="text-xl font-bold text-blue-300 mb-4">Page Views Over Time</h2>
-        <div class="chart-container">
-            <canvas id="pageViewsChart"></canvas>
-        </div>
-    </div>
-    
-    <!-- Device Types -->
-    <div class="analytics-card rounded-xl p-6 shadow-lg">
-        <h2 class="text-xl font-bold text-blue-300 mb-4">Device Types</h2>
-        <div class="chart-container">
-            <canvas id="deviceTypesChart"></canvas>
-        </div>
+<!-- In your dashboard.html template -->
+<!-- Page Views Over Time -->
+<div class="analytics-card rounded-xl p-6 shadow-lg">
+    <h2 class="text-xl font-bold text-blue-300 mb-4">Page Views Over Time</h2>
+    <div class="chart-container">
+        <canvas id="pageViewsChart"></canvas>
     </div>
 </div>
 
-<!-- Charts Row 2 -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Browser Stats -->
-    <div class="analytics-card rounded-xl p-6 shadow-lg">
-        <h2 class="text-xl font-bold text-blue-300 mb-4">Browser Statistics</h2>
-        <div class="chart-container">
-            <canvas id="browserStatsChart"></canvas>
-        </div>
+<!-- Device Types -->
+<div class="analytics-card rounded-xl p-6 shadow-lg">
+    <h2 class="text-xl font-bold text-blue-300 mb-4">Device Types</h2>
+    <div class="chart-container">
+        <canvas id="deviceTypesChart"></canvas>
     </div>
-    
-    <!-- Event Stats -->
-    <div class="analytics-card rounded-xl p-6 shadow-lg">
-        <h2 class="text-xl font-bold text-blue-300 mb-4">Event Statistics</h2>
-        <div class="chart-container">
-            <canvas id="eventStatsChart"></canvas>
-        </div>
+</div>
+
+<!-- Browser Stats -->
+<div class="analytics-card rounded-xl p-6 shadow-lg">
+    <h2 class="text-xl font-bold text-blue-300 mb-4">Browser Statistics</h2>
+    <div class="chart-container">
+        <canvas id="browserStatsChart"></canvas>
     </div>
+</div>
+
+<!-- Event Stats -->
+<div class="analytics-card rounded-xl p-6 shadow-lg">
+    <h2 class="text-xl font-bold text-blue-300 mb-4">Event Statistics</h2>
+    <div class="chart-container">
+        <canvas id="eventStatsChart"></canvas>
+    </div>
+</div>
 </div>
 
 <!-- Top Content Row -->
@@ -291,6 +289,7 @@
 {% endblock %}
 
 {% block extra_js %}
+// In your dashboard.html template
 <script>
     // Page Views Over Time Chart
     const pageViewsCtx = document.getElementById('pageViewsChart').getContext('2d');
