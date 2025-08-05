@@ -10,7 +10,8 @@ SECRET_KEY = 'django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "192.168.43.101"]
+# Add ngrok URL to allowed hosts
+ALLOWED_HOSTS = ["localhost", "192.168.43.101", "bc1a201d8551.ngrok-free.app"]
 
 # Application definition
 INSTALLED_APPS = [
@@ -92,7 +93,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -116,14 +116,18 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
+    "https://bc1a201d8551.ngrok-free.app",  # Add ngrok URL with HTTPS
+]
+
+# CSRF settings for ngrok
+CSRF_TRUSTED_ORIGINS = [
+    "https://bc1a201d8551.ngrok-free.app",  # Add ngrok URL with HTTPS
 ]
 
 # Login URLs
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
-
-
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [

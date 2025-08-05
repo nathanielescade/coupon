@@ -42,7 +42,8 @@
                     <div class="text-xs text-blue-400 mb-1">Coupon Code</div>
                     <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.id }}">{{ coupon.code }}</div>
                 </div>
-                <button onclick="copyCode('{{ coupon.code }}', '{{ coupon.id }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
+
+                <button onclick="copyCode('{{ coupon.code }}', '{{ coupon.id }}', event)" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
                     <i class="far fa-copy mr-1"></i> Copy
                 </button>
             </div>
@@ -83,17 +84,77 @@
     </div>
 </div>
 <script>
-function copyCode(code, couponId) {
-    navigator.clipboard.writeText(code).then(function() {
-        const button = event.target.closest('button');
-        const originalHTML = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
-        button.classList.add('bg-green-600');
-        
-        setTimeout(function() {
-            button.innerHTML = originalHTML;
-            button.classList.remove('bg-green-600');
-        }, 2000);
-    });
+function copyCode(code, couponId, event) {
+    // Don't prevent default on mobile as it can interfere with the copy
+    if (event && window.innerWidth > 768) {
+        event.preventDefault();
+    }
+    
+    // Modern clipboard API with fallback
+    if (navigator.clipboard && window.isSecureContext) {
+        // Use modern clipboard API in secure contexts
+        navigator.clipboard.writeText(code).then(function() {
+            showCopySuccess(event);
+            trackCopyEvent(couponId, code);
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyTextToClipboard(code, event, couponId);
+        });
+    } else {
+        // Use fallback method
+        fallbackCopyTextToClipboard(code, event, couponId);
+    }
+}
+
+function showCopySuccess(event) {
+    const button = event.target.closest('button');
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
+    button.classList.add('bg-green-600');
+    
+    setTimeout(function() {
+        button.innerHTML = originalHTML;
+        button.classList.remove('bg-green-600');
+    }, 2000);
+}
+
+function trackCopyEvent(couponId, code) {
+    // Track the copy_code event with proper parameters
+    if (typeof trackEvent === 'function') {
+        trackEvent('copy_code', window.location.pathname, 'copy_button', {
+            coupon_id: couponId,
+            coupon_code: code
+        });
+    }
+}
+
+function fallbackCopyTextToClipboard(text, event, couponId) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Make the textarea out of viewport
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        // Execute copy command
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showCopySuccess(event);
+            trackCopyEvent(couponId, text);
+        } else {
+            console.error('Unable to copy using fallback');
+            alert('Copy failed. Please copy the code manually: ' + text);
+        }
+    } catch (err) {
+        console.error('Fallback error:', err);
+        alert('Copy failed. Please copy the code manually: ' + text);
+    }
+    
+    document.body.removeChild(textArea);
 }
 </script>
