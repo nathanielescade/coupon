@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% block title %}{% if form.instance.id %}Edit Coupon{% else %}Create New Coupon{% endif %} - CouponHub{% endblock %}
+
+{% block extra_css %}
+<!-- Flatpickr CSS for date/time picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    /* Custom select styling */
+    .custom-select {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+    
+    .custom-select select {
+        appearance: none;
+        background-image: linear-gradient(45deg, transparent 50%, #3b82f6 50%),
+                          linear-gradient(135deg, #3b82f6 50%, transparent 50%);
+        background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px);
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+        padding-right: 35px !important;
+    }
+    
+    /* Custom checkbox styling */
+    .custom-checkbox {
+        position: relative;
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    
+    .custom-checkbox input {
+        opacity: 0;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+    
+    .custom-checkbox .checkmark {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 20px;
+        width: 20px;
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid #3b82f6;
+        border-radius: 4px;
+    }
+    
+    .custom-checkbox:hover input ~ .checkmark {
+        background-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    .custom-checkbox input:checked ~ .checkmark {
+        background-color: rgba(59, 130, 246, 0.3);
+    }
+    
+    .custom-checkbox .checkmark:after {
+        content: "";
+        position: absolute;
+        display: none;
+    }
+    
+    .custom-checkbox input:checked ~ .checkmark:after {
+        display: block;
+    }
+    
+    .custom-checkbox .checkmark:after {
+        left: 7px;
+        top: 3px;
+        width: 5px;
+        height: 10px;
+        border: solid #60a5fa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    
+    /* Flatpickr custom styling */
+    .flatpickr-calendar {
+        background: linear-gradient(to bottom right, rgba(0,0,0,0.7), rgba(0,78,146,0.8));
+        border: 1px solid #3b82f6;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .flatpickr-months {
+        background: transparent;
+    }
+    
+    .flatpickr-month {
+        background: transparent;
+        color: #e0e7ff;
+        fill: #e0e7ff;
+    }
+    
+    .flatpickr-current-month {
+        color: #e0e7ff;
+    }
+    
+    .flatpickr-weekdays {
+        background: transparent;
+    }
+    
+    .flatpickr-weekday {
+        color: #93c5fd;
+    }
+    
+    .flatpickr-day {
+        color: #e0e7ff;
+        background: transparent;
+    }
+    
+    .flatpickr-day:hover {
+        background: rgba(59, 130, 246, 0.3);
+        border-color: #3b82f6;
+    }
+    
+    .flatpickr-day.selected {
+        background: linear-gradient(to right, #004e92, #000428);
+        border-color: #3b82f6;
+        color: white;
+    }
+    
+    .flatpickr-day.today {
+        border-color: #3b82f6;
+    }
+    
+    .flatpickr-time {
+        background: transparent;
+        border-top: 1px solid rgba(59, 130, 246, 0.3);
+    }
+    
+    .flatpickr-time input {
+        background: rgba(0, 0, 0, 0.3);
+        color: #e0e7ff;
+    }
+    
+    .flatpickr-time .flatpickr-am-pm {
+        color: #e0e7ff;
+        background: rgba(0, 0, 0, 0.3);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700 mb-8">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-blue-300 mb-6">{% if form.instance.id %}Edit Coupon{% else %}Create New Coupon{% endif %}</h1>
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left Column -->
+                    <div>
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="block text-blue-300 mb-2">Title *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.code.id_for_label }}" class="block text-blue-300 mb-2">Coupon Code</label>
+                            {{ form.code }}
+                            {% if form.code.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.code.errors }}</div>
+                            {% endif %}
+                            <p class="text-blue-400 text-xs mt-1">Leave empty if this is a deal without a code</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.coupon_type.id_for_label }}" class="block text-blue-300 mb-2">Coupon Type</label>
+                            <div class="custom-select">
+                                {{ form.coupon_type }}
+                            </div>
+                            {% if form.coupon_type.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.coupon_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.discount_type.id_for_label }}" class="block text-blue-300 mb-2">Discount Type</label>
+                            <div class="custom-select">
+                                {{ form.discount_type }}
+                            </div>
+                            {% if form.discount_type.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.discount_type.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.discount_value.id_for_label }}" class="block text-blue-300 mb-2">Discount Value</label>
+                            {{ form.discount_value }}
+                            {% if form.discount_value.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.discount_value.errors }}</div>
+                            {% endif %}
+                            <p class="text-blue-400 text-xs mt-1">Enter percentage or fixed amount based on discount type</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.minimum_purchase.id_for_label }}" class="block text-blue-300 mb-2">Minimum Purchase</label>
+                            {{ form.minimum_purchase }}
+                            {% if form.minimum_purchase.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.minimum_purchase.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column -->
+                    <div>
+                        <div class="mb-4">
+                            <label for="{{ form.start_date.id_for_label }}" class="block text-blue-300 mb-2">Start Date</label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.start_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.expiry_date.id_for_label }}" class="block text-blue-300 mb-2">Expiry Date</label>
+                            {{ form.expiry_date }}
+                            {% if form.expiry_date.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.expiry_date.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.store.id_for_label }}" class="block text-blue-300 mb-2">Store *</label>
+                            <div class="custom-select">
+                                {{ form.store }}
+                            </div>
+                            {% if form.store.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.store.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.category.id_for_label }}" class="block text-blue-300 mb-2">Category *</label>
+                            <div class="custom-select">
+                                {{ form.category }}
+                            </div>
+                            {% if form.category.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.category.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.usage_limit.id_for_label }}" class="block text-blue-300 mb-2">Usage Limit</label>
+                            {{ form.usage_limit }}
+                            {% if form.usage_limit.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.usage_limit.errors }}</div>
+                            {% endif %}
+                            <p class="text-blue-400 text-xs mt-1">Leave empty for unlimited usage</p>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.affiliate_link.id_for_label }}" class="block text-blue-300 mb-2">Affiliate Link</label>
+                            {{ form.affiliate_link }}
+                            {% if form.affiliate_link.errors %}
+                            <div class="text-red-400 text-sm mt-1">{{ form.affiliate_link.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.description.id_for_label }}" class="block text-blue-300 mb-2">Description *</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.description.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-6">
+                    <label for="{{ form.terms_and_conditions.id_for_label }}" class="block text-blue-300 mb-2">Terms and Conditions</label>
+                    {{ form.terms_and_conditions }}
+                    {% if form.terms_and_conditions.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.terms_and_conditions.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex flex-wrap gap-4 mb-4">
+                    <div class="flex items-center">
+                        <label class="custom-checkbox">
+                            {{ form.is_active }}
+                            <span class="checkmark"></span>
+                        </label>
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-blue-300">Active</label>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="custom-checkbox">
+                            {{ form.is_featured }}
+                            <span class="checkmark"></span>
+                        </label>
+                        <label for="{{ form.is_featured.id_for_label }}" class="ml-2 text-blue-300">Featured</label>
+                    </div>
+                    <div class="flex items-center">
+                        <label class="custom-checkbox">
+                            {{ form.is_verified }}
+                            <span class="checkmark"></span>
+                        </label>
+                        <label for="{{ form.is_verified.id_for_label }}" class="ml-2 text-blue-300">Verified</label>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'home' %}" class="px-6 py-2 border border-blue-600 text-blue-300 rounded-lg hover:bg-blue-900/50 transition">Cancel</a>
+                    <button type="submit" class="btn-gradient text-white px-6 py-2 rounded-lg hover:opacity-90 transition">
+                        {% if form.instance.id %}Update Coupon{% else %}Create Coupon{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Flatpickr JS for date/time picker -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add classes to form fields for styling
+        const inputs = document.querySelectorAll('input:not([type="checkbox"]), textarea');
+        inputs.forEach(input => {
+            input.classList.add('w-full', 'px-4', 'py-2', 'rounded-lg', 'bg-black/30', 'border', 'border-blue-600', 'text-blue-100', 'placeholder-blue-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500');
+        });
+        
+        // Style select elements
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.classList.add('w-full', 'px-4', 'py-2', 'rounded-lg', 'bg-black/30', 'border', 'border-blue-600', 'text-blue-100', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500');
+        });
+        
+        // Initialize date pickers
+        flatpickr("#id_start_date", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            minDate: "today",
+            theme: "dark"
+        });
+        
+        flatpickr("#id_expiry_date", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            minDate: "today",
+            theme: "dark"
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Search Results for "{{ query }}" - CouponHub{% endblock %}
+
+{% block content %}
+<div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
+    <div class="p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-blue-100 mb-2">Search Results</h1>
+                <p class="text-blue-300">
+                    {% if coupons %}
+                    Found {{ coupons|length }} coupon{{ coupons|length|pluralize }} for "{{ query }}"
+                    {% else %}
+                    No coupons found for "{{ query }}"
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="mt-4 md:mt-0">
+                <form action="{% url 'search' %}" method="GET" class="flex">
+                    <input type="text" name="q" placeholder="Search coupons..." value="{{ query }}" class="px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-64">
+                    <button type="submit" class="btn-gradient text-white px-4 py-2 rounded-r-lg hover:opacity-90 transition">Search</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Coupon Results Section -->
+        {% if coupons %}
+        {% include 'filter_controls.html' %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            {% for coupon in coupons %}
+            {% include 'coupon_card.html' with coupon=coupon %}
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="flex justify-center mt-8">
+            <nav class="inline-flex rounded-md shadow">
+                {% if page_obj.has_previous %}
+                <a href="?q={{ query }}&page=1{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border border-blue-700 rounded-l-md text-blue-300 hover:bg-blue-900/50">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?q={{ query }}&page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="py-2 px-4 btn-gradient border border-blue-700 text-white">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?q={{ query }}&page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?q={{ query }}&page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+                <a href="?q={{ query }}&page={{ page_obj.paginator.num_pages }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 rounded-r-md text-blue-300 hover:bg-blue-900/50">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% endif %}
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-10">
+            <div class="mb-4">
+                <i class="fas fa-search text-blue-400/50 text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-blue-200 mb-2">No coupons found</h3>
+            <p class="text-blue-400 mb-6">We couldn't find any coupons matching "{{ query }}". Try a different search term.</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <a href="{% url 'home' %}" class="btn-gradient text-white px-6 py-2 rounded-lg font-medium transition hover:opacity-90">
+                    Browse All Coupons
+                </a>
+                <form action="{% url 'search' %}" method="GET" class="flex">
+                    <input type="text" name="q" placeholder="Search again..." class="px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="btn-gradient text-white px-4 py-2 rounded-r-lg hover:opacity-90 transition">Search</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+    <div class="p-6">
+        <h2 class="text-xl font-bold text-blue-200 mb-4">Popular Searches</h2>
+        <div class="flex flex-wrap gap-2">
+            <a href="{% url 'search' %}?q=electronics" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Electronics</a>
+            <a href="{% url 'search' %}?q=fashion" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Fashion</a>
+            <a href="{% url 'search' %}?q=food" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Food</a>
+            <a href="{% url 'search' %}?q=travel" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Travel</a>
+            <a href="{% url 'search' %}?q=free shipping" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Free Shipping</a>
+            <a href="{% url 'search' %}?q=20% off" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">20% Off</a>
+            <a href="{% url 'search' %}?q=amazon" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Amazon</a>
+            <a href="{% url 'search' %}?q=walmart" class="px-3 py-1 bg-blue-900/50 hover:bg-blue-800/50 text-blue-200 rounded-full text-sm transition">Walmart</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}Home - CouponHub{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="card-bg rounded-xl shadow-xl overflow-hidden mb-10 border border-blue-700">
+    <div class="p-8 md:p-12">
+        <div class="max-w-3xl">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">Save Money with Exclusive Coupons</h1>
+            <p class="text-xl text-blue-200 mb-6">Discover the best deals and discounts from your favorite stores.</p>
+            <form action="{% url 'search' %}" method="GET" class="flex">
+                <input type="text" name="q" placeholder="Search for coupons, stores, or categories..." class="px-4 py-3 w-full rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="btn-gradient text-white px-6 py-3 rounded-r-lg font-semibold hover:opacity-90 transition">Search</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-blue-300 mb-6">Popular Categories</h2>
+    <div class="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
+        {% for category in categories %}
+        {% include 'category_tag.html' with category=category %}
+        {% empty %}
+        <div class="text-center py-4 w-full">
+            <p class="text-blue-400">No categories available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Coupons Section -->
+<section class="mb-12" id="featured-section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Featured Coupons</h2>
+        <a href="{% url 'featured_coupons' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <!-- Filter controls for Featured Coupons -->
+    <div class="filter-controls mb-4" data-section="featured" data-default-sort="popular">
+        <div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="newest">
+                <i class="fas fa-clock mr-1"></i> Newest
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="expiring">
+                <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/50 text-blue-200 transition" data-sort="popular">
+                <i class="fas fa-fire mr-1"></i> Popular
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="discount_high">
+                <i class="fas fa-percentage mr-1"></i> Highest Discount
+            </button>
+        </div>
+    </div>
+    
+    <div class="coupon-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for coupon in featured_coupons %}
+        {% include 'coupon_card.html' with coupon=coupon show_expiry=True %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No featured coupons at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Expiring Soon Section -->
+<section class="mb-12" id="expiring-section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Expiring Soon</h2>
+        <a href="{% url 'expiring_coupons' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <!-- Filter controls for Expiring Soon -->
+    <div class="filter-controls mb-4" data-section="expiring" data-default-sort="expiring">
+        <div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="newest">
+                <i class="fas fa-clock mr-1"></i> Newest
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/50 text-blue-200 transition" data-sort="expiring">
+                <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="popular">
+                <i class="fas fa-fire mr-1"></i> Popular
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="discount_high">
+                <i class="fas fa-percentage mr-1"></i> Highest Discount
+            </button>
+        </div>
+    </div>
+    
+    <div class="coupon-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for coupon in expiring_soon %}
+        {% include 'coupon_card.html' with coupon=coupon show_expiry=True %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No coupons expiring soon.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Latest Coupons Section -->
+<section class="mb-12" id="latest-section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Latest Coupons</h2>
+        <a href="{% url 'latest_coupons' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <!-- Filter controls for Latest Coupons -->
+    <div class="filter-controls mb-4" data-section="latest" data-default-sort="newest">
+        <div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/50 text-blue-200 transition" data-sort="newest">
+                <i class="fas fa-clock mr-1"></i> Newest
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="expiring">
+                <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="popular">
+                <i class="fas fa-fire mr-1"></i> Popular
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="discount_high">
+                <i class="fas fa-percentage mr-1"></i> Highest Discount
+            </button>
+        </div>
+    </div>
+    
+    <div class="coupon-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for coupon in coupons %}
+        {% include 'coupon_card.html' with coupon=coupon small_text=True %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No coupons available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex justify-center mt-8">
+        <nav class="inline-flex rounded-md shadow">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border border-blue-700 rounded-l-md text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="py-2 px-4 btn-gradient border border-blue-700 text-white">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 rounded-r-md text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Popular Stores -->
+<section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Popular Stores</h2>
+        <a href="{% url 'all_stores' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {% for store in stores %}
+        {% include 'store_card.html' with store=store %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No stores available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const section = this.closest('.filter-controls').dataset.section;
+            const sort = this.dataset.sort;
+            
+            // Update active state
+            const container = this.closest('.filter-controls');
+            container.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-900/50', 'text-blue-200');
+                btn.classList.add('bg-blue-900/30', 'text-blue-300');
+            });
+            this.classList.remove('bg-blue-900/30', 'text-blue-300');
+            this.classList.add('bg-blue-900/50', 'text-blue-200');
+            
+            // Make AJAX request
+            fetch(`/filter-coupons/?section=${section}&sort=${sort}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update the coupon list
+                    const couponList = document.querySelector(`#${section}-section .coupon-list`);
+                    couponList.innerHTML = data.html;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+
+{% endblock %}

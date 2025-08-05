@@ -1,0 +1,22 @@
+<div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'newest' or not request.GET.sort %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('newest')">
+        <i class="fas fa-clock mr-1"></i> Newest
+    </button>
+    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'expiring' %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('expiring')">
+        <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+    </button>
+    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'popular' %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('popular')">
+        <i class="fas fa-fire mr-1"></i> Popular
+    </button>
+    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'discount_high' %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('discount_high')">
+        <i class="fas fa-percentage mr-1"></i> Highest Discount
+    </button>
+</div>
+
+<script>
+function applyFilter(sortType) {
+    const urlParams = new URLSearchParams(window.location.search);
+    urlParams.set('sort', sortType);
+    window.location.search = urlParams.toString();
+}
+</script>

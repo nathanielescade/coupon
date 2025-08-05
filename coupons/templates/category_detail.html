@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} Coupons - CouponHub{% endblock %}
+
+{% block content %}
+<div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
+    <div class="p-6">
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold text-blue-100 mb-2">{{ category.name }} Coupons</h1>
+            {% if category.description %}
+            <p class="text-blue-300">{{ category.description }}</p>
+            {% endif %}
+        </div>
+        
+        <!-- Coupon Section -->
+        <div class="border-t border-blue-800 pt-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-blue-200">Available Coupons ({{ coupons|length }})</h2>
+            </div>
+            
+            {% include 'filter_controls.html' %}
+            
+            {% if coupons %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                {% for coupon in coupons %}
+                {% include 'coupon_card.html' with coupon=coupon %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-10 mt-6">
+                <div class="mb-4">
+                    <i class="fas fa-tag text-blue-400/50 text-5xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-blue-200 mb-2">No coupons available</h3>
+                <p class="text-blue-400 mb-6">There are currently no coupons available in the {{ category.name }} category. Check back later for new deals.</p>
+                <a href="{% url 'home' %}" class="btn-gradient text-white px-6 py-2 rounded-lg font-medium transition hover:opacity-90">
+                    Browse Other Categories
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+    <div class="p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-blue-200 mb-4">Popular Stores in {{ category.name }}</h2>
+        <a href="{% url 'all_stores' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for store in stores|slice:":6" %}
+            {% include 'store_card.html' with store=store %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

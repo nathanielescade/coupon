@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}My Coupons - CouponHub{% endblock %}
+
+{% block content %}
+<div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold text-blue-100 mb-6">My Saved Coupons</h1>
+        
+        {% if saved_coupons %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for user_coupon in saved_coupons %}
+            {% include 'coupon_card.html' with coupon=user_coupon.coupon show_code=True show_expiry=True %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-10">
+            <div class="mb-4">
+                <i class="fas fa-ticket-alt text-blue-400/50 text-5xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-blue-200 mb-2">No saved coupons yet</h3>
+            <p class="text-blue-400 mb-6">Save coupons to see them here and use them later.</p>
+            <a href="{% url 'home' %}" class="btn-gradient text-white px-6 py-2 rounded-lg font-medium transition hover:opacity-90">
+                Browse Coupons
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+    <div class="p-6">
+        <h2 class="text-xl font-bold text-blue-200 mb-4">Coupon Usage History</h2>
+        
+        {% if user.coupon_usages.all %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-blue-800">
+                <thead class="bg-blue-900/50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Coupon</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Store</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Date Used</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-blue-300 uppercase tracking-wider">Discount</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-blue-800">
+                    {% for usage in user.coupon_usages.all %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-blue-100">{{ usage.coupon.title }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-blue-300">{{ usage.coupon.store.name }}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-300">
+                            {{ usage.used_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900/50 text-green-300">
+                                {{ usage.coupon.discount_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-6">
+            <p class="text-blue-400">You haven't used any coupons yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

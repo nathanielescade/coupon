@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}{{ store.name }} Coupons - CouponHub{% endblock %}
+
+{% block content %}
+<div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
+    <div class="p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center mb-6">
+            <div class="flex items-center mb-4 md:mb-0 md:mr-6">
+                {% if store.logo %}
+                <img src="{{ store.logo.url }}" alt="{{ store.name }}" class="w-16 h-16 object-contain mr-4">
+                {% else %}
+                <div class="w-16 h-16 bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+                    <i class="fas fa-store text-blue-400 text-2xl"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-100">{{ store.name }}</h1>
+                    <a href="{{ store.website }}" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm flex items-center">
+                        Visit Website <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="ml-auto">
+                <a href="{{ store.website }}" target="_blank" class="btn-gradient text-white px-4 py-2 rounded-lg font-medium transition hover:opacity-90">
+                    Shop at {{ store.name }}
+                </a>
+            </div>
+        </div>
+        
+        {% if store.description %}
+        <div class="mb-6">
+            <p class="text-blue-300">{{ store.description }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Coupon Section -->
+        <div class="border-t border-blue-800 pt-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-blue-200">Available Coupons ({{ coupons|length }})</h2>
+            </div>
+            
+            {% include 'filter_controls.html' %}
+            
+            {% if coupons %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                {% for coupon in coupons %}
+                {% include 'coupon_card.html' with coupon=coupon %}
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-10 mt-6">
+                <div class="mb-4">
+                    <i class="fas fa-tag text-blue-400/50 text-5xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-blue-200 mb-2">No coupons available</h3>
+                <p class="text-blue-400 mb-6">There are currently no coupons available for {{ store.name }}. Check back later for new deals.</p>
+                <a href="{% url 'home' %}" class="btn-gradient text-white px-6 py-2 rounded-lg font-medium transition hover:opacity-90">
+                    Browse Other Stores
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+    <div class="p-6">
+        <h2 class="text-xl font-bold text-blue-200 mb-4">Similar Stores</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for similar_store in stores|slice:":6" %}
+            {% if similar_store.id != store.id %}
+            {% include 'store_card.html' with store=similar_store %}
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
