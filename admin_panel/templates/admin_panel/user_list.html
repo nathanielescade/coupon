@@ -1,0 +1,106 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}Users - Admin Panel{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="admin-card rounded-xl p-6 shadow-lg mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h2 class="text-xl font-bold text-blue-300 mb-4 md:mb-0">Users</h2>
+        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+            <form method="get" class="flex">
+                <input type="text" name="search" placeholder="Search users..." 
+                       value="{{ search_query }}" 
+                       class="px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto">
+                <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg transition">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+            
+            <div class="flex space-x-2">
+                <a href="{% url 'admin_panel:user_list' %}?staff=true" 
+                   class="px-3 py-1 rounded-lg {% if staff_filter == 'true' %}bg-purple-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    Staff Only
+                </a>
+                <a href="{% url 'admin_panel:user_list' %}?staff=false" 
+                   class="px-3 py-1 rounded-lg {% if staff_filter == 'false' %}bg-blue-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    Regular Users
+                </a>
+                <a href="{% url 'admin_panel:user_list' %}" 
+                   class="px-3 py-1 rounded-lg {% if not staff_filter %}bg-blue-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    All Users
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-blue-200">
+            <thead>
+                <tr class="border-b border-blue-700">
+                    <th class="text-left py-3 px-4">Username</th>
+                    <th class="text-left py-3 px-4">Email</th>
+                    <th class="text-left py-3 px-4">Name</th>
+                    <th class="text-left py-3 px-4">Joined</th>
+                    <th class="text-left py-3 px-4">Status</th>
+                    <th class="text-left py-3 px-4">Role</th>
+                    <th class="text-right py-3 px-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="border-b border-blue-800 hover:bg-blue-900/20">
+                    <td class="py-3 px-4">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center mr-3">
+                                <i class="fas fa-user text-blue-400"></i>
+                            </div>
+                            <span class="text-blue-300">{{ user.username }}</span>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-blue-100">{{ user.email }}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-blue-100">{{ user.get_full_name|default:"—" }}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="text-blue-100">{{ user.date_joined|date:"M d, Y" }}</span>
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if user.is_active %}
+                        <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded-full text-xs">Active</span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-red-900/50 text-red-300 rounded-full text-xs">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if user.is_staff %}
+                        <span class="px-2 py-1 bg-purple-900/50 text-purple-300 rounded-full text-xs">Staff</span>
+                        {% else %}
+                        <span class="px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full text-xs">User</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <div class="flex justify-end space-x-2">
+                            <a href="{% url 'admin_panel:user_edit' user.id %}" 
+                               class="text-green-400 hover:text-green-300 transition" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="py-8 text-center text-blue-400">
+                        <div class="mb-2">
+                            <i class="fas fa-users text-blue-400/50 text-3xl"></i>
+                        </div>
+                        <p>No users found</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

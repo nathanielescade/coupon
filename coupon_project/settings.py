@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'coupons',
     'analytics',
+    'admin_panel',
 ]
 
 MIDDLEWARE = [
@@ -133,3 +134,27 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+
+
+
+
+# settings.py
+AUTHENTICATION_BACKENDS = [
+    'coupons.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# settings.py (update email settings)
+# Email settings (configure these with your email provider)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'nathanielescade@gmail.com'
+EMAIL_HOST_PASSWORD = 'keluslsqohttqwba'
+DEFAULT_FROM_EMAIL = 'nathanielescade@gmail.com'
+
+# Add these settings for better email handling
+EMAIL_TIMEOUT = 10  # Timeout in seconds
+EMAIL_SUBJECT_PREFIX = '[CouponHub] '

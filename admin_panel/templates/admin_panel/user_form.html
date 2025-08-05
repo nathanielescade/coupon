@@ -1,0 +1,129 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}{{ title }} - Admin Panel{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="admin-card rounded-xl p-6 shadow-lg">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Left Column -->
+            <div>
+                <div class="mb-4">
+                    <label for="{{ form.username.id_for_label }}" class="block text-blue-300 mb-2">Username *</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.username.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.first_name.id_for_label }}" class="block text-blue-300 mb-2">First Name</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.last_name.id_for_label }}" class="block text-blue-300 mb-2">Last Name</label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div>
+                <div class="mb-4">
+                    <label for="{{ form.email.id_for_label }}" class="block text-blue-300 mb-2">Email *</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex items-center">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-blue-300">Active</label>
+                    </div>
+                    {% if form.is_active.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.is_active.errors }}</div>
+                    {% endif %}
+                    <p class="text-blue-400 text-xs mt-1">Inactive users cannot log in</p>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="flex items-center">
+                        {{ form.is_staff }}
+                        <label for="{{ form.is_staff.id_for_label }}" class="ml-2 text-blue-300">Staff Status</label>
+                    </div>
+                    {% if form.is_staff.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.is_staff.errors }}</div>
+                    {% endif %}
+                    <p class="text-blue-400 text-xs mt-1">Staff users can access the admin panel</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-blue-900/20 p-4 rounded-lg mb-6">
+            <h3 class="text-lg font-semibold text-blue-300 mb-2">User Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <p class="text-blue-400">Username:</p>
+                    <p class="text-blue-100">{{ form.instance.username|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="text-blue-400">Email:</p>
+                    <p class="text-blue-100">{{ form.instance.email|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="text-blue-400">Full Name:</p>
+                    <p class="text-blue-100">{{ form.instance.get_full_name|default:"—" }}</p>
+                </div>
+                <div>
+                    <p class="text-blue-400">Date Joined:</p>
+                    <p class="text-blue-100">{{ form.instance.date_joined|date:"F d, Y"|default:"—" }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'admin_panel:user_list' %}" class="px-6 py-2 border border-blue-600 text-blue-300 rounded-lg hover:bg-blue-900/50 transition">
+                Cancel
+            </a>
+            <button type="submit" class="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition">
+                Update User
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.375rem;
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid #3b82f6;
+        color: #e0e7ff;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        ring: 2px;
+        ring-color: #3b82f6;
+    }
+    
+    .form-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 0.25rem;
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid #3b82f6;
+    }
+</style>
+{% endblock %}

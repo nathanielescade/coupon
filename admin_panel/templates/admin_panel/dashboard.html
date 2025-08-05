@@ -1,0 +1,169 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}Dashboard - Admin Panel{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Stats Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="stat-card rounded-xl p-6 shadow-lg">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-blue-900/50 mr-4">
+                <i class="fas fa-ticket-alt text-blue-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-blue-400 text-sm">Total Coupons</p>
+                <p class="text-2xl font-bold text-blue-100">{{ total_coupons }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card rounded-xl p-6 shadow-lg">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-green-900/50 mr-4">
+                <i class="fas fa-check-circle text-green-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-blue-400 text-sm">Active Coupons</p>
+                <p class="text-2xl font-bold text-blue-100">{{ active_coupons }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card rounded-xl p-6 shadow-lg">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-purple-900/50 mr-4">
+                <i class="fas fa-store text-purple-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-blue-400 text-sm">Total Stores</p>
+                <p class="text-2xl font-bold text-blue-100">{{ total_stores }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stat-card rounded-xl p-6 shadow-lg">
+        <div class="flex items-center">
+            <div class="p-3 rounded-full bg-yellow-900/50 mr-4">
+                <i class="fas fa-users text-yellow-400 text-xl"></i>
+            </div>
+            <div>
+                <p class="text-blue-400 text-sm">Total Users</p>
+                <p class="text-2xl font-bold text-blue-100">{{ total_users }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Overview -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Recent Coupons -->
+    <div class="admin-card rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-blue-300">Recent Coupons</h2>
+            <a href="{% url 'admin_panel:coupon_list' %}" class="text-blue-400 hover:text-blue-300 text-sm">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-blue-200">
+                <thead>
+                    <tr class="border-b border-blue-700">
+                        <th class="text-left py-2">Title</th>
+                        <th class="text-left py-2">Store</th>
+                        <th class="text-right py-2">Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for coupon in recent_coupons %}
+                    <tr class="border-b border-blue-800">
+                        <td class="py-2">
+                            <a href="{% url 'admin_panel:coupon_detail' coupon.id %}" class="text-blue-300 hover:text-blue-200">
+                                {{ coupon.title }}
+                            </a>
+                        </td>
+                        <td class="py-2">{{ coupon.store.name }}</td>
+                        <td class="py-2 text-right">{{ coupon.created_at|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="py-4 text-center text-blue-400">No coupons found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Recent Users -->
+    <div class="admin-card rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold text-blue-300">Recent Users</h2>
+            <a href="{% url 'admin_panel:user_list' %}" class="text-blue-400 hover:text-blue-300 text-sm">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-blue-200">
+                <thead>
+                    <tr class="border-b border-blue-700">
+                        <th class="text-left py-2">Username</th>
+                        <th class="text-left py-2">Email</th>
+                        <th class="text-right py-2">Joined</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr class="border-b border-blue-800">
+                        <td class="py-2">
+                            <a href="{% url 'admin_panel:user_edit' user.id %}" class="text-blue-300 hover:text-blue-200">
+                                {{ user.username }}
+                            </a>
+                        </td>
+                        <td class="py-2">{{ user.email }}</td>
+                        <td class="py-2 text-right">{{ user.date_joined|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="py-4 text-center text-blue-400">No users found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="admin-card rounded-xl p-6 shadow-lg mb-8">
+    <h2 class="text-xl font-bold text-blue-300 mb-4">Last 7 Days Activity</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center p-4 bg-blue-900/30 rounded-lg">
+            <div class="text-3xl font-bold text-blue-100">{{ new_coupons_last_7_days }}</div>
+            <div class="text-blue-400">New Coupons</div>
+        </div>
+        <div class="text-center p-4 bg-green-900/30 rounded-lg">
+            <div class="text-3xl font-bold text-blue-100">{{ new_users_last_7_days }}</div>
+            <div class="text-blue-400">New Users</div>
+        </div>
+        <div class="text-center p-4 bg-purple-900/30 rounded-lg">
+            <div class="text-3xl font-bold text-blue-100">{{ coupon_usage_last_7_days }}</div>
+            <div class="text-blue-400">Coupon Uses</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="admin-card rounded-xl p-6 shadow-lg">
+    <h2 class="text-xl font-bold text-blue-300 mb-4">Quick Actions</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <a href="{% url 'admin_panel:coupon_create' %}" class="bg-blue-700 hover:bg-blue-600 text-white text-center py-3 rounded-lg transition">
+            <i class="fas fa-plus mr-2"></i> Add Coupon
+        </a>
+        <a href="{% url 'admin_panel:store_create' %}" class="bg-purple-700 hover:bg-purple-600 text-white text-center py-3 rounded-lg transition">
+            <i class="fas fa-plus mr-2"></i> Add Store
+        </a>
+        <a href="{% url 'admin_panel:category_create' %}" class="bg-green-700 hover:bg-green-600 text-white text-center py-3 rounded-lg transition">
+            <i class="fas fa-plus mr-2"></i> Add Category
+        </a>
+        <a href="{% url 'admin_panel:analytics' %}" class="bg-yellow-700 hover:bg-yellow-600 text-white text-center py-3 rounded-lg transition">
+            <i class="fas fa-chart-line mr-2"></i> View Analytics
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -27,24 +27,31 @@ urlpatterns = [
     path('save/<uuid:coupon_id>/', views.save_coupon, name='save_coupon'),
     path('use/<uuid:coupon_id>/', views.use_coupon, name='use_coupon'),
     
-    # Authentication URLs
+    # Authentication URLs - more specific patterns first
     path('signup/', views.signup_view, name='signup'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(http_method_names=['get', 'post'], next_page='home'), name='logout'),
-
+    path('verify-email/<uuid:token>/', views.verify_email, name='verify_email'),
+    path('resend-verification/', views.resend_verification_email, name='resend_verification'),
+    
+    # Profile URLs - more specific patterns first
+    path('profile/edit/', views.edit_profile_view, name='edit_profile'),
+    path('profile/<str:username>/', views.profile_view, name='user_profile'),
+    path('profile/', views.profile_view, name='profile'),
+    
     # All Coupons Pages
     path('coupons/', views.AllCouponsView.as_view(), name='all_coupons'),
     path('coupons/featured/', views.FeaturedCouponsView.as_view(), name='featured_coupons'),
     path('coupons/expiring/', views.ExpiringCouponsView.as_view(), name='expiring_coupons'),
     path('coupons/latest/', views.LatestCouponsView.as_view(), name='latest_coupons'),
-
+    
     # All Stores and Categories Pages
     path('stores/', views.AllStoresView.as_view(), name='all_stores'),
     path('categories/', views.AllCategoriesView.as_view(), name='all_categories'),
     
     # Add this to your urlpatterns
     path('filter-coupons/', views.filter_coupons_ajax, name='filter_coupons_ajax'),
-
+    
     # API URLs
     path('api/', include(router.urls)),
 ]

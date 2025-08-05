@@ -1,3 +1,380 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count, Sum, Avg, Q
+from django.urls import reverse
+from django.contrib import messages
+from coupons.models import Coupon, Store, Category, UserCoupon, CouponUsage
+from analytics.models import PageView, Event, CouponAnalytics, StoreAnalytics, CategoryAnalytics
+from .forms import CouponForm, StoreForm, CategoryForm, UserForm
+import json
 
-# Create your views here.
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
+
+# Keep all your existing views here...
+
+@login_required
+@user_passes_test(is_staff_user)
+def dashboard(request):
+    # Get date range (default: last 30 days)
+    days = int(request.GET.get('days', 30))
+    end_date = timezone.now()
+    start_date = end_date - timedelta(days=days)
+    
+    # Basic stats
+    total_coupons = Coupon.objects.count()
+    active_coupons = Coupon.objects.filter(is_active=True).count()
+    total_stores = Store.objects.count()
+    total_users = User.objects.count()
+    
+    # Recent activity
+    recent_coupons = Coupon.objects.order_by('-created_at')[:5]
+    recent_users = User.objects.order_by('-date_joined')[:5]
+    
+    # Quick stats
+    new_coupons_last_7_days = Coupon.objects.filter(
+        created_at__gte=timezone.now() - timedelta(days=7)
+    ).count()
+    
+    new_users_last_7_days = User.objects.filter(
+        date_joined__gte=timezone.now() - timedelta(days=7)
+    ).count()
+    
+    coupon_usage_last_7_days = CouponUsage.objects.filter(
+        used_at__gte=timezone.now() - timedelta(days=7)
+    ).count()
+    
+    context = {
+        'days': days,
+        'total_coupons': total_coupons,
+        'active_coupons': active_coupons,
+        'total_stores': total_stores,
+        'total_users': total_users,
+        'recent_coupons': recent_coupons,
+        'recent_users': recent_users,
+        'new_coupons_last_7_days': new_coupons_last_7_days,
+        'new_users_last_7_days': new_users_last_7_days,
+        'coupon_usage_last_7_days': coupon_usage_last_7_days,
+    }
+    
+    return render(request, 'admin_panel/dashboard.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def coupon_list(request):
+    coupons = Coupon.objects.all().order_by('-created_at')
+    
+    # Filter by active status
+    active_filter = request.GET.get('active')
+    if active_filter == 'true':
+        coupons = coupons.filter(is_active=True)
+    elif active_filter == 'false':
+        coupons = coupons.filter(is_active=False)
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        coupons = coupons.filter(
+            Q(title__icontains=search_query) | 
+            Q(code__icontains=search_query) |
+            Q(store__name__icontains=search_query)
+        )
+    
+    context = {
+        'coupons': coupons,
+        'active_filter': active_filter,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin_panel/coupon_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def coupon_create(request):
+    if request.method == 'POST':
+        form = CouponForm(request.POST, request.FILES)
+        if form.is_valid():
+            coupon = form.save(commit=False)
+            coupon.created_by = request.user
+            coupon.save()
+            messages.success(request, 'Coupon created successfully!')
+            return redirect('admin_panel:coupon_detail', coupon_id=coupon.id)
+    else:
+        form = CouponForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Coupon',
+    }
+    
+    return render(request, 'admin_panel/coupon_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def coupon_edit(request, coupon_id):
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+    
+    if request.method == 'POST':
+        form = CouponForm(request.POST, request.FILES, instance=coupon)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Coupon updated successfully!')
+            return redirect('admin_panel:coupon_detail', coupon_id=coupon.id)
+    else:
+        form = CouponForm(instance=coupon)
+    
+    context = {
+        'form': form,
+        'coupon': coupon,
+        'title': 'Edit Coupon',
+    }
+    
+    return render(request, 'admin_panel/coupon_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def coupon_delete(request, coupon_id):
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+    
+    if request.method == 'POST':
+        coupon.delete()
+        messages.success(request, 'Coupon deleted successfully!')
+        return redirect('admin_panel:coupon_list')
+    
+    context = {
+        'coupon': coupon,
+    }
+    
+    return render(request, 'admin_panel/coupon_delete.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def coupon_detail(request, coupon_id):
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+    
+    # Get analytics data if available
+    try:
+        analytics = CouponAnalytics.objects.get(coupon=coupon)
+    except CouponAnalytics.DoesNotExist:
+        analytics = None
+    
+    context = {
+        'coupon': coupon,
+        'analytics': analytics,
+    }
+    
+    return render(request, 'admin_panel/coupon_detail.html', context)
+
+
+# Store management views
+@login_required
+@user_passes_test(is_staff_user)
+def store_list(request):
+    stores = Store.objects.all().order_by('name')
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        stores = stores.filter(name__icontains=search_query)
+    
+    context = {
+        'stores': stores,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin_panel/store_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def store_create(request):
+    if request.method == 'POST':
+        form = StoreForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Store created successfully!')
+            return redirect('admin_panel:store_list')
+    else:
+        form = StoreForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Store',
+    }
+    
+    return render(request, 'admin_panel/store_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def store_edit(request, store_slug):
+    store = get_object_or_404(Store, slug=store_slug)
+    
+    if request.method == 'POST':
+        form = StoreForm(request.POST, request.FILES, instance=store)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Store updated successfully!')
+            return redirect('admin_panel:store_list')
+    else:
+        form = StoreForm(instance=store)
+    
+    context = {
+        'form': form,
+        'store': store,
+        'title': 'Edit Store',
+    }
+    
+    return render(request, 'admin_panel/store_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def store_delete(request, store_slug):
+    store = get_object_or_404(Store, slug=store_slug)
+    
+    if request.method == 'POST':
+        store.delete()
+        messages.success(request, 'Store deleted successfully!')
+        return redirect('admin_panel:store_list')
+    
+    context = {
+        'store': store,
+    }
+    
+    return render(request, 'admin_panel/store_delete.html', context)
+
+# Category management views
+@login_required
+@user_passes_test(is_staff_user)
+def category_list(request):
+    categories = Category.objects.all().order_by('name')
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        categories = categories.filter(name__icontains=search_query)
+    
+    context = {
+        'categories': categories,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin_panel/category_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def category_create(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category created successfully!')
+            return redirect('admin_panel:category_list')
+    else:
+        form = CategoryForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Category',
+    }
+    
+    return render(request, 'admin_panel/category_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def category_edit(request, category_slug):
+    category = get_object_or_404(Category, slug=category_slug)
+    
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Category updated successfully!')
+            return redirect('admin_panel:category_list')
+    else:
+        form = CategoryForm(instance=category)
+    
+    context = {
+        'form': form,
+        'category': category,
+        'title': 'Edit Category',
+    }
+    
+    return render(request, 'admin_panel/category_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def category_delete(request, category_slug):
+    category = get_object_or_404(Category, slug=category_slug)
+    
+    if request.method == 'POST':
+        category.delete()
+        messages.success(request, 'Category deleted successfully!')
+        return redirect('admin_panel:category_list')
+    
+    context = {
+        'category': category,
+    }
+    
+    return render(request, 'admin_panel/category_delete.html', context)
+
+# User management views
+@login_required
+@user_passes_test(is_staff_user)
+def user_list(request):
+    users = User.objects.all().order_by('-date_joined')
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) | 
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+    
+    # Filter by staff status
+    staff_filter = request.GET.get('staff')
+    if staff_filter == 'true':
+        users = users.filter(is_staff=True)
+    elif staff_filter == 'false':
+        users = users.filter(is_staff=False)
+    
+    context = {
+        'users': users,
+        'search_query': search_query,
+        'staff_filter': staff_filter,
+    }
+    
+    return render(request, 'admin_panel/user_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def user_edit(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'User updated successfully!')
+            return redirect('admin_panel:user_list')
+    else:
+        form = UserForm(instance=user)
+    
+    context = {
+        'form': form,
+        'user': user,
+        'title': 'Edit User',
+    }
+    
+    return render(request, 'admin_panel/user_form.html', context)
+
+# Analytics view
+@login_required
+@user_passes_test(is_staff_user)
+def analytics_view(request):
+    # Redirect to the existing analytics dashboard
+    return redirect('analytics:dashboard')

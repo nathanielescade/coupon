@@ -1,0 +1,523 @@
+we created a coupon app, see something,  homepage '{% extends 'base.html' %}
+{% block title %}Home - CouponHub{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="card-bg rounded-xl shadow-xl overflow-hidden mb-10 border border-blue-700">
+    <div class="p-8 md:p-12">
+        <div class="max-w-3xl">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">Save Money with Exclusive Coupons</h1>
+            <p class="text-xl text-blue-200 mb-6">Discover the best deals and discounts from your favorite stores.</p>
+            <form action="{% url 'search' %}" method="GET" class="flex">
+                <input type="text" name="q" placeholder="Search for coupons, stores, or categories..." class="px-4 py-3 w-full rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="btn-gradient text-white px-6 py-3 rounded-r-lg font-semibold hover:opacity-90 transition">Search</button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="mb-12">
+    <h2 class="text-2xl font-bold text-blue-300 mb-6">Popular Categories</h2>
+    <div class="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
+        {% for category in categories %}
+        {% include 'category_tag.html' with category=category %}
+        {% empty %}
+        <div class="text-center py-4 w-full">
+            <p class="text-blue-400">No categories available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Coupons Section -->
+<section class="mb-12" id="featured-section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Featured Coupons</h2>
+        <a href="{% url 'featured_coupons' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <!-- Filter controls for Featured Coupons -->
+    <div class="filter-controls mb-4" data-section="featured" data-default-sort="popular">
+        <div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="newest">
+                <i class="fas fa-clock mr-1"></i> Newest
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="expiring">
+                <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/50 text-blue-200 transition" data-sort="popular">
+                <i class="fas fa-fire mr-1"></i> Popular
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="discount_high">
+                <i class="fas fa-percentage mr-1"></i> Highest Discount
+            </button>
+        </div>
+    </div>
+    
+    <div class="coupon-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for coupon in featured_coupons %}
+        {% include 'coupon_card.html' with coupon=coupon show_expiry=True %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No featured coupons at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Expiring Soon Section -->
+<section class="mb-12" id="expiring-section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Expiring Soon</h2>
+        <a href="{% url 'expiring_coupons' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <!-- Filter controls for Expiring Soon -->
+    <div class="filter-controls mb-4" data-section="expiring" data-default-sort="expiring">
+        <div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="newest">
+                <i class="fas fa-clock mr-1"></i> Newest
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/50 text-blue-200 transition" data-sort="expiring">
+                <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="popular">
+                <i class="fas fa-fire mr-1"></i> Popular
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="discount_high">
+                <i class="fas fa-percentage mr-1"></i> Highest Discount
+            </button>
+        </div>
+    </div>
+    
+    <div class="coupon-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for coupon in expiring_soon %}
+        {% include 'coupon_card.html' with coupon=coupon show_expiry=True %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No coupons expiring soon.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Latest Coupons Section -->
+<section class="mb-12" id="latest-section">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Latest Coupons</h2>
+        <a href="{% url 'latest_coupons' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <!-- Filter controls for Latest Coupons -->
+    <div class="filter-controls mb-4" data-section="latest" data-default-sort="newest">
+        <div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/50 text-blue-200 transition" data-sort="newest">
+                <i class="fas fa-clock mr-1"></i> Newest
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="expiring">
+                <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="popular">
+                <i class="fas fa-fire mr-1"></i> Popular
+            </button>
+            <button class="filter-btn flex-shrink-0 px-3 py-1 text-sm rounded-lg bg-blue-900/30 text-blue-300 hover:bg-blue-900/50 transition" data-sort="discount_high">
+                <i class="fas fa-percentage mr-1"></i> Highest Discount
+            </button>
+        </div>
+    </div>
+    
+    <div class="coupon-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for coupon in coupons %}
+        {% include 'coupon_card.html' with coupon=coupon small_text=True %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No coupons available at the moment.</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="flex justify-center mt-8">
+        <nav class="inline-flex rounded-md shadow">
+            {% if page_obj.has_previous %}
+            <a href="?page=1{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border border-blue-700 rounded-l-md text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-double-left"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-left"></i>
+            </a>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="py-2 px-4 btn-gradient border border-blue-700 text-white">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 rounded-r-md text-blue-300 hover:bg-blue-900/50">
+                <i class="fas fa-angle-double-right"></i>
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Popular Stores -->
+<section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Popular Stores</h2>
+        <a href="{% url 'all_stores' %}" class="text-blue-400 hover:text-blue-300 font-medium transition">View All</a>
+    </div>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {% for store in stores %}
+        {% include 'store_card.html' with store=store %}
+        {% empty %}
+        <div class="col-span-full text-center py-10">
+            <p class="text-blue-400">No stores available.</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const section = this.closest('.filter-controls').dataset.section;
+            const sort = this.dataset.sort;
+            
+            // Update active state
+            const container = this.closest('.filter-controls');
+            container.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-900/50', 'text-blue-200');
+                btn.classList.add('bg-blue-900/30', 'text-blue-300');
+            });
+            this.classList.remove('bg-blue-900/30', 'text-blue-300');
+            this.classList.add('bg-blue-900/50', 'text-blue-200');
+            
+            // Make AJAX request
+            fetch(`/filter-coupons/?section=${section}&sort=${sort}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update the coupon list
+                    const couponList = document.querySelector(`#${section}-section .coupon-list`);
+                    couponList.innerHTML = data.html;
+                })
+                .catch(error => console.error('Error:', error));
+        });
+    });
+});
+</script>
+
+{% endblock %}',  '{% load coupon_extras %}
+<div class="coupon-card card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+    <div class="p-5">
+        <div class="flex justify-between items-start mb-3">
+            <div class="flex items-center">
+                {% if coupon.store.logo %}
+                <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }}" class="w-10 h-10 object-contain mr-2">
+                {% else %}
+                <div class="w-10 h-10 bg-blue-900/50 rounded-lg flex items-center justify-center mr-2">
+                    <i class="fas fa-store text-blue-400"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h3 class="font-bold text-blue-200 text-sm">{{ coupon.store.name }}</h3>
+                    <p class="text-xs text-blue-400">{{ coupon.category.name }}</p>
+                </div>
+            </div>
+           <div class="flex gap-1">
+    {% if show_expiry and coupon.is_expired %}
+        <span class="bg-red-900/50 text-red-300 text-xs px-2 py-1 rounded-full">Expired</span>
+    {% elif coupon.expiry_date|is_expiring_soon %}
+        <span class="bg-orange-900/50 text-orange-300 text-xs px-2 py-1 rounded-full">Expiring Soon</span>
+    {% else %}
+        {% if coupon.is_featured %}
+            <span class="bg-yellow-900/50 text-yellow-300 text-xs px-2 py-1 rounded-full">Featured</span>
+        {% endif %}
+        {% if coupon.is_verified %}
+            <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+        {% endif %}
+    {% endif %}
+</div>
+        </div>
+        
+        <h3 class="font-bold text-blue-100 mb-2 {% if small_text %}text-sm{% endif %}">{{ coupon.title }}</h3>
+        <p class="text-blue-300 mb-3 {% if small_text %}text-xs{% else %}text-sm{% endif %}">{{ coupon.description|truncatewords:15 }}</p>
+        
+        <!-- Coupon Code Section -->
+        {% if coupon.code and show_code|default:True %}
+        <div class="mb-4 p-3 bg-black/30 rounded-lg border border-blue-700">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="text-xs text-blue-400 mb-1">Coupon Code</div>
+                    <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.id }}">{{ coupon.code }}</div>
+                </div>
+
+                <button onclick="copyCode('{{ coupon.code }}', '{{ coupon.id }}', event)" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
+                    <i class="far fa-copy mr-1"></i> Copy
+                </button>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="flex justify-between items-center mb-4">
+            <div class="text-lg font-bold text-gradient {% if small_text %}text-base{% endif %}">{{ coupon.discount_display }}</div>
+            <div class="text-xs text-blue-400">
+                {% if coupon.expiry_date %}
+                {% if show_expiry %}
+                Expires: {{ coupon.expiry_date|date:"M d, Y" }}
+                {% else %}
+                {{ coupon.expiry_date|date:"M d" }}
+                {% endif %}
+                {% else %}
+                No expiry
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="flex space-x-2">
+            {% if coupon.affiliate_link %}
+            <a href="{{ coupon.affiliate_link }}" target="_blank" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
+                Use Deal
+            </a>
+            {% else %}
+            <a href="{% url 'coupon_detail' coupon.id %}" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
+                View Details
+            </a>
+            {% endif %}
+            {% if user.is_authenticated %}
+            <a href="{% url 'save_coupon' coupon.id %}" class="w-10 h-8 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+                <i class="far fa-heart text-blue-300 {% if small_text %}text-sm{% endif %}"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<!-- coupon_card.html -->
+',  coupon_detail.html '{% extends 'base.html' %}
+{% block title %}{{ coupon.title }} - CouponHub{% endblock %}
+
+{% block content %}
+<div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
+    <div class="p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div class="flex items-center mb-4 md:mb-0">
+                {% if coupon.store.logo %}
+                <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }}" class="w-16 h-16 object-contain mr-4">
+                {% else %}
+                <div class="w-16 h-16 bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+                    <i class="fas fa-store text-blue-400 text-2xl"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-100">{{ coupon.title }}</h1>
+                    <p class="text-blue-300">{{ coupon.store.name }} • {{ coupon.category.name }}</p>
+                </div>
+            </div>
+            
+            <div class="flex space-x-2">
+                {% if coupon.is_verified %}
+                <span class="bg-green-900/50 text-green-300 px-3 py-1 rounded-full text-sm">Verified</span>
+                {% endif %}
+                {% if coupon.is_featured %}
+                <span class="bg-yellow-900/50 text-yellow-300 px-3 py-1 rounded-full text-sm">Featured</span>
+                {% endif %}
+                {% if coupon.is_expired %}
+                <span class="bg-red-900/50 text-red-300 px-3 py-1 rounded-full text-sm">Expired</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Coupon Code Section (Prominent) -->
+        <div class="mb-8">
+            <div class="card-bg rounded-xl p-6 border border-blue-700">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+                    <div>
+                        <div class="text-3xl font-bold text-gradient mb-2">{{ coupon.discount_display }}</div>
+                        <div class="text-blue-200">{{ coupon.store.name }}</div>
+                    </div>
+                    
+                    {% if coupon.code %}
+                    <div class="mt-4 md:mt-0">
+                        <div class="text-sm text-blue-300 mb-2">Coupon Code</div>
+                        <div class="flex items-center">
+                            <div class="font-mono font-bold text-xl text-blue-100 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700" id="main-coupon-code">
+                                {{ coupon.code }}
+                            </div>
+<button onclick="copyCode('{{ coupon.code }}', '{{ coupon.id }}', event)" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium transition flex items-center">
+    <i class="far fa-copy mr-2"></i> Copy Code
+</button>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mt-4 md:mt-0">
+                        <div class="text-sm text-blue-300 mb-2">No Code Needed</div>
+                        <div class="bg-black/30 px-4 py-2 rounded-lg border border-blue-700 text-blue-100 font-medium">
+                            This deal is automatically applied at checkout
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="flex flex-wrap gap-3 mt-6">
+                    {% if not coupon.is_expired %}
+                    {% if coupon.affiliate_link %}
+                    <a href="{{ coupon.affiliate_link }}" target="_blank" class="btn-gradient text-white px-6 py-3 rounded-lg font-semibold transition hover:opacity-90 flex items-center">
+                        <i class="fas fa-external-link-alt mr-2"></i> Use This Deal
+                    </a>
+                    {% endif %}
+                    
+                    {% if user.is_authenticated %}
+                    {% if is_saved %}
+                    <a href="#" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                        <i class="fas fa-heart mr-2"></i> Saved
+                    </a>
+                    {% else %}
+                    <a href="{% url 'save_coupon' coupon.id %}" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                        <i class="far fa-heart mr-2"></i> Save Coupon
+                    </a>
+                    {% endif %}
+                    {% else %}
+                    <a href="{% url 'login' %}" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                        <i class="far fa-user mr-2"></i> Login to Save
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2">
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
+                    <p class="text-blue-300">{{ coupon.description }}</p>
+                </div>
+                
+                {% if coupon.terms_and_conditions %}
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
+                    <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Discount Type</p>
+                            <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Coupon Type</p>
+                            <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Start Date</p>
+                            <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Expiry Date</p>
+                            <p class="font-medium text-blue-100">
+                                {% if coupon.expiry_date %}
+                                {{ coupon.expiry_date|date:"M d, Y" }}
+                                {% else %}
+                                No expiration
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if coupon.minimum_purchase %}
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Minimum Purchase</p>
+                            <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
+                        </div>
+                        {% endif %}
+                        {% if coupon.usage_limit %}
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Usage Limit</p>
+                            <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">About {{ coupon.store.name }}</h2>
+                    <p class="text-blue-300">{{ coupon.store.description|default:"No description available." }}</p>
+                    <div class="mt-4">
+                        <a href="{{ coupon.store.website }}" target="_blank" class="text-blue-400 hover:text-blue-300 font-medium flex items-center">
+                            Visit Store Website <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for related_coupon in related_coupons %}
+                        <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
+                                {% if related_coupon.is_verified %}
+                                <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
+                            <div class="flex justify-between items-center">
+                                <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
+                                <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full text-center py-4">
+                            <p class="text-blue-400">No related coupons found.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="card-bg border border-blue-700 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold text-blue-200 mb-4">How to Use This Coupon</h3>
+                    <ol class="space-y-3">
+                        <li class="flex items-start">
+                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</div>
+                            <p class="text-blue-300">Click on "Copy Code" button to copy the coupon code</p>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</div>
+                            <p class="text-blue-300">Click on "Use This Deal" to visit the store's website</p>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</div>
+                            <p class="text-blue-300">Add items to your shopping cart</p>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">4</div>
+                            <p class="text-blue-300">Paste the coupon code at checkout to get your discount</p>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock %}', tell us what you think of itt

@@ -1,0 +1,267 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Admin Panel - CouponHub{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+            color: #e0e7ff;
+            min-height: 100vh;
+        }
+        
+        .admin-sidebar {
+            background: linear-gradient(to bottom right, rgba(0,0,0,0.8), rgba(0,78,146,0.9));
+            border-right: 1px solid #3b82f6;
+        }
+        
+        .admin-card {
+            background: linear-gradient(to bottom right, rgba(0,0,0,0.7), rgba(0,78,146,0.8));
+            border: 1px solid #3b82f6;
+        }
+        
+        .admin-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .admin-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .admin-btn.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .stat-card {
+            background: linear-gradient(to bottom right, rgba(0,0,0,0.5), rgba(0,78,146,0.6));
+            border: 1px solid #3b82f6;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* Scrollbar styling */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="admin-sidebar w-64 flex-shrink-0 hidden md:block">
+            <div class="p-6">
+                <div class="flex items-center space-x-3 mb-10">
+                    <i class="fas fa-ticket-alt text-blue-400 text-2xl"></i>
+                    <a href="{% url 'admin_panel:dashboard' %}" class="text-xl font-bold text-blue-400 tracking-wide">Admin Panel</a>
+                </div>
+                
+                <nav class="space-y-1">
+                    <a href="{% url 'admin_panel:dashboard' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt text-blue-400 w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:coupon_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'coupon' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-ticket-alt text-blue-400 w-5"></i>
+                        <span>Coupons</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:store_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'store' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-store text-blue-400 w-5"></i>
+                        <span>Stores</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:category_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-tags text-blue-400 w-5"></i>
+                        <span>Categories</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:user_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-users text-blue-400 w-5"></i>
+                        <span>Users</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:analytics' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
+                        <i class="fas fa-chart-line text-blue-400 w-5"></i>
+                        <span>Analytics</span>
+                    </a>
+                    
+                    <div class="pt-4 mt-4 border-t border-blue-800">
+                        <a href="{% url 'home' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-home text-blue-400 w-5"></i>
+                            <span>Back to Site</span>
+                        </a>
+                        
+                        <a href="{% url 'admin:index' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-cog text-blue-400 w-5"></i>
+                            <span>Django Admin</span>
+                        </a>
+                        
+                        <form method="post" action="{% url 'logout' %}" class="block">
+                            {% csrf_token %}
+                            <button type="submit" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg w-full text-left">
+                                <i class="fas fa-sign-out-alt text-blue-400 w-5"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </nav>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <!-- Top Bar -->
+            <header class="bg-gradient-to-r from-black to-blue-900 shadow-lg border-b border-blue-800">
+                <div class="flex justify-between items-center p-4">
+                    <div class="flex items-center">
+                        <button id="mobile-menu-button" class="md:hidden text-blue-300 mr-4">
+                            <i class="fas fa-bars text-xl"></i>
+                        </button>
+                        <h1 class="text-xl font-bold text-blue-300">{% block page_title %}Dashboard{% endblock %}</h1>
+                    </div>
+                    
+                    <div class="flex items-center space-x-4">
+                        <div class="text-right">
+                            <div class="text-sm font-medium text-blue-300">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="text-xs text-blue-400">Administrator</div>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-blue-900/50 flex items-center justify-center">
+                            <i class="fas fa-user text-blue-400"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Content -->
+            <main class="p-6">
+                {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                    <div class="p-4 mb-4 rounded-lg {% if message.tags == 'success' %}bg-green-900/50 text-green-200{% elif message.tags == 'error' %}bg-red-900/50 text-red-200{% else %}bg-blue-900/50 text-blue-200{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+    
+    <!-- Mobile Sidebar -->
+    <div id="mobile-sidebar" class="fixed inset-0 z-50 bg-black bg-opacity-75 hidden">
+        <div class="admin-sidebar w-64 h-full">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-10">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-ticket-alt text-blue-400 text-2xl"></i>
+                        <span class="text-xl font-bold text-blue-400">Admin Panel</span>
+                    </div>
+                    <button id="close-mobile-menu" class="text-blue-300">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <nav class="space-y-1">
+                    <a href="{% url 'admin_panel:dashboard' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-tachometer-alt text-blue-400 w-5"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:coupon_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-ticket-alt text-blue-400 w-5"></i>
+                        <span>Coupons</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:store_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-store text-blue-400 w-5"></i>
+                        <span>Stores</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:category_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-tags text-blue-400 w-5"></i>
+                        <span>Categories</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:user_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-users text-blue-400 w-5"></i>
+                        <span>Users</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:analytics' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-chart-line text-blue-400 w-5"></i>
+                        <span>Analytics</span>
+                    </a>
+                    
+                    <div class="pt-4 mt-4 border-t border-blue-800">
+                        <a href="{% url 'home' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-home text-blue-400 w-5"></i>
+                            <span>Back to Site</span>
+                        </a>
+                        
+                        <a href="{% url 'admin:index' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                            <i class="fas fa-cog text-blue-400 w-5"></i>
+                            <span>Django Admin</span>
+                        </a>
+                        
+                        <form method="post" action="{% url 'logout' %}" class="block">
+                            {% csrf_token %}
+                            <button type="submit" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg w-full text-left">
+                                <i class="fas fa-sign-out-alt text-blue-400 w-5"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileSidebar = document.getElementById('mobile-sidebar');
+            const closeMobileMenu = document.getElementById('close-mobile-menu');
+            
+            if (mobileMenuButton) {
+                mobileMenuButton.addEventListener('click', function() {
+                    mobileSidebar.classList.remove('hidden');
+                });
+            }
+            
+            if (closeMobileMenu) {
+                closeMobileMenu.addEventListener('click', function() {
+                    mobileSidebar.classList.add('hidden');
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

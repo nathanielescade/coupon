@@ -1,6 +1,6 @@
+<!-- registration/login.html -->
 {% extends 'base.html' %}
 {% block title %}Log In - CouponHub{% endblock %}
-
 {% block content %}
 <div class="max-w-md mx-auto card-bg rounded-xl shadow-xl overflow-hidden mt-10 border border-blue-700">
     <div class="p-8">
@@ -8,7 +8,7 @@
         
         {% if form.errors %}
         <div class="p-4 mb-4 rounded-lg bg-red-900/50 text-red-300 border border-red-800">
-            Your username and password didn't match. Please try again.
+            Your username/email and password didn't match. Please try again.
         </div>
         {% endif %}
         
@@ -28,7 +28,7 @@
         <form method="post">
             {% csrf_token %}
             <div class="mb-4">
-                <label for="id_username" class="block text-blue-300 text-sm font-bold mb-2">Username</label>
+                <label for="id_username" class="block text-blue-300 text-sm font-bold mb-2">Username or Email</label>
                 <input type="text" name="username" id="id_username" class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border border-blue-600 text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             </div>
             
