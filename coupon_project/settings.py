@@ -1,17 +1,28 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-your-secret-key-here'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'True'
 
-# Add ngrok URL to allowed hosts
-ALLOWED_HOSTS = ["localhost", "192.168.43.101", "bc1a201d8551.ngrok-free.app"]
+# Parse allowed hosts from environment variable
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# Add ngrok URL to allowed hosts if available
+ngrok_url = os.environ.get('NGROK_URL')
+if ngrok_url and ngrok_url not in ALLOWED_HOSTS:
+    # Extract hostname from URL (remove protocol)
+    ngrok_host = ngrok_url.split('//')[-1]
+    ALLOWED_HOSTS.append(ngrok_host)
 
 # Application definition
 INSTALLED_APPS = [
@@ -62,12 +73,30 @@ TEMPLATES = [
 WSGI_APPLICATION = 'coupon_project.wsgi.application'
 
 # Database
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Use DATABASE_URL if available, otherwise use SQLite
+DATABASE_URL = os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+
+# Default to SQLite if no DATABASE_URL is provided
+if DATABASE_URL.startswith('sqlite'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / DATABASE_URL.replace('sqlite:///', ''),
+        }
     }
-}
+elif DATABASE_URL.startswith('postgres'):
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    # Fallback to SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -114,16 +143,17 @@ REST_FRAMEWORK = {
 }
 
 # CORS settings
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://bc1a201d8551.ngrok-free.app",  # Add ngrok URL with HTTPS
-]
+cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000').split(',')
+CORS_ALLOWED_ORIGINS = cors_origins
+
+# Add ngrok URL to CORS if available
+if ngrok_url:
+    CORS_ALLOWED_ORIGINS.append(ngrok_url)
 
 # CSRF settings for ngrok
-CSRF_TRUSTED_ORIGINS = [
-    "https://bc1a201d8551.ngrok-free.app",  # Add ngrok URL with HTTPS
-]
+CSRF_TRUSTED_ORIGINS = []
+if ngrok_url:
+    CSRF_TRUSTED_ORIGINS.append(ngrok_url)
 
 # Login URLs
 LOGIN_URL = 'login'
@@ -135,61 +165,44 @@ STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
-
-
-
 # Email settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com' 
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'nathanielescade@gmail.com'  
-EMAIL_HOST_PASSWORD = 'dzrbwftkjkolxloo'  
-DEFAULT_FROM_EMAIL = 'nathanielescade@gmail.com'
-ADMIN_EMAIL = 'nathanielescade@gmail.com'  
-
-
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'True'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', DEFAULT_FROM_EMAIL)
 
 # SEO Settings
-
-
-
-
-
-
-
-
-
-SITE_URL = "https://yourdomain.com"  # Replace with your actual domain
-ADMIN_EMAIL = "admin@yourdomain.com"  # Replace with your admin email
+SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
 
 # Sitemap Settings
 TEMPLATES[0]['OPTIONS']['context_processors'].append('django.template.context_processors.request')
 
-
-
-
-
-# Add this to your settings.py
-
 # Cache configuration
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
-    }
-}
+cache_backend = os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache')
+cache_location = os.environ.get('CACHE_LOCATION', 'unique-snowflake')
 
-# If you want to use Redis for better performance (recommended for production):
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django_redis.cache.RedisCache',
-#         'LOCATION': 'redis://127.0.0.1:6379/1',
-#         'OPTIONS': {
-#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-#         }
-#     }
-# }
+if cache_backend == 'django_redis.cache.RedisCache':
+    redis_url = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
+    CACHES = {
+        'default': {
+            'BACKEND': cache_backend,
+            'LOCATION': redis_url,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': cache_backend,
+            'LOCATION': cache_location,
+        }
+    }
 
 # Cache timeout settings (in seconds)
 CACHE_TIMEOUT = {
