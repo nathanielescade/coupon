@@ -698,7 +698,6 @@ class CouponDeleteView(LoginRequiredMixin, DeleteView):
 
 
 
-
 def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -707,6 +706,9 @@ def signup_view(request):
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
             return redirect('login')
+        else:
+            # Form is invalid, errors will be displayed in the template
+            pass
     else:
         form = UserCreationForm()
     
@@ -717,8 +719,6 @@ def signup_view(request):
         'meta_keywords': "sign up, register, create account, coupon account"
     }
     return render(request, 'registration/signup.html', context)
-
-
 
 
 @login_required

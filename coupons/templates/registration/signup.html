@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block title %}Sign Up - CouponHub{% endblock %}
-
 {% block content %}
 <div class="max-w-md mx-auto card-bg rounded-xl shadow-xl overflow-hidden mt-10 border border-blue-700">
     <div class="p-8">
@@ -16,20 +15,60 @@
         
         <form method="post">
             {% csrf_token %}
+            
+            <!-- Username field with error display -->
             <div class="mb-4">
                 <label for="id_username" class="block text-blue-300 text-sm font-bold mb-2">Username</label>
-                <input type="text" name="username" id="id_username" class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border border-blue-600 text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="text" name="username" id="id_username" 
+                       class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border {% if form.username.errors %}border-red-500{% else %}border-blue-600{% endif %} text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                       value="{{ form.username.value|default:'' }}" required>
+                {% if form.username.errors %}
+                    <div class="text-red-400 text-sm mt-1">
+                        {% for error in form.username.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
+            <!-- Password1 field with error display -->
             <div class="mb-4">
                 <label for="id_password1" class="block text-blue-300 text-sm font-bold mb-2">Password</label>
-                <input type="password" name="password1" id="id_password1" class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border border-blue-600 text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="password" name="password1" id="id_password1" 
+                       class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border {% if form.password1.errors %}border-red-500{% else %}border-blue-600{% endif %} text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                       required>
+                {% if form.password1.errors %}
+                    <div class="text-red-400 text-sm mt-1">
+                        {% for error in form.password1.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
             
+            <!-- Password2 field with error display -->
             <div class="mb-6">
                 <label for="id_password2" class="block text-blue-300 text-sm font-bold mb-2">Confirm Password</label>
-                <input type="password" name="password2" id="id_password2" class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border border-blue-600 text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                <input type="password" name="password2" id="id_password2" 
+                       class="shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border {% if form.password2.errors %}border-red-500{% else %}border-blue-600{% endif %} text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                       required>
+                {% if form.password2.errors %}
+                    <div class="text-red-400 text-sm mt-1">
+                        {% for error in form.password2.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+            
+            <!-- Non-field errors (errors that don't belong to a specific field) -->
+            {% if form.non_field_errors %}
+                <div class="bg-red-900/50 text-red-300 border border-red-800 p-3 rounded-lg mb-4">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
             
             <div class="flex items-center justify-between">
                 <button type="submit" class="btn-gradient text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 w-full hover:opacity-90 transition">
