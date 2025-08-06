@@ -1,4 +1,3 @@
-# views.py (clean up imports)
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -8,44 +7,21 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy, reverse
+from django.urls import reverse_lazy
 from django.utils import timezone
+from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.db.models import Count, Q
-from django.http import JsonResponse
-from django.template.loader import render_to_string
-from django.core.mail import send_mail
-from django.conf import settings
-import requests
-import uuid
-# views.py (update the signup_view)
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from django.db.models import Q
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.urls import reverse
-from django.contrib.auth.models import User
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from threading import Thread
-from .forms import CustomUserCreationForm
-from .models import UserProfile, UserCoupon, CouponUsage
-
-from .models import (
-    Coupon, CouponProvider, Store, Category, UserCoupon, 
-    CouponUsage, UserProfile
-)
+import requests
+from .models import Coupon, CouponProvider, Store, Category, UserCoupon, CouponUsage
 from .serializers import (
     CouponSerializer, CouponCreateSerializer, CouponProviderSerializer,
     StoreSerializer, CategorySerializer, UserCouponSerializer, CouponUsageSerializer
 )
-from .forms import CustomUserCreationForm
 
 # API ViewSets
 class CouponViewSet(viewsets.ModelViewSet):
@@ -527,219 +503,29 @@ class CouponDeleteView(LoginRequiredMixin, DeleteView):
         messages.success(self.request, 'Coupon deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-# views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.urls import reverse
-from django.contrib.auth.models import User
-from .forms import CustomUserCreationForm
-from .models import UserProfile, UserCoupon, CouponUsage
-
-
-
-
-def send_email_async(subject, message, from_email, to_email, html_message=None):
-    def send():
-        try:
-            email = EmailMultiAlternatives(subject, message, from_email, to_email)
-            if html_message:
-                email.attach_alternative(html_message, "text/html")
-            email.send()
-        except Exception as e:
-            print(f"Error sending email: {str(e)}")
-    
-    thread = Thread(target=send)
-    thread.start()
-
-
-
-
 def signup_view(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            
-            # Get or create the user profile
-            user_profile, created = UserProfile.objects.get_or_create(user=user)
-            
-            # Send verification email to the user
-            verification_url = request.build_absolute_uri(
-                reverse('verify_email', kwargs={'token': str(user_profile.email_verification_token)})
-            )
-            
-            subject = 'Verify Your Email Address'
-            message = f'Hi {user.first_name},\n\nPlease verify your email address by clicking the link below:\n\n{verification_url}\n\nThanks,\nThe CouponHub Team'
-            
-            # Send email asynchronously
-            send_email_async(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email]
-            )
-            
-            # Send notification to admin asynchronously
-            admin_subject = f'New User Signup: {user.username}'
-            admin_message = f'A new user has signed up on CouponHub:\n\nUsername: {user.username}\nEmail: {user.email}\nName: {user.first_name} {user.last_name}\nSignup Date: {user.date_joined}\n\nPlease verify this user account.'
-            
-            send_email_async(
-                admin_subject,
-                admin_message,
-                settings.DEFAULT_FROM_EMAIL,
-                ['nathanielescade@gmail.com']
-            )
-            
-            messages.success(request, f'Account created for {user.username}! Please check your email to verify your account.')
-            return redirect('login')  # Immediate redirect without waiting for emails
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}! You can now log in.')
+            return redirect('login')
     else:
-        form = CustomUserCreationForm()
+        form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
 
 
 
 
-def verify_email(request, token):
-    try:
-        user_profile = UserProfile.objects.get(email_verification_token=token)
-        user_profile.is_email_verified = True
-        user_profile.save()
-        messages.success(request, 'Your email has been verified. You can now log in.')
-        return redirect('login')
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'Invalid verification link.')
-        return redirect('signup')
-
-
-# views.py (add these views)
-@login_required
-def profile_view(request, username=None):
-    if username:
-        user = get_object_or_404(User, username=username)
-    else:
-        user = request.user
-    
-    # Get user's profile for email verification status
-    user_profile = UserProfile.get_or_create_profile(user)
-    
-    # Get user's saved coupons
-    saved_coupons = UserCoupon.objects.filter(user=user).select_related('coupon', 'coupon__store')
-    
-    # Get user's coupon usage history
-    used_coupons = CouponUsage.objects.filter(user=user).select_related('coupon', 'coupon__store')
-    
-    # Calculate statistics
-    total_saved = saved_coupons.count()
-    total_used = used_coupons.count()
-    
-    context = {
-        'profile_user': user,
-        'user_profile': user_profile,
-        'saved_coupons': saved_coupons[:10],  # Limit to 10 for display
-        'used_coupons': used_coupons[:10],   # Limit to 10 for display
-        'total_saved': total_saved,
-        'total_used': total_used,
-        'is_own_profile': user == request.user
-    }
-    
-    return render(request, 'registration/profile.html', context)
 
 
 
 
 
-@login_required
-def edit_profile_view(request):
-    if request.method == 'POST':
-        user = request.user
-        old_email = user.email
-        
-        user.first_name = request.POST.get('first_name', '')
-        user.last_name = request.POST.get('last_name', '')
-        new_email = request.POST.get('email', '')
-        
-        # Check if email is being changed
-        if new_email != old_email:
-            # Get or create user profile
-            user_profile = UserProfile.get_or_create_profile(user)
-            
-            # Update email and reset verification status
-            user.email = new_email
-            user_profile.is_email_verified = False
-            user_profile.email_verification_token = uuid.uuid4()  # Generate new token
-            user_profile.save()
-            
-            # Send verification email
-            verification_url = request.build_absolute_uri(
-                reverse('verify_email', kwargs={'token': str(user_profile.email_verification_token)})
-            )
-            
-            subject = 'Verify Your New Email Address'
-            message = f'Hi {user.first_name},\n\nPlease verify your new email address by clicking the link below:\n\n{verification_url}\n\nThanks,\nThe CouponHub Team'
-            
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [new_email],
-                    fail_silently=False,
-                )
-                messages.info(request, 'Email updated. Please check your inbox to verify your new email address.')
-            except Exception as e:
-                messages.error(request, f'Email updated but we could not send verification email: {str(e)}')
-        
-        user.save()
-        messages.success(request, 'Profile updated successfully!')
-        return redirect('profile')
-    
-    return render(request, 'registration/edit_profile.html')
 
 
 
-# views.py (add this view)
-# views.py (add this view)
-@login_required
-def resend_verification_email(request):
-    try:
-        # Get or create user profile
-        user_profile = UserProfile.get_or_create_profile(request.user)
-        
-        # Only resend if email is not verified
-        if not user_profile.is_email_verified:
-            # Generate a new token
-            user_profile.email_verification_token = uuid.uuid4()
-            user_profile.save()
-            
-            # Send verification email
-            verification_url = request.build_absolute_uri(
-                reverse('verify_email', kwargs={'token': str(user_profile.email_verification_token)})
-            )
-            
-            subject = 'Verify Your Email Address'
-            message = f'Hi {request.user.first_name},\n\nPlease verify your email address by clicking the link below:\n\n{verification_url}\n\nThanks,\nThe CouponHub Team'
-            
-            try:
-                send_mail(
-                    subject,
-                    message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [request.user.email],
-                    fail_silently=False,
-                )
-                messages.success(request, 'Verification email sent. Please check your inbox.')
-            except Exception as e:
-                messages.error(request, f'Could not send verification email: {str(e)}')
-        else:
-            messages.info(request, 'Your email is already verified.')
-    except Exception as e:
-        messages.error(request, f'Error: {str(e)}')
-    
-    return redirect('profile') 
 
 # Add these new views to your views.py file
 

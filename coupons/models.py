@@ -5,20 +5,6 @@ from django.core.validators import URLValidator
 import uuid
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    is_email_verified = models.BooleanField(default=False)
-    email_verification_token = models.UUIDField(default=uuid.uuid4, editable=False)
-    
-    def __str__(self):
-        return f"{self.user.username}'s Profile"
-    
-    @classmethod
-    def get_or_create_profile(cls, user):
-        profile, created = cls.objects.get_or_create(user=user)
-        return profile
-
-
 class CouponProvider(models.Model):
     name = models.CharField(max_length=100)
     api_url = models.URLField(validators=[URLValidator()])
