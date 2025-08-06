@@ -3,6 +3,11 @@ from django.urls import reverse
 from django.conf import settings
 from .models import Coupon, Store, Category, SEO, HomePageSEO
 
+from django.utils.text import slugify, Truncator
+from django.urls import reverse
+from django.conf import settings
+from .models import Coupon, Store, Category, SEO, HomePageSEO
+
 def get_meta_title(instance, request=None):
     """Get optimized meta title for different models, using manual SEO data if available"""
     if isinstance(instance, Coupon):
@@ -33,7 +38,11 @@ def get_meta_description(instance, request=None):
     if isinstance(instance, Coupon):
         if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_description:
             return instance.seo.meta_description
-        return f"Get {instance.discount_display} at {instance.store.name}. {instance.description|truncatewords:20} Valid until {instance.expiry_date|date:'M d, Y' if instance.expiry_date else 'No expiration'}."
+        
+        # Use Django's Truncator instead of template filter
+        truncated_desc = Truncator(instance.description).words(20)
+        expiry_date = instance.expiry_date.strftime('%M d, Y') if instance.expiry_date else 'No expiration'
+        return f"Get {instance.discount_display} at {instance.store.name}. {truncated_desc} Valid until {expiry_date}."
     elif isinstance(instance, Store):
         if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_description:
             return instance.seo.meta_description
@@ -53,7 +62,8 @@ def get_meta_description(instance, request=None):
     except HomePageSEO.DoesNotExist:
         pass
     
-    return "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub."
+    return "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub."  
+
 
 def get_meta_keywords(instance, request=None):
     """Get meta keywords for different models, using manual SEO data if available"""

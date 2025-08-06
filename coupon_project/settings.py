@@ -151,8 +151,49 @@ ADMIN_EMAIL = 'nathanielescade@gmail.com'
 
 
 # SEO Settings
+
+
+
+
+
+
+
+
+
 SITE_URL = "https://yourdomain.com"  # Replace with your actual domain
 ADMIN_EMAIL = "admin@yourdomain.com"  # Replace with your admin email
 
 # Sitemap Settings
 TEMPLATES[0]['OPTIONS']['context_processors'].append('django.template.context_processors.request')
+
+
+
+
+
+# Add this to your settings.py
+
+# Cache configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'unique-snowflake',
+    }
+}
+
+# If you want to use Redis for better performance (recommended for production):
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django_redis.cache.RedisCache',
+#         'LOCATION': 'redis://127.0.0.1:6379/1',
+#         'OPTIONS': {
+#             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+#         }
+#     }
+# }
+
+# Cache timeout settings (in seconds)
+CACHE_TIMEOUT = {
+    'short': 60 * 3,      # 3 minutes
+    'medium': 60 * 10,    # 10 minutes
+    'long': 60 * 60,      # 1 hour
+}

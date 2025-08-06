@@ -23,12 +23,13 @@ from rest_framework import filters  # if you haven't imported it already
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
 import datetime
 import requests
-
+from django.core.cache import cache  # Add this import
+from django.views.decorators.cache import cache_page  # Add this import
+from django.utils.decorators import method_decorator  # Add this import
 from .models import (
     Coupon, CouponProvider, Store, Category, 
     UserCoupon, CouponUsage, NewsletterSubscriber, 
@@ -123,7 +124,6 @@ class CouponViewSet(viewsets.ModelViewSet):
         )
         serializer = CouponSerializer(expiring_coupons, many=True)
         return Response(serializer.data)
-
 class CouponProviderViewSet(viewsets.ModelViewSet):
     queryset = CouponProvider.objects.all()
     serializer_class = CouponProviderSerializer
@@ -193,22 +193,20 @@ class CouponProviderViewSet(viewsets.ModelViewSet):
                 'status': 'error',
                 'message': f'Failed to fetch coupons: {str(e)}'
             }, status=status.HTTP_400_BAD_REQUEST)
-
 class StoreViewSet(viewsets.ModelViewSet):
     queryset = Store.objects.filter(is_active=True)
     serializer_class = StoreSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['is_active']
     search_fields = ['name', 'description']
-
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.filter(is_active=True)
     serializer_class = CategorySerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter]
     filterset_fields = ['is_active']
     search_fields = ['name', 'description']
-
 # Frontend Views
+@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class HomeView(ListView):
     model = Coupon
     template_name = 'home.html'
@@ -216,6 +214,13 @@ class HomeView(ListView):
     paginate_by = 12
     
     def get_queryset(self):
+        # Try to get from cache first
+        cache_key = f'homepage_latest_coupons_{self.request.GET.get("sort", "newest")}'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
         
@@ -237,22 +242,50 @@ class HomeView(ListView):
         else:  # newest
             coupons = coupons.order_by('-is_featured', '-created_at')
             
+        # Cache the queryset
+        cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
+            
         return coupons
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['featured_coupons'] = Coupon.objects.filter(
-            is_active=True,
-            is_featured=True,
-            expiry_date__gte=timezone.now()
-        )[:6]
-        context['expiring_soon'] = Coupon.objects.filter(
-            is_active=True,
-            expiry_date__lte=timezone.now() + timezone.timedelta(days=7),
-            expiry_date__gte=timezone.now()
-        )[:6]
-        context['stores'] = Store.objects.filter(is_active=True)[:10]
-        context['categories'] = Category.objects.filter(is_active=True)
+        
+        # Try to get featured coupons from cache
+        featured_coupons = cache.get('homepage_featured_coupons')
+        if featured_coupons is None:
+            featured_coupons = Coupon.objects.filter(
+                is_active=True,
+                is_featured=True,
+                expiry_date__gte=timezone.now()
+            )[:6]
+            cache.set('homepage_featured_coupons', featured_coupons, 60 * 5)  # Cache for 5 minutes
+        
+        # Try to get expiring soon coupons from cache
+        expiring_soon = cache.get('homepage_expiring_soon')
+        if expiring_soon is None:
+            expiring_soon = Coupon.objects.filter(
+                is_active=True,
+                expiry_date__lte=timezone.now() + timezone.timedelta(days=7),
+                expiry_date__gte=timezone.now()
+            )[:6]
+            cache.set('homepage_expiring_soon', expiring_soon, 60 * 5)  # Cache for 5 minutes
+        
+        # Try to get stores from cache
+        stores = cache.get('homepage_stores')
+        if stores is None:
+            stores = Store.objects.filter(is_active=True)[:10]
+            cache.set('homepage_stores', stores, 60 * 15)  # Cache for 15 minutes
+        
+        # Try to get categories from cache
+        categories = cache.get('homepage_categories')
+        if categories is None:
+            categories = Category.objects.filter(is_active=True)
+            cache.set('homepage_categories', categories, 60 * 15)  # Cache for 15 minutes
+        
+        context['featured_coupons'] = featured_coupons
+        context['expiring_soon'] = expiring_soon
+        context['stores'] = stores
+        context['categories'] = categories
         context['current_sort'] = self.request.GET.get('sort', 'newest')
         
         # Get homepage SEO data
@@ -273,16 +306,35 @@ class HomeView(ListView):
         
         return context
 
-
-
-
-
+@method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CouponDetailView(DetailView):
     model = Coupon
     template_name = 'coupon_detail.html'
     context_object_name = 'coupon'
     slug_field = 'id'
     slug_url_kwarg = 'coupon_id'
+    
+    def get_object(self, queryset=None):
+        # Try to get from cache first
+        cache_key = f'coupon_detail_{self.kwargs["coupon_id"]}'
+        cached_object = cache.get(cache_key)
+        
+        if cached_object is not None:
+            return cached_object
+            
+        obj = super().get_object(queryset)
+        
+        # Cache the object
+        cache.set(cache_key, obj, 60 * 10)  # Cache for 10 minutes
+        
+        # Track coupon view
+        try:
+            analytics, created = CouponAnalytics.objects.get_or_create(coupon=obj)
+            analytics.increment_views()
+        except Exception:
+            pass  # Silently fail if analytics tracking fails
+        
+        return obj
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -306,21 +358,8 @@ class CouponDetailView(DetailView):
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
-    
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        
-        # Track coupon view
-        try:
-            analytics, created = CouponAnalytics.objects.get_or_create(coupon=obj)
-            analytics.increment_views()
-        except Exception:
-            pass  # Silently fail if analytics tracking fails
-        
-        return obj
 
-
-
+@method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class StoreDetailView(DetailView):
     model = Store
     template_name = 'store_detail.html'
@@ -328,28 +367,51 @@ class StoreDetailView(DetailView):
     slug_field = 'slug'
     slug_url_kwarg = 'store_slug'
     
+    def get_object(self, queryset=None):
+        # Try to get from cache first
+        cache_key = f'store_detail_{self.kwargs["store_slug"]}'
+        cached_object = cache.get(cache_key)
+        
+        if cached_object is not None:
+            return cached_object
+            
+        obj = super().get_object(queryset)
+        
+        # Cache the object
+        cache.set(cache_key, obj, 60 * 10)  # Cache for 10 minutes
+        
+        return obj
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
         
-        # Base queryset
-        coupons = Coupon.objects.filter(
-            store=self.object,
-            is_active=True,
-            expiry_date__gte=timezone.now()
-        )
+        # Try to get coupons from cache
+        cache_key = f'store_{self.object.slug}_coupons_{sort}'
+        coupons = cache.get(cache_key)
         
-        # Apply sorting
-        if sort == 'expiring':
-            coupons = coupons.order_by('expiry_date')
-        elif sort == 'popular':
-            coupons = coupons.order_by('-usage_count')
-        elif sort == 'discount_high':
-            coupons = coupons.order_by('-discount_value')
-        else:  # newest
-            coupons = coupons.order_by('-created_at')
+        if coupons is None:
+            # Base queryset
+            coupons = Coupon.objects.filter(
+                store=self.object,
+                is_active=True,
+                expiry_date__gte=timezone.now()
+            )
+            
+            # Apply sorting
+            if sort == 'expiring':
+                coupons = coupons.order_by('expiry_date')
+            elif sort == 'popular':
+                coupons = coupons.order_by('-usage_count')
+            elif sort == 'discount_high':
+                coupons = coupons.order_by('-discount_value')
+            else:  # newest
+                coupons = coupons.order_by('-created_at')
+                
+            # Cache the coupons
+            cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
             
         context['coupons'] = coupons
         context['stores'] = Store.objects.filter(is_active=True)
@@ -365,6 +427,7 @@ class StoreDetailView(DetailView):
         
         return context
 
+@method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CategoryDetailView(DetailView):
     model = Category
     template_name = 'category_detail.html'
@@ -372,28 +435,51 @@ class CategoryDetailView(DetailView):
     slug_field = 'slug'
     slug_url_kwarg = 'category_slug'
     
+    def get_object(self, queryset=None):
+        # Try to get from cache first
+        cache_key = f'category_detail_{self.kwargs["category_slug"]}'
+        cached_object = cache.get(cache_key)
+        
+        if cached_object is not None:
+            return cached_object
+            
+        obj = super().get_object(queryset)
+        
+        # Cache the object
+        cache.set(cache_key, obj, 60 * 10)  # Cache for 10 minutes
+        
+        return obj
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
         
-        # Base queryset
-        coupons = Coupon.objects.filter(
-            category=self.object,
-            is_active=True,
-            expiry_date__gte=timezone.now()
-        )
+        # Try to get coupons from cache
+        cache_key = f'category_{self.object.slug}_coupons_{sort}'
+        coupons = cache.get(cache_key)
         
-        # Apply sorting
-        if sort == 'expiring':
-            coupons = coupons.order_by('expiry_date')
-        elif sort == 'popular':
-            coupons = coupons.order_by('-usage_count')
-        elif sort == 'discount_high':
-            coupons = coupons.order_by('-discount_value')
-        else:  # newest
-            coupons = coupons.order_by('-created_at')
+        if coupons is None:
+            # Base queryset
+            coupons = Coupon.objects.filter(
+                category=self.object,
+                is_active=True,
+                expiry_date__gte=timezone.now()
+            )
+            
+            # Apply sorting
+            if sort == 'expiring':
+                coupons = coupons.order_by('expiry_date')
+            elif sort == 'popular':
+                coupons = coupons.order_by('-usage_count')
+            elif sort == 'discount_high':
+                coupons = coupons.order_by('-discount_value')
+            else:  # newest
+                coupons = coupons.order_by('-created_at')
+                
+            # Cache the coupons
+            cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
             
         context['coupons'] = coupons
         context['stores'] = Store.objects.filter(is_active=True)
@@ -409,6 +495,7 @@ class CategoryDetailView(DetailView):
         
         return context
 
+@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class SearchView(ListView):
     model = Coupon
     template_name = 'search.html'
@@ -420,6 +507,13 @@ class SearchView(ListView):
         query = self.request.GET.get('q', '')
         sort = self.request.GET.get('sort', 'newest')
         
+        # Try to get from cache first
+        cache_key = f'search_{query}_{sort}'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
         # Base queryset - only active and non-expired coupons
         coupons = Coupon.objects.filter(
             is_active=True,
@@ -448,6 +542,9 @@ class SearchView(ListView):
             coupons = coupons.order_by('-discount_value')
         else:  # newest
             coupons = coupons.order_by('-is_featured', '-created_at')
+            
+        # Cache the queryset
+        cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
             
         return coupons
     
@@ -650,6 +747,7 @@ def profile_view(request, username=None):
     return render(request, 'registration/profile.html', context)
 
 # Add these new views to your views.py file
+@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class AllCouponsView(ListView):
     model = Coupon
     template_name = 'all_coupons.html'
@@ -660,6 +758,13 @@ class AllCouponsView(ListView):
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
         
+        # Try to get from cache first
+        cache_key = f'all_coupons_{sort}'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
         # Base queryset
         coupons = Coupon.objects.filter(
             is_active=True,
@@ -678,6 +783,9 @@ class AllCouponsView(ListView):
         else:  # newest
             coupons = coupons.order_by('-is_featured', '-created_at')
             
+        # Cache the queryset
+        cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
+            
         return coupons
     
     def get_context_data(self, **kwargs):
@@ -692,6 +800,7 @@ class AllCouponsView(ListView):
         
         return context
 
+@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class FeaturedCouponsView(ListView):
     model = Coupon
     template_name = 'all_coupons.html'
@@ -702,6 +811,13 @@ class FeaturedCouponsView(ListView):
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
         
+        # Try to get from cache first
+        cache_key = f'featured_coupons_{sort}'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
         # Base queryset - only featured coupons
         coupons = Coupon.objects.filter(
             is_active=True,
@@ -720,6 +836,9 @@ class FeaturedCouponsView(ListView):
         else:  # newest
             coupons = coupons.order_by('-created_at')
             
+        # Cache the queryset
+        cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
+            
         return coupons
     
     def get_context_data(self, **kwargs):
@@ -734,6 +853,7 @@ class FeaturedCouponsView(ListView):
         
         return context
 
+@method_decorator(cache_page(60 * 5), name='dispatch')  # Cache for 5 minutes (shorter for expiring coupons)
 class ExpiringCouponsView(ListView):
     model = Coupon
     template_name = 'all_coupons.html'
@@ -744,6 +864,13 @@ class ExpiringCouponsView(ListView):
         # Get sort parameter
         sort = self.request.GET.get('sort', 'expiring')
         
+        # Try to get from cache first
+        cache_key = f'expiring_coupons_{sort}'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
         # Base queryset - only coupons expiring within 7 days
         soon = timezone.now() + timezone.timedelta(days=7)
         coupons = Coupon.objects.filter(
@@ -762,6 +889,9 @@ class ExpiringCouponsView(ListView):
         else:  # newest
             coupons = coupons.order_by('-created_at')
             
+        # Cache the queryset
+        cache.set(cache_key, coupons, 60 * 3)  # Cache for 3 minutes (shorter for expiring coupons)
+            
         return coupons
     
     def get_context_data(self, **kwargs):
@@ -776,6 +906,7 @@ class ExpiringCouponsView(ListView):
         
         return context
 
+@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class LatestCouponsView(ListView):
     model = Coupon
     template_name = 'all_coupons.html'
@@ -786,6 +917,13 @@ class LatestCouponsView(ListView):
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
         
+        # Try to get from cache first
+        cache_key = f'latest_coupons_{sort}'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
         # Base queryset
         coupons = Coupon.objects.filter(
             is_active=True,
@@ -803,6 +941,9 @@ class LatestCouponsView(ListView):
         else:  # newest
             coupons = coupons.order_by('-created_at')
             
+        # Cache the queryset
+        cache.set(cache_key, coupons, 60 * 5)  # Cache for 5 minutes
+            
         return coupons
     
     def get_context_data(self, **kwargs):
@@ -817,6 +958,7 @@ class LatestCouponsView(ListView):
         
         return context
 
+@method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class AllStoresView(ListView):
     model = Store
     template_name = 'all_stores.html'
@@ -824,7 +966,19 @@ class AllStoresView(ListView):
     paginate_by = 12
     
     def get_queryset(self):
-        return Store.objects.filter(is_active=True)
+        # Try to get from cache first
+        cache_key = 'all_stores'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
+        queryset = Store.objects.filter(is_active=True)
+        
+        # Cache the queryset
+        cache.set(cache_key, queryset, 60 * 10)  # Cache for 10 minutes
+            
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -837,6 +991,7 @@ class AllStoresView(ListView):
         
         return context
 
+@method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class AllCategoriesView(ListView):
     model = Category
     template_name = 'all_categories.html'
@@ -844,7 +999,19 @@ class AllCategoriesView(ListView):
     paginate_by = 12
     
     def get_queryset(self):
-        return Category.objects.filter(is_active=True)
+        # Try to get from cache first
+        cache_key = 'all_categories'
+        cached_queryset = cache.get(cache_key)
+        
+        if cached_queryset is not None:
+            return cached_queryset
+            
+        queryset = Category.objects.filter(is_active=True)
+        
+        # Cache the queryset
+        cache.set(cache_key, queryset, 60 * 10)  # Cache for 10 minutes
+            
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1134,8 +1301,6 @@ def preview_newsletter(request, newsletter_id):
     }
     
     return render(request, 'custom_newsletter_email.html', context)
-
-
 
 def robots_txt(request):
     context = {

@@ -15,9 +15,11 @@
                 {% endif %}
                 <div>
                     <h3 class="font-bold text-blue-200 text-sm" itemprop="seller" itemscope itemtype="https://schema.org/Organization">
-                        <span itemprop="name">{{ coupon.store.name }}</span>
+                        <a href="{% url 'store_detail' coupon.store.slug %}" class="hover:text-blue-100 transition" itemprop="name">{{ coupon.store.name }}</a>
                     </h3>
-                    <p class="text-xs text-blue-400" itemprop="category">{{ coupon.category.name }}</p>
+                    <p class="text-xs text-blue-400" itemprop="category">
+                        <a href="{% url 'category_detail' coupon.category.slug %}" class="hover:text-blue-300 transition">{{ coupon.category.name }}</a>
+                    </p>
                 </div>
             </div>
            <div class="flex gap-1">
@@ -87,6 +89,10 @@
                 View Details
             </a>
             {% endif %}
+            <!-- Added "Check Deal" button -->
+            <a href="{% url 'coupon_detail' coupon.id %}" class="flex-1 bg-blue-700 hover:bg-blue-600 text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition">
+                <i class="fas fa-tag mr-1"></i> Details
+            </a>
             {% if user.is_authenticated %}
             <a href="{% url 'save_coupon' coupon.id %}" class="w-10 h-8 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
                 <i class="far fa-heart text-blue-300 {% if small_text %}text-sm{% endif %}"></i>
@@ -119,7 +125,6 @@ function copyCode(code, couponId, event) {
         fallbackCopyTextToClipboard(code, event, couponId);
     }
 }
-
 function showCopySuccess(event) {
     const button = event.target.closest('button');
     const originalHTML = button.innerHTML;
@@ -131,7 +136,6 @@ function showCopySuccess(event) {
         button.classList.remove('bg-green-600');
     }, 2000);
 }
-
 function trackCopyEvent(couponId, code) {
     // Track the copy_code event with proper parameters
     if (typeof trackEvent === 'function') {
@@ -141,7 +145,6 @@ function trackCopyEvent(couponId, code) {
         });
     }
 }
-
 function fallbackCopyTextToClipboard(text, event, couponId) {
     var textArea = document.createElement("textarea");
     textArea.value = text;

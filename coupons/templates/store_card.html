@@ -1,4 +1,4 @@
-<div class="card-bg rounded-lg shadow-md border border-blue-700 p-4 flex flex-col items-center hover:shadow-lg transition">
+<div class="card-bg rounded-lg shadow-md border border-blue-700 p-4 flex flex-col items-center hover:shadow-lg transition cursor-pointer" onclick="window.location.href='{% url 'store_detail' store.slug %}'">
     {% if store.logo %}
     <img src="{{ store.logo.url }}" alt="{{ store.name }}" class="w-16 h-16 object-contain mb-2">
     {% else %}
