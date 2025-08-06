@@ -1,14 +1,23 @@
-# urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from django.contrib.auth import views as auth_views
+from django.contrib.sitemaps.views import sitemap
 from . import views
+from .sitemaps import CouponSitemap, StoreSitemap, CategorySitemap, StaticViewSitemap
 
 router = DefaultRouter()
 router.register(r'coupons', views.CouponViewSet)
 router.register(r'providers', views.CouponProviderViewSet)
 router.register(r'stores', views.StoreViewSet)
 router.register(r'categories', views.CategoryViewSet)
+
+# Sitemaps
+sitemaps = {
+    'coupons': CouponSitemap,
+    'stores': StoreSitemap,
+    'categories': CategorySitemap,
+    'static': StaticViewSitemap,
+}
 
 urlpatterns = [
     # Frontend URLs
@@ -28,19 +37,18 @@ urlpatterns = [
     path('use/<uuid:coupon_id>/', views.use_coupon, name='use_coupon'),
     
     # Authentication URLs
-    # urls.py (update the authentication URLs)
-    # Authentication URLs
     path('signup/', views.signup_view, name='signup'),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(http_method_names=['get', 'post'], next_page='home'), name='logout'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/<str:username>/', views.profile_view, name='user_profile'),
+    
     # All Coupons Pages
     path('coupons/', views.AllCouponsView.as_view(), name='all_coupons'),
     path('coupons/featured/', views.FeaturedCouponsView.as_view(), name='featured_coupons'),
     path('coupons/expiring/', views.ExpiringCouponsView.as_view(), name='expiring_coupons'),
     path('coupons/latest/', views.LatestCouponsView.as_view(), name='latest_coupons'),
-
+    
     # All Stores and Categories Pages
     path('stores/', views.AllStoresView.as_view(), name='all_stores'),
     path('categories/', views.AllCategoriesView.as_view(), name='all_categories'),
@@ -48,22 +56,24 @@ urlpatterns = [
     # Add this to your urlpatterns
     path('filter-coupons/', views.filter_coupons_ajax, name='filter_coupons_ajax'),
 
-
     # Newsletter management
     path('admin/newsletters/', views.newsletter_management, name='newsletter_management'),
     path('admin/newsletters/send/<int:newsletter_id>/', views.send_newsletter, name='send_newsletter'),
     path('admin/newsletters/preview/<int:newsletter_id>/', views.preview_newsletter, name='preview_newsletter'),
     
-
     path('newsletter/subscribe/', views.newsletter_subscribe, name='newsletter_subscribe'),
     path('unsubscribe/', views.unsubscribe, name='unsubscribe'),
+    
     # Static pages
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('contact/submit/', views.contact_submit, name='contact_submit'),
-
+    
+    # Sitemap
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('robots.txt', views.robots_txt, name='robots_txt'),
     # API URLs
     path('api/', include(router.urls)),
 ]

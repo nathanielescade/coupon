@@ -5,6 +5,126 @@ from django.core.validators import URLValidator
 import uuid
 
 
+
+
+class SEO(models.Model):
+    """Model for storing SEO metadata for different content types"""
+    CONTENT_TYPES = [
+        ('home', 'Homepage'),
+        ('coupon', 'Coupon'),
+        ('store', 'Store'),
+        ('category', 'Category'),
+        ('page', 'Static Page'),
+    ]
+    
+    content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
+    content_id = models.CharField(max_length=255, blank=True, null=True)
+    
+    # Basic SEO fields
+    meta_title = models.CharField(max_length=255, blank=True)
+    meta_description = models.TextField(blank=True)
+    meta_keywords = models.CharField(max_length=255, blank=True)
+    
+    # Open Graph fields
+    og_title = models.CharField(max_length=255, blank=True)
+    og_description = models.TextField(blank=True)
+    og_image = models.URLField(blank=True)
+    og_image_upload = models.ImageField(upload_to='seo/og_images/', blank=True, null=True)
+    
+    # Twitter Card fields
+    twitter_title = models.CharField(max_length=255, blank=True)
+    twitter_description = models.TextField(blank=True)
+    twitter_image = models.URLField(blank=True)
+    twitter_image_upload = models.ImageField(upload_to='seo/twitter_images/', blank=True, null=True)
+    
+    # Additional SEO options
+    canonical_url = models.URLField(blank=True)
+    no_index = models.BooleanField(default=False)
+    no_follow = models.BooleanField(default=False)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('content_type', 'content_id')
+        verbose_name = "SEO Metadata"
+        verbose_name_plural = "SEO Metadata"
+    
+    def __str__(self):
+        return f"SEO for {self.get_content_type_display()}: {self.content_id or 'Homepage'}"
+    
+    @property
+    def get_og_image_url(self):
+        """Return the OG image URL, prioritizing uploaded image over URL"""
+        if self.og_image_upload:
+            return self.og_image_upload.url
+        return self.og_image
+    
+    @property
+    def get_twitter_image_url(self):
+        """Return the Twitter image URL, prioritizing uploaded image over URL"""
+        if self.twitter_image_upload:
+            return self.twitter_image_upload.url
+        return self.twitter_image
+
+class HomePageSEO(models.Model):
+    """Model for homepage-specific SEO settings"""
+    meta_title = models.CharField(max_length=255, default="CouponHub - Save Money with Exclusive Coupons")
+    meta_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.")
+    meta_keywords = models.CharField(max_length=255, default="coupons, promo codes, deals, discounts, savings, coupon codes")
+    
+    # Open Graph fields
+    og_title = models.CharField(max_length=255, default="CouponHub - Save Money with Exclusive Coupons")
+    og_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.")
+    og_image = models.URLField(blank=True)
+    og_image_upload = models.ImageField(upload_to='seo/og_images/', blank=True, null=True)
+    
+    # Twitter Card fields
+    twitter_title = models.CharField(max_length=255, default="CouponHub - Save Money with Exclusive Coupons")
+    twitter_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.")
+    twitter_image = models.URLField(blank=True)
+    twitter_image_upload = models.ImageField(upload_to='seo/twitter_images/', blank=True, null=True)
+    
+    # Additional SEO options
+    canonical_url = models.URLField(blank=True)
+    no_index = models.BooleanField(default=False)
+    no_follow = models.BooleanField(default=False)
+    
+    # Homepage-specific content
+    hero_title = models.CharField(max_length=255, default="Save Money with Exclusive Coupons")
+    hero_description = models.TextField(default="Discover the best deals and discounts from your favorite stores.")
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Homepage SEO"
+        verbose_name_plural = "Homepage SEO"
+    
+    def __str__(self):
+        return "Homepage SEO Settings"
+    
+    def save(self, *args, **kwargs):
+        # Ensure only one instance exists
+        if not self.pk and HomePageSEO.objects.exists():
+            raise ValueError("Only one HomePageSEO instance can exist")
+        return super().save(*args, **kwargs)
+    
+    @property
+    def get_og_image_url(self):
+        """Return the OG image URL, prioritizing uploaded image over URL"""
+        if self.og_image_upload:
+            return self.og_image_upload.url
+        return self.og_image
+    
+    @property
+    def get_twitter_image_url(self):
+        """Return the Twitter image URL, prioritizing uploaded image over URL"""
+        if self.twitter_image_upload:
+            return self.twitter_image_upload.url
+        return self.twitter_image
+    
+
 class CouponProvider(models.Model):
     name = models.CharField(max_length=100)
     api_url = models.URLField(validators=[URLValidator()])
@@ -22,6 +142,7 @@ class Store(models.Model):
     website = models.URLField(validators=[URLValidator()])
     logo = models.ImageField(upload_to='store_logos/', blank=True, null=True)
     description = models.TextField(blank=True)
+    seo = models.OneToOneField(SEO, on_delete=models.SET_NULL, null=True, blank=True, related_name='store')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -33,6 +154,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
+    seo = models.OneToOneField(SEO, on_delete=models.SET_NULL, null=True, blank=True, related_name='category')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -74,6 +196,7 @@ class Coupon(models.Model):
     affiliate_link = models.URLField(blank=True, null=True, validators=[URLValidator()])
     store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='coupons')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='coupons')
+    seo = models.OneToOneField(SEO, on_delete=models.SET_NULL, null=True, blank=True, related_name='coupon')
     provider = models.ForeignKey(CouponProvider, on_delete=models.CASCADE, related_name='coupons', blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_coupons')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -213,3 +336,7 @@ class Newsletter(models.Model):
         self.save()
         
         return True, f"Successfully sent to {success_count} subscribers, {error_count} failed"
+
+
+
+

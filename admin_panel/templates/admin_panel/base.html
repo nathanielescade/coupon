@@ -103,6 +103,11 @@
                         <i class="fas fa-users text-blue-400 w-5"></i>
                         <span>Users</span>
                     </a>
+
+                    <a href="{% url 'admin_panel:seo_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'seo' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-search text-blue-400 w-5"></i>
+                        <span>SEO</span>
+                </a>
                     
                     <!-- Newsletter Management -->
                     <a href="{% url 'admin_panel:newsletter_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'newsletter' in request.resolver_match.url_name %}active{% endif %}">

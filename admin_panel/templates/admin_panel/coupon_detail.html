@@ -153,6 +153,64 @@
         </div>
     </div>
     {% endif %}
+
+    <div>
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold text-blue-300 mb-2">SEO Settings</h3>
+                <div class="bg-blue-900/30 p-4 rounded-lg">
+                    {% if coupon.seo %}
+                        <div class="mb-2">
+                            <span class="text-blue-400">Meta Title:</span>
+                            <span class="text-blue-100 ml-2">{{ coupon.seo.meta_title|default:"Not set" }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-blue-400">Meta Description:</span>
+                            <span class="text-blue-100 ml-2">{{ coupon.seo.meta_description|truncatechars:100|default:"Not set" }}</span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="text-blue-400">Keywords:</span>
+                            <span class="text-blue-100 ml-2">{{ coupon.seo.meta_keywords|default:"Not set" }}</span>
+                        </div>
+                        <div class="mt-4">
+                            <a href="{% url 'admin_panel:seo_edit' coupon.seo.id %}" 
+                               class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-edit mr-2"></i> Edit SEO
+                            </a>
+                        </div>
+                    {% else %}
+                        <p class="text-blue-100 mb-4">No SEO metadata has been set for this coupon.</p>
+                        <a href="{% url 'admin_panel:seo_create_for_coupon' coupon.id %}" 
+                           class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-plus mr-2"></i> Add SEO
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if analytics %}
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold text-blue-300 mb-2">Analytics</h3>
+                <div class="bg-blue-900/30 p-4 rounded-lg">
+                    <div class="mb-2">
+                        <span class="text-blue-400">Views:</span>
+                        <span class="text-blue-100 ml-2">{{ analytics.views }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-blue-400">Saves:</span>
+                        <span class="text-blue-100 ml-2">{{ analytics.saves }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-blue-400">Uses:</span>
+                        <span class="text-blue-100 ml-2">{{ analytics.uses }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-blue-400">Copy Events:</span>
+                        <span class="text-blue-100 ml-2">{{ analytics.copy_events }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     
     {% if analytics %}
     <div class="mt-8 pt-6 border-t border-blue-800">

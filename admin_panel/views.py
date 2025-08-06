@@ -593,3 +593,205 @@ def export_subscribers(request):
         ])
     
     return response
+
+
+
+
+
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
+from django.http import Http404
+from coupons.models import SEO, HomePageSEO, Coupon, Store, Category
+from .forms import SEOForm, HomePageSEOForm
+
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
+
+# Keep all your existing views here...
+
+# SEO Management Views
+@login_required
+@user_passes_test(is_staff_user)
+def seo_list(request):
+    seo_objects = SEO.objects.all().order_by('content_type', 'content_id')
+    
+    # Filter by content type
+    content_type_filter = request.GET.get('content_type')
+    if content_type_filter:
+        seo_objects = seo_objects.filter(content_type=content_type_filter)
+    
+    context = {
+        'seo_objects': seo_objects,
+        'content_type_filter': content_type_filter,
+        'content_types': SEO.CONTENT_TYPES,
+    }
+    
+    return render(request, 'admin_panel/seo_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def seo_edit(request, seo_id):
+    seo = get_object_or_404(SEO, id=seo_id)
+    
+    if request.method == 'POST':
+        form = SEOForm(request.POST, instance=seo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'SEO metadata updated successfully!')
+            return redirect('admin_panel:seo_list')
+    else:
+        form = SEOForm(instance=seo)
+    
+    context = {
+        'form': form,
+        'seo': seo,
+        'title': f'Edit SEO: {seo.get_content_type_display()} - {seo.content_id}',
+    }
+    
+    return render(request, 'admin_panel/seo_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def seo_create_for_coupon(request, coupon_id):
+    coupon = get_object_or_404(Coupon, id=coupon_id)
+    
+    # Check if SEO already exists
+    if hasattr(coupon, 'seo') and coupon.seo:
+        messages.warning(request, 'SEO metadata already exists for this coupon.')
+        return redirect('admin_panel:seo_edit', seo_id=coupon.seo.id)
+    
+    if request.method == 'POST':
+        form = SEOForm(request.POST)
+        if form.is_valid():
+            seo = form.save(commit=False)
+            seo.content_type = 'coupon'
+            seo.content_id = str(coupon.id)
+            seo.save()
+            
+            # Link to coupon
+            coupon.seo = seo
+            coupon.save()
+            
+            messages.success(request, 'SEO metadata created successfully!')
+            return redirect('admin_panel:coupon_detail', coupon_id=coupon.id)
+    else:
+        form = SEOForm(initial={
+            'meta_title': f"{coupon.title} - {coupon.discount_display} | {coupon.store.name} Coupon",
+            'meta_description': f"Get {coupon.discount_display} at {coupon.store.name}. {coupon.description[:100]}...",
+            'meta_keywords': f"{coupon.store.name}, {coupon.category.name}, {coupon.title}, coupon, promo code, discount",
+        })
+    
+    context = {
+        'form': form,
+        'coupon': coupon,
+        'title': f'Create SEO for Coupon: {coupon.title}',
+    }
+    
+    return render(request, 'admin_panel/seo_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def seo_create_for_store(request, store_slug):
+    store = get_object_or_404(Store, slug=store_slug)
+    
+    # Check if SEO already exists
+    if hasattr(store, 'seo') and store.seo:
+        messages.warning(request, 'SEO metadata already exists for this store.')
+        return redirect('admin_panel:seo_edit', seo_id=store.seo.id)
+    
+    if request.method == 'POST':
+        form = SEOForm(request.POST)
+        if form.is_valid():
+            seo = form.save(commit=False)
+            seo.content_type = 'store'
+            seo.content_id = store.slug
+            seo.save()
+            
+            # Link to store
+            store.seo = seo
+            store.save()
+            
+            messages.success(request, 'SEO metadata created successfully!')
+            return redirect('admin_panel:store_list')
+    else:
+        form = SEOForm(initial={
+            'meta_title': f"{store.name} Coupons & Promo Codes - Save Money Today",
+            'meta_description': f"Find the latest {store.name} coupons, promo codes and deals. Save money with verified {store.name} discount codes and offers.",
+            'meta_keywords': f"{store.name}, coupons, promo codes, deals, discounts, savings",
+        })
+    
+    context = {
+        'form': form,
+        'store': store,
+        'title': f'Create SEO for Store: {store.name}',
+    }
+    
+    return render(request, 'admin_panel/seo_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def seo_create_for_category(request, category_slug):
+    category = get_object_or_404(Category, slug=category_slug)
+    
+    # Check if SEO already exists
+    if hasattr(category, 'seo') and category.seo:
+        messages.warning(request, 'SEO metadata already exists for this category.')
+        return redirect('admin_panel:seo_edit', seo_id=category.seo.id)
+    
+    if request.method == 'POST':
+        form = SEOForm(request.POST)
+        if form.is_valid():
+            seo = form.save(commit=False)
+            seo.content_type = 'category'
+            seo.content_id = category.slug
+            seo.save()
+            
+            # Link to category
+            category.seo = seo
+            category.save()
+            
+            messages.success(request, 'SEO metadata created successfully!')
+            return redirect('admin_panel:category_list')
+    else:
+        form = SEOForm(initial={
+            'meta_title': f"{category.name} Coupons & Deals - Best Discounts",
+            'meta_description': f"Browse {category.name} coupons and deals from top brands. Save money with verified {category.name} discount codes.",
+            'meta_keywords': f"{category.name}, coupons, deals, discounts, savings, promo codes",
+        })
+    
+    context = {
+        'form': form,
+        'category': category,
+        'title': f'Create SEO for Category: {category.name}',
+    }
+    
+    return render(request, 'admin_panel/seo_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def homepage_seo(request):
+    try:
+        homepage_seo = HomePageSEO.objects.get()
+    except HomePageSEO.DoesNotExist:
+        homepage_seo = HomePageSEO()
+    
+    if request.method == 'POST':
+        form = HomePageSEOForm(request.POST, instance=homepage_seo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Homepage SEO settings updated successfully!')
+            return redirect('admin_panel:homepage_seo')
+    else:
+        form = HomePageSEOForm(instance=homepage_seo)
+    
+    context = {
+        'form': form,
+        'title': 'Homepage SEO Settings',
+    }
+    
+    return render(request, 'admin_panel/homepage_seo.html', context)

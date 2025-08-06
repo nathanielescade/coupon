@@ -1,0 +1,94 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}SEO Management - Admin Panel{% endblock %}
+{% block page_title %}SEO Management{% endblock %}
+{% block content %}
+<div class="admin-card rounded-xl p-6 shadow-lg mb-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <h2 class="text-xl font-bold text-blue-300 mb-4 md:mb-0">SEO Metadata</h2>
+        <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+            <div class="flex space-x-2">
+                <a href="{% url 'admin_panel:seo_list' %}" 
+                   class="px-3 py-1 rounded-lg {% if not content_type_filter %}bg-blue-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    All
+                </a>
+                {% for type, label in content_types %}
+                <a href="{% url 'admin_panel:seo_list' %}?content_type={{ type }}" 
+                   class="px-3 py-1 rounded-lg {% if content_type_filter == type %}bg-blue-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    {{ label }}
+                </a>
+                {% endfor %}
+            </div>
+            
+            <a href="{% url 'admin_panel:homepage_seo' %}" 
+               class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
+                <i class="fas fa-home mr-2"></i> Homepage SEO
+            </a>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-blue-200">
+            <thead>
+                <tr class="border-b border-blue-700">
+                    <th class="text-left py-3 px-4">Content Type</th>
+                    <th class="text-left py-3 px-4">Content ID</th>
+                    <th class="text-left py-3 px-4">Meta Title</th>
+                    <th class="text-left py-3 px-4">Meta Description</th>
+                    <th class="text-left py-3 px-4">Keywords</th>
+                    <th class="text-right py-3 px-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for seo in seo_objects %}
+                <tr class="border-b border-blue-800 hover:bg-blue-900/20">
+                    <td class="py-3 px-4">
+                        <span class="px-2 py-1 bg-blue-900/50 text-blue-300 rounded-full text-xs">
+                            {{ seo.get_content_type_display }}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4">{{ seo.content_id|default:"Homepage" }}</td>
+                    <td class="py-3 px-4">
+                        {% if seo.meta_title %}
+                        <span class="text-sm">{{ seo.meta_title|truncatechars:40 }}</span>
+                        {% else %}
+                        <span class="text-blue-400 text-sm">Not set</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if seo.meta_description %}
+                        <span class="text-sm">{{ seo.meta_description|truncatechars:60 }}</span>
+                        {% else %}
+                        <span class="text-blue-400 text-sm">Not set</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        {% if seo.meta_keywords %}
+                        <span class="text-sm">{{ seo.meta_keywords|truncatechars:40 }}</span>
+                        {% else %}
+                        <span class="text-blue-400 text-sm">Not set</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <div class="flex justify-end space-x-2">
+                            <a href="{% url 'admin_panel:seo_edit' seo.id %}" 
+                               class="text-green-400 hover:text-green-300 transition" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-blue-400">
+                        <div class="mb-2">
+                            <i class="fas fa-search text-blue-400/50 text-3xl"></i>
+                        </div>
+                        <p>No SEO metadata found</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

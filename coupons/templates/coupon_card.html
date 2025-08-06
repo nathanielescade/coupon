@@ -1,18 +1,23 @@
 {% load coupon_extras %}
-<div class="coupon-card card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+<div class="coupon-card card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700" itemscope itemtype="https://schema.org/Offer">
     <div class="p-5">
         <div class="flex justify-between items-start mb-3">
             <div class="flex items-center">
                 {% if coupon.store.logo %}
-                <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }}" class="w-10 h-10 object-contain mr-2">
+                <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }} logo" class="w-10 h-10 object-contain mr-2" itemprop="provider" itemscope itemtype="https://schema.org/Organization">
+                    <meta itemprop="name" content="{{ coupon.store.name }}">
+                    <meta itemprop="url" content="{{ coupon.store.website }}">
+                </img>
                 {% else %}
                 <div class="w-10 h-10 bg-blue-900/50 rounded-lg flex items-center justify-center mr-2">
                     <i class="fas fa-store text-blue-400"></i>
                 </div>
                 {% endif %}
                 <div>
-                    <h3 class="font-bold text-blue-200 text-sm">{{ coupon.store.name }}</h3>
-                    <p class="text-xs text-blue-400">{{ coupon.category.name }}</p>
+                    <h3 class="font-bold text-blue-200 text-sm" itemprop="seller" itemscope itemtype="https://schema.org/Organization">
+                        <span itemprop="name">{{ coupon.store.name }}</span>
+                    </h3>
+                    <p class="text-xs text-blue-400" itemprop="category">{{ coupon.category.name }}</p>
                 </div>
             </div>
            <div class="flex gap-1">
@@ -31,8 +36,8 @@
 </div>
         </div>
         
-        <h3 class="font-bold text-blue-100 mb-2 {% if small_text %}text-sm{% endif %}">{{ coupon.title }}</h3>
-        <p class="text-blue-300 mb-3 {% if small_text %}text-xs{% else %}text-sm{% endif %}">{{ coupon.description|truncatewords:15 }}</p>
+        <h3 class="font-bold text-blue-100 mb-2 {% if small_text %}text-sm{% endif %}" itemprop="name">{{ coupon.title }}</h3>
+        <p class="text-blue-300 mb-3 {% if small_text %}text-xs{% else %}text-sm{% endif %}" itemprop="description">{{ coupon.description|truncatewords:15 }}</p>
         
         <!-- Coupon Code Section -->
         {% if coupon.code and show_code|default:True %}
@@ -40,9 +45,8 @@
             <div class="flex justify-between items-center">
                 <div>
                     <div class="text-xs text-blue-400 mb-1">Coupon Code</div>
-                    <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.id }}">{{ coupon.code }}</div>
+                    <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.id }}" itemprop="couponCode">{{ coupon.code }}</div>
                 </div>
-
                 <button onclick="copyCode('{{ coupon.code }}', '{{ coupon.id }}', event)" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
                     <i class="far fa-copy mr-1"></i> Copy
                 </button>
@@ -51,13 +55,13 @@
         {% endif %}
         
         <div class="flex justify-between items-center mb-4">
-            <div class="text-lg font-bold text-gradient {% if small_text %}text-base{% endif %}">{{ coupon.discount_display }}</div>
+            <div class="text-lg font-bold text-gradient {% if small_text %}text-base{% endif %}" itemprop="price">{{ coupon.discount_display }}</div>
             <div class="text-xs text-blue-400">
                 {% if coupon.expiry_date %}
                 {% if show_expiry %}
-                Expires: {{ coupon.expiry_date|date:"M d, Y" }}
+                Expires: <time datetime="{{ coupon.expiry_date|date:'c' }}">{{ coupon.expiry_date|date:"M d, Y" }}</time>
                 {% else %}
-                {{ coupon.expiry_date|date:"M d" }}
+                <time datetime="{{ coupon.expiry_date|date:'c' }}">{{ coupon.expiry_date|date:"M d" }}</time>
                 {% endif %}
                 {% else %}
                 No expiry
@@ -65,9 +69,17 @@
             </div>
         </div>
         
+        <meta itemprop="priceCurrency" content="USD">
+        <meta itemprop="availability" content="https://schema.org/InStock" if coupon.is_active and not coupon.is_expired else "https://schema.org/OutOfStock">
+        <meta itemprop="validFrom" content="{{ coupon.start_date|date:'c' }}">
+        {% if coupon.expiry_date %}
+        <meta itemprop="validThrough" content="{{ coupon.expiry_date|date:'c' }}">
+        {% endif %}
+        <link itemprop="url" href="{% url 'coupon_detail' coupon.id %}">
+        
         <div class="flex space-x-2">
             {% if coupon.affiliate_link %}
-            <a href="{{ coupon.affiliate_link }}" target="_blank" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
+            <a href="{{ coupon.affiliate_link }}" target="_blank" rel="noopener noreferrer" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
                 Use Deal
             </a>
             {% else %}

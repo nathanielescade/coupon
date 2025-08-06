@@ -1,5 +1,35 @@
 {% extends 'base.html' %}
-{% block title %}{{ category.name }} Coupons - CouponHub{% endblock %}
+
+{% block meta_title %}{{ meta_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+{% block og_title %}{{ open_graph_data.og_title }}{% endblock %}
+{% block og_description %}{{ open_graph_data.og_description }}{% endblock %}
+{% block og_image %}{{ open_graph_data.og_image }}{% endblock %}
+{% block twitter_title %}{{ open_graph_data.twitter_title }}{% endblock %}
+{% block twitter_description %}{{ open_graph_data.twitter_description }}{% endblock %}
+{% block twitter_image %}{{ open_graph_data.twitter_image }}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{{ structured_data|json_script:"structured-data" }}
+</script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav class="container mx-auto px-4 py-2 text-sm">
+    <div class="flex items-center text-blue-300">
+        <a href="{% url 'home' %}" class="hover:text-blue-200">Home</a>
+        {% for crumb in breadcrumbs %}
+        {% if crumb.url %}
+        <a href="{{ crumb.url }}" class="breadcrumb-item hover:text-blue-200">{{ crumb.name }}</a>
+        {% else %}
+        <span class="breadcrumb-item text-blue-200">{{ crumb.name }}</span>
+        {% endif %}
+        {% endfor %}
+    </div>
+</nav>
+{% endblock %}
 
 {% block content %}
 <div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
@@ -40,7 +70,6 @@
         </div>
     </div>
 </div>
-
 <div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
     <div class="p-6">
         <div class="flex justify-between items-center mb-6">

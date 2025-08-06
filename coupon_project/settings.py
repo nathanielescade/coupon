@@ -147,3 +147,12 @@ EMAIL_HOST_USER = 'nathanielescade@gmail.com'
 EMAIL_HOST_PASSWORD = 'dzrbwftkjkolxloo'  
 DEFAULT_FROM_EMAIL = 'nathanielescade@gmail.com'
 ADMIN_EMAIL = 'nathanielescade@gmail.com'  
+
+
+
+# SEO Settings
+SITE_URL = "https://yourdomain.com"  # Replace with your actual domain
+ADMIN_EMAIL = "admin@yourdomain.com"  # Replace with your admin email
+
+# Sitemap Settings
+TEMPLATES[0]['OPTIONS']['context_processors'].append('django.template.context_processors.request')

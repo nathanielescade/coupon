@@ -1,31 +1,10 @@
 {% extends 'admin_panel/base.html' %}
-{% block title %}Homepage SEO Settings - Admin Panel{% endblock %}
-{% block page_title %}Homepage SEO Settings{% endblock %}
+{% block title %}{{ title }} - Admin Panel{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
 {% block content %}
 <div class="admin-card rounded-xl p-6 shadow-lg">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post">
         {% csrf_token %}
-        
-        <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
-            <h3 class="text-lg font-semibold text-blue-300 mb-2">Homepage Content</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label for="{{ form.hero_title.id_for_label }}" class="block text-blue-300 mb-2">Hero Title</label>
-                    {{ form.hero_title }}
-                    {% if form.hero_title.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.hero_title.errors }}</div>
-                    {% endif %}
-                </div>
-                
-                <div>
-                    <label for="{{ form.hero_description.id_for_label }}" class="block text-blue-300 mb-2">Hero Description</label>
-                    {{ form.hero_description }}
-                    {% if form.hero_description.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.hero_description.errors }}</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
         
         <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
             <h3 class="text-lg font-semibold text-blue-300 mb-2">Basic SEO</h3>
@@ -53,9 +32,9 @@
                 <label for="{{ form.meta_description.id_for_label }}" class="block text-blue-300 mb-2">Meta Description</label>
                 {{ form.meta_description }}
                 {% if form.meta_description.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.meta_description.errors }}</div>
-                    {% endif %}
-                    <p class="text-blue-400 text-xs mt-1">Recommended length: 150-160 characters</p>
+                <div class="text-red-400 text-sm mt-1">{{ form.meta_description.errors }}</div>
+                {% endif %}
+                <p class="text-blue-400 text-xs mt-1">Recommended length: 150-160 characters</p>
             </div>
         </div>
         
@@ -77,27 +56,14 @@
                     <div class="text-red-400 text-sm mt-1">{{ form.og_image.errors }}</div>
                     {% endif %}
                 </div>
-                
-                <div>
-                    <label for="{{ form.og_image_upload.id_for_label }}" class="block text-blue-300 mb-2">OR Upload OG Image</label>
-                    {{ form.og_image_upload }}
-                    {% if form.og_image_upload.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.og_image_upload.errors }}</div>
-                    {% endif %}
-                    {% if form.instance.og_image_upload %}
-                    <div class="mt-2">
-                        <img src="{{ form.instance.og_image_upload.url }}" alt="OG Image" class="w-32 h-32 object-contain border border-blue-600 rounded">
-                    </div>
-                    {% endif %}
-                </div>
             </div>
             
             <div class="mt-4">
                 <label for="{{ form.og_description.id_for_label }}" class="block text-blue-300 mb-2">OG Description</label>
                 {{ form.og_description }}
                 {% if form.og_description.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.og_description.errors }}</div>
-                    {% endif %}
+                <div class="text-red-400 text-sm mt-1">{{ form.og_description.errors }}</div>
+                {% endif %}
             </div>
         </div>
         
@@ -119,26 +85,13 @@
                     <div class="text-red-400 text-sm mt-1">{{ form.twitter_image.errors }}</div>
                     {% endif %}
                 </div>
-                
-                <div>
-                    <label for="{{ form.twitter_image_upload.id_for_label }}" class="block text-blue-300 mb-2">OR Upload Twitter Image</label>
-                    {{ form.twitter_image_upload }}
-                    {% if form.twitter_image_upload.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.twitter_image_upload.errors }}</div>
-                    {% endif %}
-                    {% if form.instance.twitter_image_upload %}
-                    <div class="mt-2">
-                        <img src="{{ form.instance.twitter_image_upload.url }}" alt="Twitter Image" class="w-32 h-32 object-contain border border-blue-600 rounded">
-                    </div>
-                    {% endif %}
-                </div>
             </div>
             
             <div class="mt-4">
                 <label for="{{ form.twitter_description.id_for_label }}" class="block text-blue-300 mb-2">Twitter Description</label>
                 {{ form.twitter_description }}
                 {% if form.twitter_description.errors %}
-                    <div class="text-red-400 text-sm mt-1">{{ form.twitter_description.errors }}</div>
+                <div class="text-red-400 text-sm mt-1">{{ form.twitter_description.errors }}</div>
                     {% endif %}
             </div>
         </div>
@@ -168,11 +121,11 @@
         </div>
         
         <div class="flex justify-end space-x-4">
-            <a href="{% url 'admin_panel:dashboard' %}" class="px-6 py-2 border border-blue-600 text-blue-300 rounded-lg hover:bg-blue-900/50 transition">
+            <a href="{% url 'admin_panel:seo_list' %}" class="px-6 py-2 border border-blue-600 text-blue-300 rounded-lg hover:bg-blue-900/50 transition">
                 Cancel
             </a>
             <button type="submit" class="bg-green-700 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition">
-                Save Homepage SEO
+                Save SEO Settings
             </button>
         </div>
     </form>

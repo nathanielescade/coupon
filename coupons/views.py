@@ -1,26 +1,47 @@
-from rest_framework import viewsets, status, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.db.models import Count, Q
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.core.paginator import Paginator
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
-from django.db.models import Q
-from django.contrib import messages
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters  # if you haven't imported it already
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils import timezone
+import datetime
 import requests
-from .models import Coupon, CouponProvider, Store, Category, UserCoupon, CouponUsage
+
+from .models import (
+    Coupon, CouponProvider, Store, Category, 
+    UserCoupon, CouponUsage, NewsletterSubscriber, 
+    Newsletter, HomePageSEO, SEO
+)
 from .serializers import (
     CouponSerializer, CouponCreateSerializer, CouponProviderSerializer,
     StoreSerializer, CategorySerializer, UserCouponSerializer, CouponUsageSerializer
+)
+from .forms import NewsletterForm
+from .seo_utils import (
+    get_meta_title, get_meta_description, get_breadcrumbs, 
+    get_structured_data, get_open_graph_data
 )
 
 # API ViewSets
@@ -194,8 +215,6 @@ class HomeView(ListView):
     context_object_name = 'coupons'
     paginate_by = 12
     
-    # In HomeView, StoreDetailView, CategoryDetailView, and SearchView
-
     def get_queryset(self):
         # Get sort parameter
         sort = self.request.GET.get('sort', 'newest')
@@ -235,7 +254,28 @@ class HomeView(ListView):
         context['stores'] = Store.objects.filter(is_active=True)[:10]
         context['categories'] = Category.objects.filter(is_active=True)
         context['current_sort'] = self.request.GET.get('sort', 'newest')
+        
+        # Get homepage SEO data
+        try:
+            homepage_seo = HomePageSEO.objects.get()
+            context['meta_title'] = homepage_seo.meta_title
+            context['meta_description'] = homepage_seo.meta_description
+            context['meta_keywords'] = homepage_seo.meta_keywords
+            context['hero_title'] = homepage_seo.hero_title
+            context['hero_description'] = homepage_seo.hero_description
+        except HomePageSEO.DoesNotExist:
+            # Default values if no homepage SEO is set
+            context['meta_title'] = "CouponHub - Save Money with Exclusive Coupons"
+            context['meta_description'] = "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub."
+            context['meta_keywords'] = "coupons, promo codes, deals, discounts, savings, coupon codes"
+            context['hero_title'] = "Save Money with Exclusive Coupons"
+            context['hero_description'] = "Discover the best deals and discounts from your favorite stores."
+        
         return context
+
+
+
+
 
 class CouponDetailView(DetailView):
     model = Coupon
@@ -256,6 +296,15 @@ class CouponDetailView(DetailView):
             is_active=True,
             expiry_date__gte=timezone.now()
         ).exclude(id=self.object.id)[:4]
+        
+        # Add SEO data
+        context['meta_title'] = get_meta_title(self.object)
+        context['meta_description'] = get_meta_description(self.object)
+        context['meta_keywords'] = f"{self.object.store.name}, {self.object.category.name}, {self.object.title}, coupon, promo code, discount"
+        context['structured_data'] = get_structured_data(self.object)
+        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
+        context['breadcrumbs'] = get_breadcrumbs(self.object)
+        
         return context
     
     def get_object(self, queryset=None):
@@ -269,6 +318,8 @@ class CouponDetailView(DetailView):
             pass  # Silently fail if analytics tracking fails
         
         return obj
+
+
 
 class StoreDetailView(DetailView):
     model = Store
@@ -303,6 +354,15 @@ class StoreDetailView(DetailView):
         context['coupons'] = coupons
         context['stores'] = Store.objects.filter(is_active=True)
         context['current_sort'] = sort
+        
+        # Add SEO data
+        context['meta_title'] = get_meta_title(self.object)
+        context['meta_description'] = get_meta_description(self.object)
+        context['meta_keywords'] = f"{self.object.name}, coupons, promo codes, deals, discounts, savings"
+        context['structured_data'] = get_structured_data(self.object)
+        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
+        context['breadcrumbs'] = get_breadcrumbs(self.object)
+        
         return context
 
 class CategoryDetailView(DetailView):
@@ -338,6 +398,15 @@ class CategoryDetailView(DetailView):
         context['coupons'] = coupons
         context['stores'] = Store.objects.filter(is_active=True)
         context['current_sort'] = sort
+        
+        # Add SEO data
+        context['meta_title'] = get_meta_title(self.object)
+        context['meta_description'] = get_meta_description(self.object)
+        context['meta_keywords'] = f"{self.object.name}, coupons, deals, discounts, savings, promo codes"
+        context['structured_data'] = get_structured_data(self.object)
+        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
+        context['breadcrumbs'] = get_breadcrumbs(self.object)
+        
         return context
 
 class SearchView(ListView):
@@ -392,9 +461,13 @@ class SearchView(ListView):
         if query:
             context['search_results_count'] = self.get_queryset().count()
         
+        # Add SEO data
+        context['meta_title'] = f"Search Results for '{query}' - CouponHub" if query else "Search Coupons - CouponHub"
+        context['meta_description'] = f"Find the best coupons for '{query}'. Save money with our verified coupon codes and deals." if query else "Search for coupons, stores, and categories. Find the best deals and discounts."
+        context['meta_keywords'] = f"{query}, coupons, deals, discounts, promo codes" if query else "coupons, deals, discounts, promo codes, search"
+        
         return context
-    
-# coupons/views.py
+
 @login_required
 def save_coupon(request, coupon_id):
     coupon = get_object_or_404(Coupon, id=coupon_id)
@@ -453,11 +526,13 @@ def use_coupon(request, coupon_id):
 def my_coupons(request):
     saved_coupons = UserCoupon.objects.filter(user=request.user)
     context = {
-        'saved_coupons': saved_coupons
+        'saved_coupons': saved_coupons,
+        'meta_title': "My Saved Coupons - CouponHub",
+        'meta_description': "View and manage your saved coupons. Never miss a deal with your personalized coupon collection.",
+        'meta_keywords': "my coupons, saved coupons, personalized deals, coupon collection"
     }
     return render(request, 'my_coupons.html', context)
 
-# views.py
 class CouponCreateView(LoginRequiredMixin, CreateView):
     model = Coupon
     template_name = 'coupon_form.html'
@@ -474,6 +549,13 @@ class CouponCreateView(LoginRequiredMixin, CreateView):
         # The UUID will be automatically generated by the model
         messages.success(self.request, 'Coupon created successfully!')
         return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['meta_title'] = "Create a New Coupon - CouponHub"
+        context['meta_description'] = "Create and share a new coupon with the CouponHub community. Help others save money!"
+        context['meta_keywords'] = "create coupon, share coupon, submit deal, add discount code"
+        return context
 
 class CouponUpdateView(LoginRequiredMixin, UpdateView):
     model = Coupon
@@ -491,6 +573,13 @@ class CouponUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'Coupon updated successfully!')
         return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['meta_title'] = f"Update Coupon: {self.object.title} - CouponHub"
+        context['meta_description'] = f"Update the details for {self.object.title} coupon."
+        context['meta_keywords'] = f"update coupon, edit coupon, {self.object.title}, {self.object.store.name}"
+        return context
 
 class CouponDeleteView(LoginRequiredMixin, DeleteView):
     model = Coupon
@@ -502,6 +591,13 @@ class CouponDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Coupon deleted successfully!')
         return super().delete(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['meta_title'] = f"Delete Coupon: {self.object.title} - CouponHub"
+        context['meta_description'] = f"Confirm deletion of {self.object.title} coupon."
+        context['meta_keywords'] = f"delete coupon, remove coupon, {self.object.title}, {self.object.store.name}"
+        return context
 
 def signup_view(request):
     if request.method == 'POST':
@@ -513,9 +609,14 @@ def signup_view(request):
             return redirect('login')
     else:
         form = UserCreationForm()
-    return render(request, 'registration/signup.html', {'form': form})
-
-
+    
+    context = {
+        'form': form,
+        'meta_title': "Sign Up - CouponHub",
+        'meta_description': "Create a new CouponHub account to save and manage your favorite coupons.",
+        'meta_keywords': "sign up, register, create account, coupon account"
+    }
+    return render(request, 'registration/signup.html', context)
 
 @login_required
 def profile_view(request, username=None):
@@ -540,21 +641,15 @@ def profile_view(request, username=None):
         'used_coupons': used_coupons[:10],   # Limit to 10 for display
         'total_saved': total_saved,
         'total_used': total_used,
-        'is_own_profile': user == request.user
+        'is_own_profile': user == request.user,
+        'meta_title': f"{user.username}'s Profile - CouponHub",
+        'meta_description': f"View {user.username}'s profile, saved coupons, and usage history on CouponHub.",
+        'meta_keywords': f"{user.username}, profile, saved coupons, coupon history"
     }
     
     return render(request, 'registration/profile.html', context)
 
-
-
-
-
-
-
-
-
 # Add these new views to your views.py file
-
 class AllCouponsView(ListView):
     model = Coupon
     template_name = 'all_coupons.html'
@@ -589,6 +684,12 @@ class AllCouponsView(ListView):
         context = super().get_context_data(**kwargs)
         context['current_sort'] = self.request.GET.get('sort', 'newest')
         context['page_title'] = 'All Coupons'
+        
+        # Add SEO data
+        context['meta_title'] = "All Coupons - CouponHub"
+        context['meta_description'] = "Browse all available coupons and deals. Save money with our verified coupon codes and discounts."
+        context['meta_keywords'] = "all coupons, browse coupons, coupon codes, deals, discounts"
+        
         return context
 
 class FeaturedCouponsView(ListView):
@@ -625,6 +726,12 @@ class FeaturedCouponsView(ListView):
         context = super().get_context_data(**kwargs)
         context['current_sort'] = self.request.GET.get('sort', 'newest')
         context['page_title'] = 'Featured Coupons'
+        
+        # Add SEO data
+        context['meta_title'] = "Featured Coupons - CouponHub"
+        context['meta_description'] = "Discover our hand-picked featured coupons and deals. Save big with these exclusive offers."
+        context['meta_keywords'] = "featured coupons, best deals, exclusive offers, hand-picked deals"
+        
         return context
 
 class ExpiringCouponsView(ListView):
@@ -661,6 +768,12 @@ class ExpiringCouponsView(ListView):
         context = super().get_context_data(**kwargs)
         context['current_sort'] = self.request.GET.get('sort', 'expiring')
         context['page_title'] = 'Expiring Soon Coupons'
+        
+        # Add SEO data
+        context['meta_title'] = "Expiring Soon Coupons - CouponHub"
+        context['meta_description'] = "Don't miss out! These coupons are expiring soon. Use them before they're gone."
+        context['meta_keywords'] = "expiring coupons, ending soon, last chance, limited time offers"
+        
         return context
 
 class LatestCouponsView(ListView):
@@ -696,6 +809,12 @@ class LatestCouponsView(ListView):
         context = super().get_context_data(**kwargs)
         context['current_sort'] = self.request.GET.get('sort', 'newest')
         context['page_title'] = 'Latest Coupons'
+        
+        # Add SEO data
+        context['meta_title'] = "Latest Coupons - CouponHub"
+        context['meta_description'] = "Stay updated with the latest coupons and deals. Be the first to know about new offers."
+        context['meta_keywords'] = "latest coupons, new deals, recent offers, fresh discounts"
+        
         return context
 
 class AllStoresView(ListView):
@@ -710,6 +829,12 @@ class AllStoresView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'All Stores'
+        
+        # Add SEO data
+        context['meta_title'] = "All Stores - CouponHub"
+        context['meta_description'] = "Browse all stores offering coupons and deals. Find discounts from your favorite brands and retailers."
+        context['meta_keywords'] = "all stores, store directory, brands, retailers, shop by store"
+        
         return context
 
 class AllCategoriesView(ListView):
@@ -724,13 +849,17 @@ class AllCategoriesView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['page_title'] = 'All Categories'
+        
+        # Add SEO data
+        context['meta_title'] = "All Categories - CouponHub"
+        context['meta_description'] = "Browse coupons by category. Find deals for electronics, fashion, food, travel, and more."
+        context['meta_keywords'] = "coupon categories, browse by category, deal categories, discount categories"
+        
         return context
-
 
 # Add this to your views.py
 from django.http import JsonResponse
 from django.template.loader import render_to_string
-
 def filter_coupons_ajax(request):
     section = request.GET.get('section')
     sort = request.GET.get('sort', 'newest')
@@ -779,24 +908,6 @@ def filter_coupons_ajax(request):
     html = render_to_string('coupon_list.html', context, request=request)
     
     return JsonResponse({'html': html})
-
-
-
-
-
-
-
-
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
-from .forms import NewsletterForm
-from .models import NewsletterSubscriber
-
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.conf import settings
 
 @require_POST
 def newsletter_subscribe(request):
@@ -869,21 +980,36 @@ def send_subscription_email(email, subject):
         return False
 
 def about(request):
-    return render(request, 'about.html')
+    context = {
+        'meta_title': "About Us - CouponHub",
+        'meta_description': "Learn about CouponHub's mission to help people save money with the best coupons and deals.",
+        'meta_keywords': "about CouponHub, our mission, company, team"
+    }
+    return render(request, 'about.html', context)
 
 def contact(request):
-    return render(request, 'contact.html')
+    context = {
+        'meta_title': "Contact Us - CouponHub",
+        'meta_description': "Get in touch with the CouponHub team. We'd love to hear from you!",
+        'meta_keywords': "contact CouponHub, customer support, feedback, questions"
+    }
+    return render(request, 'contact.html', context)
 
 def privacy_policy(request):
-    return render(request, 'privacy_policy.html')
+    context = {
+        'meta_title': "Privacy Policy - CouponHub",
+        'meta_description': "Read CouponHub's privacy policy to understand how we collect, use, and protect your personal information.",
+        'meta_keywords': "privacy policy, data protection, personal information, GDPR"
+    }
+    return render(request, 'privacy_policy.html', context)
 
 def terms_of_service(request):
-    return render(request, 'terms_of_service.html')
-
-
-
-from django.core.mail import send_mail
-from django.conf import settings
+    context = {
+        'meta_title': "Terms of Service - CouponHub",
+        'meta_description': "Read CouponHub's terms of service to understand the rules and guidelines for using our website.",
+        'meta_keywords': "terms of service, terms and conditions, user agreement, website terms"
+    }
+    return render(request, 'terms_of_service.html', context)
 
 @require_POST
 def contact_submit(request):
@@ -924,7 +1050,10 @@ def unsubscribe(request):
     if not email:
         return render(request, 'unsubscribe.html', {
             'success': False,
-            'message': 'No email provided.'
+            'message': 'No email provided.',
+            'meta_title': "Unsubscribe - CouponHub",
+            'meta_description': "Unsubscribe from CouponHub's newsletter.",
+            'meta_keywords': "unsubscribe, newsletter, email preferences"
         })
     
     try:
@@ -934,23 +1063,19 @@ def unsubscribe(request):
         
         return render(request, 'unsubscribe.html', {
             'success': True,
-            'message': 'You have been successfully unsubscribed from our newsletter.'
+            'message': 'You have been successfully unsubscribed from our newsletter.',
+            'meta_title': "Unsubscribe Successful - CouponHub",
+            'meta_description': "You have been successfully unsubscribed from CouponHub's newsletter.",
+            'meta_keywords': "unsubscribe successful, newsletter, email preferences"
         })
     except NewsletterSubscriber.DoesNotExist:
         return render(request, 'unsubscribe.html', {
             'success': False,
-            'message': 'This email is not subscribed to our newsletter.'
+            'message': 'This email is not subscribed to our newsletter.',
+            'meta_title': "Unsubscribe - CouponHub",
+            'meta_description': "Unsubscribe from CouponHub's newsletter.",
+            'meta_keywords': "unsubscribe, newsletter, email preferences"
         })
-
-
-
-
-
-from django.shortcuts import render, redirect
-from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages
-from .models import Newsletter
-from .forms import NewsletterForm
 
 @staff_member_required
 def newsletter_management(request):
@@ -967,7 +1092,10 @@ def newsletter_management(request):
     
     context = {
         'newsletters': newsletters,
-        'form': form
+        'form': form,
+        'meta_title': "Newsletter Management - CouponHub",
+        'meta_description': "Manage and send newsletters to CouponHub subscribers.",
+        'meta_keywords': "newsletter management, email marketing, subscriber management"
     }
     return render(request, 'newsletter_management.html', context)
 
@@ -1006,3 +1134,11 @@ def preview_newsletter(request, newsletter_id):
     }
     
     return render(request, 'custom_newsletter_email.html', context)
+
+
+
+def robots_txt(request):
+    context = {
+        'request': request
+    }
+    return render(request, 'robots.txt', context, content_type='text/plain')

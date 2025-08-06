@@ -33,5 +33,11 @@ urlpatterns = [
     # Newsletter subscribers
     path('subscribers/', views.subscriber_list, name='subscriber_list'),
     
+    path('seo/', views.seo_list, name='seo_list'),
+    path('seo/<int:seo_id>/edit/', views.seo_edit, name='seo_edit'),
+    path('seo/coupon/<uuid:coupon_id>/create/', views.seo_create_for_coupon, name='seo_create_for_coupon'),
+    path('seo/store/<slug:store_slug>/create/', views.seo_create_for_store, name='seo_create_for_store'),
+    path('seo/category/<slug:category_slug>/create/', views.seo_create_for_category, name='seo_create_for_category'),
+    path('seo/homepage/', views.homepage_seo, name='homepage_seo'),
     
 ]

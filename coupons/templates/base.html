@@ -5,7 +5,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <title>{% block title %}CouponHub{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <title>{% block meta_title %}CouponHub - Save Money with Exclusive Coupons{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}coupons, promo codes, deals, discounts, savings, coupon codes{% endblock %}">
+    <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="{% block og_title %}CouponHub - Save Money with Exclusive Coupons{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static 'img/couponhub.jpg' %}{% endblock %}">
+    <meta property="og:site_name" content="CouponHub">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+    <meta property="twitter:title" content="{% block twitter_title %}CouponHub - Save Money with Exclusive Coupons{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{% static 'img/couponhub.jpg' %}{% endblock %}">
+    
+    <!-- Structured Data -->
+    {% block structured_data %}{% endblock %}
+    
+    <!-- couponhub -->
+    <link rel="icon" href="{% static 'img/couponhub.ico' %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/couponhub.jpg' %}">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
@@ -49,20 +77,6 @@
             color: transparent;
         }
         
-        /* Scrollbar styling */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-        
-        /* Rotate animation for chevron icons */
-        .rotate-180 {
-            transform: rotate(180deg);
-        }
-        
         /* Improved search input styling */
         .search-container {
             flex-shrink: 0;
@@ -87,9 +101,40 @@
             }
         }
         
-        /* Hide horizontal scrollbar */
-        .overflow-x-auto {
-            overflow-x: visible !important;
+        /* Category and filter styling */
+        .category-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            justify-content: center;
+        }
+        
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+        
+        .category-tag {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        .filter-btn {
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .category-container {
+                gap: 0.5rem;
+            }
+            
+            .filter-container {
+                gap: 0.25rem;
+            }
         }
     </style>
 </head>
