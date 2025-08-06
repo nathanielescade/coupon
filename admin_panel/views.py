@@ -30,6 +30,15 @@ def dashboard(request):
     total_stores = Store.objects.count()
     total_users = User.objects.count()
     
+    # Newsletter stats
+    from coupons.models import NewsletterSubscriber
+    total_subscribers = NewsletterSubscriber.objects.count()
+    active_subscribers = NewsletterSubscriber.objects.filter(is_active=True).count()
+    recent_subscribers = NewsletterSubscriber.objects.order_by('-subscribed_at')[:5]
+    recent_subscribers_count = NewsletterSubscriber.objects.filter(
+        subscribed_at__gte=timezone.now() - timedelta(days=7)
+    ).count()
+    
     # Recent activity
     recent_coupons = Coupon.objects.order_by('-created_at')[:5]
     recent_users = User.objects.order_by('-date_joined')[:5]
@@ -53,6 +62,10 @@ def dashboard(request):
         'active_coupons': active_coupons,
         'total_stores': total_stores,
         'total_users': total_users,
+        'total_subscribers': total_subscribers,
+        'active_subscribers': active_subscribers,
+        'recent_subscribers': recent_subscribers,
+        'recent_subscribers_count': recent_subscribers_count,
         'recent_coupons': recent_coupons,
         'recent_users': recent_users,
         'new_coupons_last_7_days': new_coupons_last_7_days,
@@ -61,6 +74,10 @@ def dashboard(request):
     }
     
     return render(request, 'admin_panel/dashboard.html', context)
+
+
+
+
 
 @login_required
 @user_passes_test(is_staff_user)
@@ -378,3 +395,201 @@ def user_edit(request, user_id):
 def analytics_view(request):
     # Redirect to the existing analytics dashboard
     return redirect('analytics:dashboard')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count, Sum, Avg, Q
+from django.urls import reverse
+from django.contrib import messages
+from django.http import HttpResponse
+from coupons.models import Coupon, Store, Category, UserCoupon, CouponUsage, Newsletter, NewsletterSubscriber
+from analytics.models import PageView, Event, CouponAnalytics, StoreAnalytics, CategoryAnalytics
+from .forms import CouponForm, StoreForm, CategoryForm, UserForm, NewsletterForm
+import json
+
+def is_staff_user(user):
+    return user.is_authenticated and user.is_staff
+
+# ... keep all your existing views ...
+
+# Newsletter management views
+@login_required
+@user_passes_test(is_staff_user)
+def newsletter_list(request):
+    newsletters = Newsletter.objects.all().order_by('-created_at')
+    
+    context = {
+        'newsletters': newsletters,
+    }
+    
+    return render(request, 'admin_panel/newsletter_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def newsletter_create(request):
+    if request.method == 'POST':
+        form = NewsletterForm(request.POST)
+        if form.is_valid():
+            newsletter = form.save()
+            messages.success(request, 'Newsletter created successfully!')
+            return redirect('admin_panel:newsletter_edit', newsletter_id=newsletter.id)
+    else:
+        form = NewsletterForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Newsletter',
+    }
+    
+    return render(request, 'admin_panel/newsletter_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def newsletter_edit(request, newsletter_id):
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+    
+    if request.method == 'POST':
+        form = NewsletterForm(request.POST, instance=newsletter)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Newsletter updated successfully!')
+            return redirect('admin_panel:newsletter_list')
+    else:
+        form = NewsletterForm(instance=newsletter)
+    
+    context = {
+        'form': form,
+        'newsletter': newsletter,
+        'title': 'Edit Newsletter',
+    }
+    
+    return render(request, 'admin_panel/newsletter_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def newsletter_delete(request, newsletter_id):
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+    
+    if request.method == 'POST':
+        newsletter.delete()
+        messages.success(request, 'Newsletter deleted successfully!')
+        return redirect('admin_panel:newsletter_list')
+    
+    context = {
+        'newsletter': newsletter,
+    }
+    
+    return render(request, 'admin_panel/newsletter_delete.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def newsletter_send(request, newsletter_id):
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+    
+    if newsletter.is_sent:
+        messages.warning(request, f'Newsletter "{newsletter.subject}" was already sent on {newsletter.sent_at}')
+        return redirect('admin_panel:newsletter_list')
+    
+    if request.method == 'POST':
+        success, message = newsletter.send_newsletter()
+        if success:
+            messages.success(request, f'Newsletter sent successfully. {message}')
+        else:
+            messages.error(request, f'Failed to send newsletter: {message}')
+        return redirect('admin_panel:newsletter_list')
+    
+    context = {
+        'newsletter': newsletter,
+        'subscriber_count': NewsletterSubscriber.objects.filter(is_active=True).count(),
+    }
+    
+    return render(request, 'admin_panel/newsletter_send.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def newsletter_preview(request, newsletter_id):
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+    
+    # Get latest coupons for the preview
+    days_ago = 7
+    start_date = timezone.now() - timedelta(days=days_ago)
+    coupons = Coupon.objects.filter(
+        is_active=True,
+        created_at__gte=start_date
+    ).order_by('-created_at')[:10]
+    
+    context = {
+        'subject': newsletter.subject,
+        'content': newsletter.content,
+        'coupons': coupons,
+        'email': 'subscriber@example.com'  # Example email for preview
+    }
+    
+    return render(request, 'custom_newsletter_email.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def subscriber_list(request):
+    subscribers = NewsletterSubscriber.objects.all().order_by('-subscribed_at')
+    
+    # Filter by active status
+    active_filter = request.GET.get('active')
+    if active_filter == 'true':
+        subscribers = subscribers.filter(is_active=True)
+    elif active_filter == 'false':
+        subscribers = subscribers.filter(is_active=False)
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        subscribers = subscribers.filter(email__icontains=search_query)
+    
+    context = {
+        'subscribers': subscribers,
+        'active_filter': active_filter,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin_panel/subscriber_list.html', context)
+
+
+
+@login_required
+@user_passes_test(is_staff_user)
+def export_subscribers(request):
+    import csv
+    from django.http import HttpResponse
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="subscribers.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Email', 'Subscribed At', 'Status'])
+    
+    subscribers = NewsletterSubscriber.objects.all().order_by('-subscribed_at')
+    for subscriber in subscribers:
+        writer.writerow([
+            subscriber.email,
+            subscriber.subscribed_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'Active' if subscriber.is_active else 'Inactive'
+        ])
+    
+    return response

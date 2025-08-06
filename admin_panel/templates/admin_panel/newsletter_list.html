@@ -1,0 +1,103 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}Newsletters - Admin Panel{% endblock %}
+{% block page_title %}Newsletters{% endblock %}
+
+{% block content %}
+<div class="admin-card rounded-xl p-6 shadow-lg mb-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-bold text-blue-300">Newsletter Management</h2>
+        <a href="{% url 'admin_panel:newsletter_create' %}" class="btn-gradient text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
+            <i class="fas fa-plus mr-2"></i> Create Newsletter
+        </a>
+    </div>
+    
+    {% if newsletters %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-blue-200">
+            <thead>
+                <tr class="border-b border-blue-700">
+                    <th class="text-left py-3 px-4">Subject</th>
+                    <th class="text-left py-3 px-4">Created</th>
+                    <th class="text-left py-3 px-4">Sent</th>
+                    <th class="text-center py-3 px-4">Status</th>
+                    <th class="text-center py-3 px-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for newsletter in newsletters %}
+                <tr class="border-b border-blue-800 hover:bg-blue-900/20">
+                    <td class="py-3 px-4">
+                        <div class="font-medium">{{ newsletter.subject }}</div>
+                        <div class="text-sm text-blue-400 truncate max-w-xs">{{ newsletter.content|truncatewords:10 }}</div>
+                    </td>
+                    <td class="py-3 px-4">{{ newsletter.created_at|date:"M d, Y H:i" }}</td>
+                    <td class="py-3 px-4">
+                        {% if newsletter.sent_at %}
+                            {{ newsletter.sent_at|date:"M d, Y H:i" }}
+                        {% else %}
+                            <span class="text-blue-400">Not sent</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                        {% if newsletter.is_sent %}
+                            <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded-full text-xs">Sent</span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 rounded-full text-xs">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        <div class="flex justify-center space-x-2">
+                            <a href="{% url 'admin_panel:newsletter_preview' newsletter.id %}" target="_blank" class="text-blue-400 hover:text-blue-300" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'admin_panel:newsletter_edit' newsletter.id %}" class="text-blue-400 hover:text-blue-300" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if not newsletter.is_sent %}
+                            <a href="{% url 'admin_panel:newsletter_send' newsletter.id %}" class="text-green-400 hover:text-green-300" title="Send">
+                                <i class="fas fa-paper-plane"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'admin_panel:newsletter_delete' newsletter.id %}" class="text-red-400 hover:text-red-300" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <i class="fas fa-envelope-open-text text-4xl text-blue-400 mb-4"></i>
+        <p class="text-blue-300">No newsletters found. Create your first newsletter to get started.</p>
+        <a href="{% url 'admin_panel:newsletter_create' %}" class="btn-gradient text-white px-4 py-2 rounded-lg hover:opacity-90 transition inline-block mt-4">
+            <i class="fas fa-plus mr-2"></i> Create Newsletter
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-card rounded-xl p-6 shadow-lg">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-blue-300">Subscriber Statistics</h3>
+        <a href="{% url 'admin_panel:subscriber_list' %}" class="text-blue-400 hover:text-blue-300 text-sm">View All</a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="text-center p-4 bg-blue-900/30 rounded-lg">
+            <div class="text-3xl font-bold text-blue-100">{{ total_subscribers }}</div>
+            <div class="text-blue-400">Total Subscribers</div>
+        </div>
+        <div class="text-center p-4 bg-green-900/30 rounded-lg">
+            <div class="text-3xl font-bold text-blue-100">{{ active_subscribers }}</div>
+            <div class="text-blue-400">Active Subscribers</div>
+        </div>
+        <div class="text-center p-4 bg-purple-900/30 rounded-lg">
+            <div class="text-3xl font-bold text-blue-100">{{ recent_subscribers }}</div>
+            <div class="text-blue-400">New This Week</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Privacy Policy - CouponHub{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="card-bg rounded-xl p-8 shadow-xl">
+        <h1 class="text-3xl font-bold text-blue-300 mb-6">Privacy Policy</h1>
+        
+        <div class="space-y-6 text-blue-200">
+            <p class="text-sm text-blue-400">Last updated: {% now "F d, Y" %}</p>
+            
+            <p>
+                At CouponHub, we respect your privacy and are committed to protecting your personal data. This privacy policy 
+                explains how we collect, use, and safeguard your information when you visit our website.
+            </p>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">Information We Collect</h2>
+            
+            <h3 class="text-xl font-medium text-blue-300 mt-6 mb-3">Personal Information</h3>
+            <p>
+                When you subscribe to our newsletter, we collect your email address. This information is voluntarily provided 
+                by you and is used solely for the purpose of sending you updates about the latest coupons and deals.
+            </p>
+            
+            <h3 class="text-xl font-medium text-blue-300 mt-6 mb-3">Automatically Collected Information</h3>
+            <p>
+                When you visit our website, we may automatically collect certain information, including:
+            </p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>Your IP address</li>
+                <li>Browser type and version</li>
+                <li>Operating system</li>
+                <li>Pages visited on our website</li>
+                <li>Time and date of your visit</li>
+                <li>Referring website</li>
+            </ul>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">How We Use Your Information</h2>
+            <p>
+                We use the information we collect for the following purposes:
+            </p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>To send you newsletter updates about coupons and deals</li>
+                <li>To improve our website and user experience</li>
+                <li>To analyze website traffic and usage patterns</li>
+                <li>To respond to your inquiries and provide customer support</li>
+            </ul>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">Information Sharing</h2>
+            <p>
+                We do not sell, trade, or otherwise transfer your personal information to third parties without your consent, 
+                except as described in this privacy policy.
+            </p>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">Data Security</h2>
+            <p>
+                We implement appropriate security measures to protect your personal information against unauthorized access, 
+                alteration, disclosure, or destruction. However, no method of transmission over the internet or method of 
+                electronic storage is 100% secure.
+            </p>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">Your Privacy Rights</h2>
+            <p>
+                You have the right to:
+            </p>
+            <ul class="list-disc pl-6 space-y-2">
+                <li>Access the personal information we hold about you</li>
+                <li>Correct inaccurate personal information</li>
+                <li>Request deletion of your personal information</li>
+                <li>Opt-out of receiving marketing communications</li>
+            </ul>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">Changes to This Privacy Policy</h2>
+            <p>
+                We may update this privacy policy from time to time. The updated version will be indicated by a revised 
+                "Last updated" date and the updated version will be effective as soon as it is accessible.
+            </p>
+            
+            <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">Contact Us</h2>
+            <p>
+                If you have any questions about this privacy policy, please contact us at:
+            </p>
+            <p class="text-blue-300">support@couponhub.com</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

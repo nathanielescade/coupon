@@ -1,0 +1,82 @@
+{% extends 'admin/base_site.html' %}
+{% load static %}
+
+{% block title %}Newsletter Management | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">Newsletter Management</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="messagelist {% if message.tags %}{{ message.tags }}{% endif %}">
+        {% if message.tags == "error" %}<div class="error">{% endif %}
+        {{ message }}
+        {% if message.tags == "error" %}</div>{% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+    
+    <div class="module">
+        <h2>Create New Newsletter</h2>
+        <form method="post" action="{% url 'newsletter_management' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="submit-row">
+                <input type="submit" value="Create Newsletter" class="default">
+            </div>
+        </form>
+    </div>
+    
+    <div class="module">
+        <h2>Newsletters</h2>
+        {% if newsletters %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Created</th>
+                    <th>Sent</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for newsletter in newsletters %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ newsletter.subject }}</td>
+                    <td>{{ newsletter.created_at|date:"Y-m-d H:i" }}</td>
+                    <td>
+                        {% if newsletter.sent_at %}
+                            {{ newsletter.sent_at|date:"Y-m-d H:i" }}
+                        {% else %}
+                            Not sent
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if newsletter.is_sent %}
+                            <span style="color: green;">Sent</span>
+                        {% else %}
+                            <span style="color: orange;">Draft</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not newsletter.is_sent %}
+                            <a href="{% url 'preview_newsletter' newsletter.id %}" class="button" target="_blank">Preview</a>
+                            <a href="{% url 'send_newsletter' newsletter.id %}" class="button" onclick="return confirm('Are you sure you want to send this newsletter to all subscribers?')">Send</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No newsletters found.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(to right, #004e92, #000428);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .coupon-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CouponHub</h1>
+        <p>Your Source for the Best Deals and Coupons</p>
+    </div>
+    
+    <div class="content">
+        <h2>{{ subject }}</h2>
+        
+        <p>Thank you for subscribing to CouponHub's newsletter! We're excited to help you save money with the best deals and coupons from your favorite stores.</p>
+        
+        <p>Here's what you can expect from our newsletter:</p>
+        
+        <ul>
+            <li>Weekly updates on the hottest deals</li>
+            <li>Exclusive coupons not found anywhere else</li>
+            <li>Special holiday and seasonal promotions</li>
+            <li>Tips and tricks for maximizing your savings</li>
+        </ul>
+        
+        <div class="coupon-card">
+            <h3>Exclusive Offer Just for Subscribers!</h3>
+            <p>As a thank you for subscribing, here's an exclusive offer: Use code <strong>WELCOME10</strong> for 10% off your next purchase at participating stores.</p>
+        </div>
+        
+        <a href="https://couponhub.com" class="btn">Browse Latest Deals</a>
+        
+        <p>Stay tuned for our next newsletter with more amazing savings opportunities!</p>
+        
+        <p>Best regards,<br>The CouponHub Team</p>
+    </div>
+    
+    <div class="footer">
+        <p>This email was sent to {{ email }} because you subscribed to CouponHub's newsletter.</p>
+        <p>If you no longer wish to receive these emails, you can <a href="https://couponhub.com/unsubscribe?email={{ email }}">unsubscribe here</a>.</p>
+        <p>&copy; {% now "Y" %} CouponHub. All rights reserved.</p>
+    </div>
+</body>
+</html>

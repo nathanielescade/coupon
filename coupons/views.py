@@ -517,7 +517,33 @@ def signup_view(request):
 
 
 
-
+@login_required
+def profile_view(request, username=None):
+    if username:
+        user = get_object_or_404(CustomUser, username=username)
+    else:
+        user = request.user
+    
+    # Get user's saved coupons
+    saved_coupons = UserCoupon.objects.filter(user=user).select_related('coupon', 'coupon__store')
+    
+    # Get user's coupon usage history
+    used_coupons = CouponUsage.objects.filter(user=user).select_related('coupon', 'coupon__store')
+    
+    # Calculate statistics
+    total_saved = saved_coupons.count()
+    total_used = used_coupons.count()
+    
+    context = {
+        'profile_user': user,
+        'saved_coupons': saved_coupons[:10],  # Limit to 10 for display
+        'used_coupons': used_coupons[:10],   # Limit to 10 for display
+        'total_saved': total_saved,
+        'total_used': total_used,
+        'is_own_profile': user == request.user
+    }
+    
+    return render(request, 'registration/profile.html', context)
 
 
 
@@ -753,3 +779,230 @@ def filter_coupons_ajax(request):
     html = render_to_string('coupon_list.html', context, request=request)
     
     return JsonResponse({'html': html})
+
+
+
+
+
+
+
+
+from django.shortcuts import render
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+from .forms import NewsletterForm
+from .models import NewsletterSubscriber
+
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.conf import settings
+
+@require_POST
+def newsletter_subscribe(request):
+    form = NewsletterForm(request.POST)
+    if form.is_valid():
+        email = form.cleaned_data['email']
+        
+        # Check if email already exists
+        if NewsletterSubscriber.objects.filter(email=email).exists():
+            subscriber = NewsletterSubscriber.objects.get(email=email)
+            if subscriber.is_active:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'You are already subscribed to our newsletter.'
+                })
+            else:
+                # Reactivate subscription
+                subscriber.is_active = True
+                subscriber.save()
+                
+                # Send reactivation email
+                send_subscription_email(email, "Welcome back to CouponHub!")
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Thank you for re-subscribing to our newsletter!'
+                })
+        
+        # Create new subscriber
+        subscriber = form.save()
+        
+        # Send confirmation email
+        send_subscription_email(email, "Welcome to CouponHub!")
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Thank you for subscribing to our newsletter! Check your email for confirmation.'
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'message': 'Please enter a valid email address.'
+    })
+
+def send_subscription_email(email, subject):
+    """Send subscription confirmation email"""
+    try:
+        # Render HTML email
+        html_content = render_to_string('subscription_email.html', {
+            'subject': subject,
+            'email': email
+        })
+        
+        # Create email message
+        email_message = EmailMultiAlternatives(
+            subject,
+            f"Thank you for subscribing to CouponHub's newsletter!\n\nYou'll receive the latest deals and coupons directly in your inbox.",
+            settings.DEFAULT_FROM_EMAIL,
+            [email]
+        )
+        
+        # Attach HTML version
+        email_message.attach_alternative(html_content, "text/html")
+        
+        # Send email
+        email_message.send()
+        return True
+    except Exception as e:
+        print(f"Error sending subscription email: {e}")
+        return False
+
+def about(request):
+    return render(request, 'about.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+
+def privacy_policy(request):
+    return render(request, 'privacy_policy.html')
+
+def terms_of_service(request):
+    return render(request, 'terms_of_service.html')
+
+
+
+from django.core.mail import send_mail
+from django.conf import settings
+
+@require_POST
+def contact_submit(request):
+    name = request.POST.get('name')
+    email = request.POST.get('email')
+    subject = request.POST.get('subject')
+    message = request.POST.get('message')
+    
+    if not all([name, email, subject, message]):
+        return JsonResponse({
+            'success': False,
+            'message': 'All fields are required.'
+        })
+    
+    try:
+        # Send email to admin
+        send_mail(
+            f'Contact Form: {subject}',
+            f'Name: {name}\nEmail: {email}\n\nMessage:\n{message}',
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.ADMIN_EMAIL],
+            fail_silently=False,
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Your message has been sent successfully. We\'ll get back to you soon!'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': 'An error occurred while sending your message. Please try again.'
+        })
+
+def unsubscribe(request):
+    email = request.GET.get('email')
+    
+    if not email:
+        return render(request, 'unsubscribe.html', {
+            'success': False,
+            'message': 'No email provided.'
+        })
+    
+    try:
+        subscriber = NewsletterSubscriber.objects.get(email=email)
+        subscriber.is_active = False
+        subscriber.save()
+        
+        return render(request, 'unsubscribe.html', {
+            'success': True,
+            'message': 'You have been successfully unsubscribed from our newsletter.'
+        })
+    except NewsletterSubscriber.DoesNotExist:
+        return render(request, 'unsubscribe.html', {
+            'success': False,
+            'message': 'This email is not subscribed to our newsletter.'
+        })
+
+
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib import messages
+from .models import Newsletter
+from .forms import NewsletterForm
+
+@staff_member_required
+def newsletter_management(request):
+    newsletters = Newsletter.objects.all().order_by('-created_at')
+    
+    if request.method == 'POST':
+        form = NewsletterForm(request.POST)
+        if form.is_valid():
+            newsletter = form.save()
+            messages.success(request, f'Newsletter "{newsletter.subject}" created successfully!')
+            return redirect('newsletter_management')
+    else:
+        form = NewsletterForm()
+    
+    context = {
+        'newsletters': newsletters,
+        'form': form
+    }
+    return render(request, 'newsletter_management.html', context)
+
+@staff_member_required
+def send_newsletter(request, newsletter_id):
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+    
+    if newsletter.is_sent:
+        messages.warning(request, f'Newsletter "{newsletter.subject}" was already sent on {newsletter.sent_at}')
+    else:
+        success, message = newsletter.send_newsletter()
+        if success:
+            messages.success(request, f'Newsletter sent successfully. {message}')
+        else:
+            messages.error(request, f'Failed to send newsletter: {message}')
+    
+    return redirect('newsletter_management')
+
+@staff_member_required
+def preview_newsletter(request, newsletter_id):
+    newsletter = get_object_or_404(Newsletter, id=newsletter_id)
+    
+    # Get latest coupons for the preview
+    days_ago = 7
+    start_date = timezone.now() - datetime.timedelta(days=days_ago)
+    coupons = Coupon.objects.filter(
+        is_active=True,
+        created_at__gte=start_date
+    ).order_by('-created_at')[:10]
+    
+    context = {
+        'subject': newsletter.subject,
+        'content': newsletter.content,
+        'coupons': coupons,
+        'email': 'subscriber@example.com'  # Example email for preview
+    }
+    
+    return render(request, 'custom_newsletter_email.html', context)

@@ -1,0 +1,37 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}{{ title }} - Admin Panel{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="admin-card rounded-xl p-6 shadow-lg">
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="mb-6">
+            <label for="id_subject" class="block text-blue-300 mb-2">Subject</label>
+            {{ form.subject }}
+            {% if form.subject.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.subject.errors }}</div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-6">
+            <label for="id_content" class="block text-blue-300 mb-2">Content</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+            <div class="text-red-400 text-sm mt-1">{{ form.content.errors }}</div>
+            {% endif %}
+            <p class="text-blue-400 text-sm mt-2">The latest coupons will be automatically included in the newsletter.</p>
+        </div>
+        
+        <div class="flex justify-end space-x-3">
+            <a href="{% url 'admin_panel:newsletter_list' %}" class="px-4 py-2 rounded-lg bg-blue-900/50 text-blue-300 hover:bg-blue-900/70 transition">
+                Cancel
+            </a>
+            <button type="submit" class="btn-gradient text-white px-6 py-2 rounded-lg hover:opacity-90 transition">
+                Save Newsletter
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

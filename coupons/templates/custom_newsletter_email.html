@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ subject }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 0 0 5px 5px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(to right, #004e92, #000428);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .coupon-card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .coupon-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #004e92;
+            margin-bottom: 5px;
+        }
+        .coupon-store {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .coupon-description {
+            margin-bottom: 10px;
+        }
+        .coupon-code {
+            background: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            display: inline-block;
+            margin-top: 5px;
+        }
+        .expiry {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .newsletter-content {
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CouponHub Newsletter</h1>
+        <p>Your Weekly Dose of Savings</p>
+    </div>
+    
+    <div class="content">
+        <h2>{{ subject }}</h2>
+        
+        <div class="newsletter-content">
+            {{ content|linebreaks }}
+        </div>
+        
+        <p>Here are some of the latest deals we've found for you:</p>
+        
+        {% for coupon in coupons %}
+        <div class="coupon-card">
+            <div class="coupon-title">{{ coupon.title }}</div>
+            <div class="coupon-store">{{ coupon.store.name }}</div>
+            <div class="coupon-description">{{ coupon.description }}</div>
+            
+            {% if coupon.code %}
+            <div class="coupon-code">{{ coupon.code }}</div>
+            {% endif %}
+            
+            {% if coupon.expiry_date %}
+            <div class="expiry">Expires: {{ coupon.expiry_date|date:"F d, Y" }}</div>
+            {% endif %}
+            
+            <a href="http://192.168.43.101/coupon/{{ coupon.id }}/" class="btn">Get Deal</a>
+        </div>
+        {% endfor %}
+        
+        <a href="http://192.168.43.101/coupons/" class="btn">View All Deals</a>
+        
+        <p>Happy saving!</p>
+        
+        <p>Best regards,<br>The CouponHub Team</p>
+    </div>
+    
+    <div class="footer">
+        <p>This email was sent to {{ email }} because you subscribed to CouponHub's newsletter.</p>
+        <p>If you no longer wish to receive these emails, you can <a href="http://192.168.43.101/unsubscribe/?email={{ email }}">unsubscribe here</a>.</p>
+        <p>&copy; {% now "Y" %} CouponHub. All rights reserved.</p>
+    </div>
+</body>
+</html>

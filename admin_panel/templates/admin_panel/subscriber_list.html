@@ -1,0 +1,79 @@
+{% extends 'admin_panel/base.html' %}
+{% block title %}Subscribers - Admin Panel{% endblock %}
+{% block page_title %}Subscribers{% endblock %}
+
+{% block content %}
+<div class="admin-card rounded-xl p-6 shadow-lg mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-4 md:space-y-0">
+        <h2 class="text-xl font-bold text-blue-300">Newsletter Subscribers</h2>
+        
+        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
+            <form method="get" class="flex">
+                <input type="text" name="search" placeholder="Search subscribers..." 
+                       class="px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+                       value="{{ search_query }}">
+                <button type="submit" class="btn-gradient text-white px-4 py-2 rounded-r-lg">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+            
+            <div class="flex space-x-2">
+                <a href="{% url 'admin_panel:subscriber_list' %}?active=true" 
+                   class="px-3 py-2 rounded-lg {% if active_filter == 'true' %}bg-green-900/50 text-green-300{% else %}bg-blue-900/50 text-blue-300 hover:bg-blue-900/70{% endif %} transition">
+                    Active
+                </a>
+                <a href="{% url 'admin_panel:subscriber_list' %}?active=false" 
+                   class="px-3 py-2 rounded-lg {% if active_filter == 'false' %}bg-red-900/50 text-red-300{% else %}bg-blue-900/50 text-blue-300 hover:bg-blue-900/70{% endif %} transition">
+                    Inactive
+                </a>
+                <a href="{% url 'admin_panel:subscriber_list' %}" 
+                   class="px-3 py-2 rounded-lg {% if not active_filter %}bg-blue-900/50 text-blue-300{% else %}bg-blue-900/50 text-blue-300 hover:bg-blue-900/70{% endif %} transition">
+                    All
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    {% if subscribers %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-blue-200">
+            <thead>
+                <tr class="border-b border-blue-700">
+                    <th class="text-left py-3 px-4">Email</th>
+                    <th class="text-left py-3 px-4">Subscribed</th>
+                    <th class="text-center py-3 px-4">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subscriber in subscribers %}
+                <tr class="border-b border-blue-800 hover:bg-blue-900/20">
+                    <td class="py-3 px-4">{{ subscriber.email }}</td>
+                    <td class="py-3 px-4">{{ subscriber.subscribed_at|date:"M d, Y H:i" }}</td>
+                    <td class="py-3 px-4 text-center">
+                        {% if subscriber.is_active %}
+                            <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded-full text-xs">Active</span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-red-900/50 text-red-300 rounded-full text-xs">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <i class="fas fa-user-friends text-4xl text-blue-400 mb-4"></i>
+        <p class="text-blue-300">No subscribers found.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-card rounded-xl p-6 shadow-lg">
+    <h3 class="text-lg font-semibold text-blue-300 mb-4">Export Subscribers</h3>
+    <p class="text-blue-200 mb-4">Export all subscribers to a CSV file for use in external email marketing tools.</p>
+    <a href="{% url 'admin_panel:export_subscribers' %}" class="btn-gradient text-white px-4 py-2 rounded-lg hover:opacity-90 transition inline-block">
+        <i class="fas fa-download mr-2"></i> Export CSV
+    </a>
+</div>
+{% endblock %}

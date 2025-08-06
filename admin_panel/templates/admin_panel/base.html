@@ -84,7 +84,7 @@
                         <span>Dashboard</span>
                     </a>
                     
-                    <a href="{% url 'admin_panel:coupon_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'coupon' in request.resolver_match.url_name %}active{% endif %}">
+                    <a href="{% url 'admin_panel:coupon_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'coupon' in request.resolver_match.url_name and 'newsletter' not in request.resolver_match.url_name %}active{% endif %}">
                         <i class="fas fa-ticket-alt text-blue-400 w-5"></i>
                         <span>Coupons</span>
                     </a>
@@ -102,6 +102,17 @@
                     <a href="{% url 'admin_panel:user_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
                         <i class="fas fa-users text-blue-400 w-5"></i>
                         <span>Users</span>
+                    </a>
+                    
+                    <!-- Newsletter Management -->
+                    <a href="{% url 'admin_panel:newsletter_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'newsletter' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-envelope text-blue-400 w-5"></i>
+                        <span>Newsletters</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:subscriber_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if 'subscriber' in request.resolver_match.url_name %}active{% endif %}">
+                        <i class="fas fa-user-friends text-blue-400 w-5"></i>
+                        <span>Subscribers</span>
                     </a>
                     
                     <a href="{% url 'admin_panel:analytics' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg {% if request.resolver_match.url_name == 'analytics' %}active{% endif %}">
@@ -211,6 +222,17 @@
                     <a href="{% url 'admin_panel:user_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
                         <i class="fas fa-users text-blue-400 w-5"></i>
                         <span>Users</span>
+                    </a>
+                    
+                    <!-- Newsletter Management -->
+                    <a href="{% url 'admin_panel:newsletter_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-envelope text-blue-400 w-5"></i>
+                        <span>Newsletters</span>
+                    </a>
+                    
+                    <a href="{% url 'admin_panel:subscriber_list' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">
+                        <i class="fas fa-user-friends text-blue-400 w-5"></i>
+                        <span>Subscribers</span>
                     </a>
                     
                     <a href="{% url 'admin_panel:analytics' %}" class="admin-btn flex items-center space-x-3 px-4 py-3 rounded-lg">

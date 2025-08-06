@@ -21,4 +21,17 @@ urlpatterns = [
     path('users/', views.user_list, name='user_list'),
     path('users/<int:user_id>/edit/', views.user_edit, name='user_edit'),
     path('analytics/', views.analytics_view, name='analytics'),
+
+
+    path('newsletters/', views.newsletter_list, name='newsletter_list'),
+    path('newsletters/create/', views.newsletter_create, name='newsletter_create'),
+    path('newsletters/<int:newsletter_id>/edit/', views.newsletter_edit, name='newsletter_edit'),
+    path('newsletters/<int:newsletter_id>/delete/', views.newsletter_delete, name='newsletter_delete'),
+    path('newsletters/<int:newsletter_id>/send/', views.newsletter_send, name='newsletter_send'),
+    path('newsletters/<int:newsletter_id>/preview/', views.newsletter_preview, name='newsletter_preview'),
+    path('subscribers/export/', views.export_subscribers, name='export_subscribers'),
+    # Newsletter subscribers
+    path('subscribers/', views.subscriber_list, name='subscriber_list'),
+    
+    
 ]

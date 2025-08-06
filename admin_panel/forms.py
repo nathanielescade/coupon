@@ -1,5 +1,5 @@
 from django import forms
-from coupons.models import Coupon, Store, Category
+from coupons.models import Coupon, Store, Category, NewsletterSubscriber, Newsletter
 
 class CouponForm(forms.ModelForm):
     class Meta:
@@ -185,3 +185,14 @@ class UserForm(UserChangeForm):
                 field.widget.attrs['class'] = 'form-checkbox'
             else:
                 field.widget.attrs['class'] = 'form-input'
+
+
+
+
+class NewsletterForm(forms.ModelForm):
+    class Meta:
+        model = Newsletter
+        fields = ['subject', 'content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 10, 'class': 'w-full p-3 rounded-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500'}),
+        }
