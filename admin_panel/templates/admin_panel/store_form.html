@@ -1,6 +1,7 @@
 {% extends 'admin_panel/base.html' %}
 {% block title %}{{ title }} - Admin Panel{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+
 {% block content %}
 <div class="admin-card rounded-xl p-6 shadow-lg">
     <form method="post" enctype="multipart/form-data">
@@ -33,23 +34,24 @@
                     <div class="text-red-400 text-sm mt-1">{{ form.website.errors }}</div>
                     {% endif %}
                 </div>
-            </div>
-            
-            <!-- Right Column -->
-            <div>
+                
                 <div class="mb-4">
                     <label for="{{ form.logo.id_for_label }}" class="block text-blue-300 mb-2">Logo</label>
                     {{ form.logo }}
                     {% if form.logo.errors %}
                     <div class="text-red-400 text-sm mt-1">{{ form.logo.errors }}</div>
                     {% endif %}
+                    <p class="text-blue-400 text-xs mt-1">Recommended size: 200x200px</p>
                     {% if form.instance.logo %}
                     <div class="mt-2">
-                        <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }} logo" class="h-16">
+                        <img src="{{ form.instance.logo.url }}" alt="{{ form.instance.name }}" class="w-20 h-20 object-contain border border-blue-600 rounded">
                     </div>
                     {% endif %}
                 </div>
-                
+            </div>
+            
+            <!-- Right Column -->
+            <div>
                 <div class="mb-4">
                     <label for="{{ form.description.id_for_label }}" class="block text-blue-300 mb-2">Description</label>
                     {{ form.description }}
@@ -68,6 +70,22 @@
                     {% endif %}
                     <p class="text-blue-400 text-xs mt-1">Inactive stores won't be shown on the site</p>
                 </div>
+                
+                {% if form.instance.id %}
+                <div class="bg-blue-900/20 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">Store Information</h3>
+                    <div class="space-y-2 text-sm">
+                        <div>
+                            <p class="text-blue-400">Coupons:</p>
+                            <p class="text-blue-100">{{ form.instance.coupons.count }}</p>
+                        </div>
+                        <div>
+                            <p class="text-blue-400">Created:</p>
+                            <p class="text-blue-100">{{ form.instance.created_at|date:"F d, Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
         
@@ -107,3 +125,9 @@
     }
 </style>
 {% endblock %}
+
+
+
+
+
+

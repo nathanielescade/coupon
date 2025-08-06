@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Privacy Policy - CouponHub{% endblock %}
+{% block title %}Privacy Policy - {{ APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -11,7 +11,7 @@
             <p class="text-sm text-blue-400">Last updated: {% now "F d, Y" %}</p>
             
             <p>
-                At CouponHub, we respect your privacy and are committed to protecting your personal data. This privacy policy 
+                At {{ APP_NAME }}, we respect your privacy and are committed to protecting your personal data. This privacy policy 
                 explains how we collect, use, and safeguard your information when you visit our website.
             </p>
             
@@ -81,7 +81,7 @@
             <p>
                 If you have any questions about this privacy policy, please contact us at:
             </p>
-            <p class="text-blue-300">support@couponhub.com</p>
+            <p class="text-blue-300">support@{{ APP_NAME }}.com</p>
         </div>
     </div>
 </div>

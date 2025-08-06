@@ -335,6 +335,11 @@ class NewsletterForm(forms.ModelForm):
         model = Newsletter
         fields = ['subject', 'content']
         widgets = {
-            'subject': forms.TextInput(attrs={'class': 'form-input'}),
-            'content': forms.Textarea(attrs={'class': 'form-input', 'rows': 10}),
+            'subject': forms.TextInput(attrs={
+                'class': 'shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border border-blue-600 text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500'
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'shadow appearance-none rounded w-full py-2 px-3 bg-black/30 border border-blue-600 text-blue-100 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500',
+                'rows': 10
+            }),
         }

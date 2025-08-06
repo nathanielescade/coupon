@@ -7,32 +7,32 @@
     <meta name="csrf-token" content="{{ csrf_token }}">
     
     <!-- SEO Meta Tags -->
-    <title>{% block meta_title %}CouponHub - Save Money with Exclusive Coupons{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.{% endblock %}">
+    <title>{% block meta_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
     <meta name="keywords" content="{% block meta_keywords %}coupons, promo codes, deals, discounts, savings, coupon codes{% endblock %}">
     <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:title" content="{% block og_title %}CouponHub - Save Money with Exclusive Coupons{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.{% endblock %}">
-    <meta property="og:image" content="{% block og_image %}{% static 'img/couponhub.jpg' %}{% endblock %}">
-    <meta property="og:site_name" content="CouponHub">
+    <meta property="og:title" content="{% block og_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}{% static APP_LOGO %}{% endblock %}">
+    <meta property="og:site_name" content="{{ APP_NAME }}">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
-    <meta property="twitter:title" content="{% block twitter_title %}CouponHub - Save Money with Exclusive Coupons{% endblock %}">
-    <meta property="twitter:description" content="{% block twitter_description %}Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.{% endblock %}">
-    <meta property="twitter:image" content="{% block twitter_image %}{% static 'img/couponhub.jpg' %}{% endblock %}">
+    <meta property="twitter:title" content="{% block twitter_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
+    <meta property="twitter:description" content="{% block twitter_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
+    <meta property="twitter:image" content="{% block twitter_image %}{% static APP_LOGO %}{% endblock %}">
     
     <!-- Structured Data -->
     {% block structured_data %}{% endblock %}
     
-    <!-- couponhub -->
-    <link rel="icon" href="{% static 'img/couponhub.ico' %}">
-    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/couponhub.jpg' %}">
+    <!-- Favicon and Logo -->
+    <link rel="icon" href="{% static APP_FAVICON %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static APP_LOGO %}">
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -144,8 +144,8 @@
         <div class="container mx-auto px-4 py-3">
             <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-3">
-                    <i class="fas fa-ticket-alt text-blue-400 text-2xl"></i>
-                    <a href="{% url 'home' %}" class="text-xl font-bold text-blue-400 tracking-wide">CouponHub</a>
+                    <i class="{{ APP_ICON }} text-blue-400 text-2xl"></i>
+                    <a href="{% url 'home' %}" class="text-xl font-bold text-blue-400 tracking-wide">{{ APP_NAME }}</a>
                 </div>
                 
                 <div class="hidden md:flex items-center space-x-6">
@@ -315,10 +315,10 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
                     <div class="flex items-center space-x-2 mb-4">
-                        <i class="fas fa-ticket-alt text-blue-400 text-2xl"></i>
-                        <span class="text-xl font-bold text-blue-400">CouponHub</span>
+                        <i class="{{ APP_ICON }} text-blue-400 text-2xl"></i>
+                        <span class="text-xl font-bold text-blue-400">{{ APP_NAME }}</span>
                     </div>
-                    <p class="text-blue-300">Save money with the best coupons and deals from your favorite stores.</p>
+                    <p class="text-blue-300">{{ APP_TAGLINE }}</p>
                 </div>
                 
                 <div>
@@ -354,7 +354,28 @@
             </div>
             
             <div class="border-t border-blue-800 mt-8 pt-6 text-center text-blue-400">
-                <p>&copy; {% now "Y" %} CouponHub. All rights reserved.</p>
+                <p>&copy; {% now "Y" %} {{ APP_NAME }}. All rights reserved.</p>
+                
+                <!-- Social Media Links -->
+                <div class="flex justify-center space-x-4 mt-4">
+                    {% if SOCIAL_LINKS.twitter %}
+                    <a href="{{ SOCIAL_LINKS.twitter }}" target="_blank" class="text-blue-400 hover:text-blue-300 transition">
+                        <i class="fab fa-twitter text-xl"></i>
+                    </a>
+                    {% endif %}
+                    
+                    {% if SOCIAL_LINKS.facebook %}
+                    <a href="{{ SOCIAL_LINKS.facebook }}" target="_blank" class="text-blue-400 hover:text-blue-300 transition">
+                        <i class="fab fa-facebook text-xl"></i>
+                    </a>
+                    {% endif %}
+                    
+                    {% if SOCIAL_LINKS.instagram %}
+                    <a href="{{ SOCIAL_LINKS.instagram }}" target="_blank" class="text-blue-400 hover:text-blue-300 transition">
+                        <i class="fab fa-instagram text-xl"></i>
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </footer>
@@ -408,46 +429,56 @@
             });
             
             // Newsletter form submission
-            const newsletterForm = document.getElementById('newsletter-form');
-            const newsletterMessage = document.getElementById('newsletter-message');
-            
-            if (newsletterForm) {
-                newsletterForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(newsletterForm);
-                    const email = formData.get('email');
-                    
-                    // Simple validation
-                    if (!email) {
-                        showNewsletterMessage('Please enter a valid email address.', 'error');
-                        return;
-                    }
-                    
-                    // Send AJAX request
-                    fetch('{% url "newsletter_subscribe" %}', {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            showNewsletterMessage(data.message, 'success');
-                            newsletterForm.reset();
-                        } else {
-                            showNewsletterMessage(data.message, 'error');
-                        }
-                    })
-                    .catch(error => {
-                        showNewsletterMessage('An error occurred. Please try again.', 'error');
-                        console.error('Error:', error);
-                    });
-                });
+            // Newsletter form submission
+const newsletterForm = document.getElementById('newsletter-form');
+const newsletterMessage = document.getElementById('newsletter-message');
+
+if (newsletterForm) {
+    newsletterForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(newsletterForm);
+        const email = formData.get('email');
+        
+        // Simple validation
+        if (!email) {
+            showNewsletterMessage('Please enter a valid email address.', 'error');
+            return;
+        }
+        
+        // Add email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showNewsletterMessage('Please enter a valid email address.', 'error');
+            return;
+        }
+        
+        // Send AJAX request
+        fetch('{% url "newsletter_subscribe" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNewsletterMessage(data.message, 'success');
+                newsletterForm.reset();
+            } else {
+                showNewsletterMessage(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            showNewsletterMessage('An error occurred. Please try again.', 'error');
+            console.error('Error:', error);
+        });
+    });
+}
             
+
+
             function showNewsletterMessage(message, type) {
                 newsletterMessage.textContent = message;
                 newsletterMessage.classList.remove('hidden', 'text-green-400', 'text-red-400');

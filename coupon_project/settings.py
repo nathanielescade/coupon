@@ -65,6 +65,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'coupons.context_processors.app_settings',  # Add this line
             ],
         },
     },
@@ -210,3 +211,28 @@ CACHE_TIMEOUT = {
     'medium': 60 * 10,    # 10 minutes
     'long': 60 * 60,      # 1 hour
 }
+
+
+
+
+
+
+
+
+# App Settings
+APP_NAME = "CouponHub"
+APP_TAGLINE = "Save Money with Exclusive Coupons"
+APP_ICON = "fas fa-ticket-alt"
+APP_FAVICON = "img/couponhub.ico"
+APP_LOGO = "img/couponhub.jpg"
+
+# Social Media Links
+SOCIAL_LINKS = {
+    'twitter': 'https://twitter.com/couponhub',
+    'facebook': 'https://facebook.com/couponhub',
+    'instagram': 'https://instagram.com/couponhub',
+}
+
+# Contact Information
+CONTACT_EMAIL = 'support@couponhub.com'
+CONTACT_PHONE = '+1 (555) 123-4567'

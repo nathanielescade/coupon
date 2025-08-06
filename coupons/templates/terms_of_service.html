@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Terms of Service - CouponHub{% endblock %}
+{% block title %}Terms of Service - {{ APP_NAME }}{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto">
@@ -11,8 +11,8 @@
             <p class="text-sm text-blue-400">Last updated: {% now "F d, Y" %}</p>
             
             <p>
-                Welcome to CouponHub! These terms of service ("Terms") govern your use of our website and services. 
-                By accessing or using CouponHub, you agree to be bound by these Terms.
+                Welcome to {{ APP_NAME }}! These terms of service ("Terms") govern your use of our website and services. 
+                By accessing or using {{ APP_NAME }}, you agree to be bound by these Terms.
             </p>
             
             <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">1. Acceptance of Terms</h2>
@@ -23,7 +23,7 @@
             
             <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">2. Description of Service</h2>
             <p>
-                CouponHub is a platform that provides users with access to coupons, deals, and discounts from various 
+                {{ APP_NAME }} is a platform that provides users with access to coupons, deals, and discounts from various 
                 retailers and merchants. We aggregate and curate these offers to help users save money on their purchases.
             </p>
             
@@ -43,7 +43,7 @@
             
             <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">5. Intellectual Property</h2>
             <p>
-                All content on this website, including text, graphics, logos, and images, is the property of CouponHub 
+                All content on this website, including text, graphics, logos, and images, is the property of {{ APP_NAME }} 
                 or its content suppliers and is protected by intellectual property laws. You may not reproduce, distribute, 
                 or create derivative works without our express written permission.
             </p>
@@ -68,13 +68,13 @@
             
             <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">8. Limitation of Liability</h2>
             <p>
-                In no event shall CouponHub be liable for any direct, indirect, incidental, special, or consequential 
+                In no event shall {{ APP_NAME }} be liable for any direct, indirect, incidental, special, or consequential 
                 damages arising out of or in connection with the use of our website or the coupons listed on it.
             </p>
             
             <h2 class="text-2xl font-semibold text-blue-300 mt-8 mb-4">9. Indemnification</h2>
             <p>
-                You agree to indemnify and hold harmless CouponHub and its affiliates from any claims, damages, or expenses 
+                You agree to indemnify and hold harmless {{ APP_NAME }} and its affiliates from any claims, damages, or expenses 
                 arising out of your use of our website or violation of these Terms.
             </p>
             
@@ -88,7 +88,7 @@
             <p>
                 If you have any questions about these Terms, please contact us at:
             </p>
-            <p class="text-blue-300">support@couponhub.com</p>
+            <p class="text-blue-300">support@{{ APP_NAME }}.com</p>
         </div>
     </div>
 </div>
