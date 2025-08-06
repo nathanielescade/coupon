@@ -3,7 +3,7 @@
 {% block page_title %}{{ title }}{% endblock %}
 {% block content %}
 <div class="admin-card rounded-xl p-6 shadow-lg">
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         
         <div class="mb-6 p-4 bg-blue-900/30 rounded-lg">
@@ -56,13 +56,26 @@
                     <div class="text-red-400 text-sm mt-1">{{ form.og_image.errors }}</div>
                     {% endif %}
                 </div>
+                
+                <div>
+                    <label for="{{ form.og_image_upload.id_for_label }}" class="block text-blue-300 mb-2">OR Upload OG Image</label>
+                    {{ form.og_image_upload }}
+                    {% if form.og_image_upload.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.og_image_upload.errors }}</div>
+                    {% endif %}
+                    {% if form.instance.og_image_upload %}
+                    <div class="mt-2">
+                        <img src="{{ form.instance.og_image_upload.url }}" alt="OG Image" class="w-32 h-32 object-contain border border-blue-600 rounded">
+                    </div>
+                    {% endif %}
+                </div>
             </div>
             
             <div class="mt-4">
                 <label for="{{ form.og_description.id_for_label }}" class="block text-blue-300 mb-2">OG Description</label>
                 {{ form.og_description }}
                 {% if form.og_description.errors %}
-                <div class="text-red-400 text-sm mt-1">{{ form.og_description.errors }}</div>
+                    <div class="text-red-400 text-sm mt-1">{{ form.og_description.errors }}</div>
                 {% endif %}
             </div>
         </div>
@@ -85,13 +98,26 @@
                     <div class="text-red-400 text-sm mt-1">{{ form.twitter_image.errors }}</div>
                     {% endif %}
                 </div>
+                
+                <div>
+                    <label for="{{ form.twitter_image_upload.id_for_label }}" class="block text-blue-300 mb-2">OR Upload Twitter Image</label>
+                    {{ form.twitter_image_upload }}
+                    {% if form.twitter_image_upload.errors %}
+                    <div class="text-red-400 text-sm mt-1">{{ form.twitter_image_upload.errors }}</div>
+                    {% endif %}
+                    {% if form.instance.twitter_image_upload %}
+                    <div class="mt-2">
+                        <img src="{{ form.instance.twitter_image_upload.url }}" alt="Twitter Image" class="w-32 h-32 object-contain border border-blue-600 rounded">
+                    </div>
+                    {% endif %}
+                </div>
             </div>
             
             <div class="mt-4">
                 <label for="{{ form.twitter_description.id_for_label }}" class="block text-blue-300 mb-2">Twitter Description</label>
                 {{ form.twitter_description }}
                 {% if form.twitter_description.errors %}
-                <div class="text-red-400 text-sm mt-1">{{ form.twitter_description.errors }}</div>
+                    <div class="text-red-400 text-sm mt-1">{{ form.twitter_description.errors }}</div>
                     {% endif %}
             </div>
         </div>

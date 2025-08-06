@@ -696,6 +696,9 @@ class CouponDeleteView(LoginRequiredMixin, DeleteView):
         context['meta_keywords'] = f"delete coupon, remove coupon, {self.object.title}, {self.object.store.name}"
         return context
 
+
+
+
 def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -714,6 +717,9 @@ def signup_view(request):
         'meta_keywords': "sign up, register, create account, coupon account"
     }
     return render(request, 'registration/signup.html', context)
+
+
+
 
 @login_required
 def profile_view(request, username=None):
