@@ -16,22 +16,33 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Track coupon code copies
-    const copyButtons = document.querySelectorAll('button[onclick*="copyCode"]');
-    copyButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            // Get coupon ID from the onclick attribute
+// Track coupon code copies
+const copyButtons = document.querySelectorAll('button[onclick*="copyCode"]');
+copyButtons.forEach(button => {
+    button.addEventListener('click', function(e) {
+        // Don't prevent default - let the copy happen first
+        // The tracking will be handled by the copyCode function
+        
+        // This is just a backup in case the inline function fails
+        setTimeout(() => {
+            // Get coupon ID and code from the onclick attribute
             const onclickAttr = this.getAttribute('onclick');
-            const match = onclickAttr.match(/copyCode\('([^']+)'/);
-            const couponId = match ? match[1] : null;
+            const match = onclickAttr.match(/copyCode\('([^']+)',\s*'([^']+)'/);
+            const couponCode = match ? match[1] : null;
+            const couponId = match ? match[2] : null;
             
-            if (couponId) {
+            // Check if the button shows "Copied!" which indicates success
+            if (this.innerHTML.includes('Copied!') && couponId) {
                 trackEvent('copy_code', window.location.pathname, 'copy_button', {
-                    coupon_id: couponId
+                    coupon_id: couponId,
+                    coupon_code: couponCode
                 });
             }
-        });
+        }, 100);
     });
-    
+});
+
+
     // Track coupon uses
     const useButtons = document.querySelectorAll('a[href*="/use/"]');
     useButtons.forEach(button => {
@@ -94,37 +105,101 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Function to track events
-function trackEvent(eventType, page, element, data = {}) {
+// Function to track events
+// analytics.js
+// analytics.js
+function trackEvent(eventType, page = '', element = '', eventData = {}) {
+    const data = {
+        event_type: eventType,
+        page: page || window.location.pathname,
+        element: element,
+        data: eventData
+    };
+    
     fetch('/analytics/track-event/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCsrfToken()
+            'X-CSRFToken': getCookie('csrftoken')
         },
-        body: JSON.stringify({
-            event_type: eventType,
-            page: page,
-            element: element,
-            data: data
-        })
+        body: JSON.stringify(data)
     })
     .then(response => {
+        // First check if the response is actually JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Expected JSON response, got ${contentType}`);
+        }
+        
         if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
-            });
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
     })
     .then(data => {
-        if (data.status !== 'success') {
-            console.error('Failed to track event:', data);
-        }
+        console.log('Event tracked successfully:', data);
     })
     .catch(error => {
         console.error('Error tracking event:', error);
+        
+        // For debugging, log the response text
+        if (error.response) {
+            error.response.text().then(text => {
+                console.error('Response text:', text);
+            });
+        }
     });
 }
+
+// Function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+// Function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 
 // Function to get CSRF token
 function getCsrfToken() {

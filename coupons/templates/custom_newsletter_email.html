@@ -81,7 +81,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>CouponHub Newsletter</h1>
+        <h1>{{APP_NAME}} Newsletter</h1>
         <p>Your Weekly Dose of Savings</p>
     </div>
     
@@ -116,13 +116,13 @@
         
         <p>Happy saving!</p>
         
-        <p>Best regards,<br>The CouponHub Team</p>
+        <p>Best regards,<br>The {{APP_NAME}} Team</p>
     </div>
     
     <div class="footer">
-        <p>This email was sent to {{ email }} because you subscribed to CouponHub's newsletter.</p>
+        <p>This email was sent to {{ email }} because you subscribed to {{APP_NAME}}'s newsletter.</p>
         <p>If you no longer wish to receive these emails, you can <a href="http://192.168.43.101/unsubscribe/?email={{ email }}">unsubscribe here</a>.</p>
-        <p>&copy; {% now "Y" %} CouponHub. All rights reserved.</p>
+        <p>&copy; {% now "Y" %} {{APP_NAME}}. All rights reserved.</p>
     </div>
 </body>
 </html>

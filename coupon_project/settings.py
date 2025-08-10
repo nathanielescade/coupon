@@ -122,7 +122,6 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -220,19 +219,19 @@ CACHE_TIMEOUT = {
 
 
 # App Settings
-APP_NAME = "CouponHub"
+APP_NAME = "CoupZilla"
 APP_TAGLINE = "Save Money with Exclusive Coupons"
 APP_ICON = "fas fa-ticket-alt"
-APP_FAVICON = "img/couponhub.ico"
-APP_LOGO = "img/couponhub.jpg"
+APP_FAVICON = "img/coupzilla.ico"
+APP_LOGO = "img/coupzilla.jpg"
 
 # Social Media Links
 SOCIAL_LINKS = {
-    'twitter': 'https://twitter.com/couponhub',
-    'facebook': 'https://facebook.com/couponhub',
-    'instagram': 'https://instagram.com/couponhub',
+    'twitter': 'https://twitter.com/coupzilla',
+    'facebook': 'https://facebook.com/coupzilla',
+    'instagram': 'https://instagram.com/coupzilla',
 }
 
 # Contact Information
-CONTACT_EMAIL = 'support@couponhub.com'
+CONTACT_EMAIL = 'coupzilla.deals@gmail.com'
 CONTACT_PHONE = '+1 (555) 123-4567'

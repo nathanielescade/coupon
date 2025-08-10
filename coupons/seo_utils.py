@@ -31,7 +31,7 @@ def get_meta_title(instance, request=None):
     except HomePageSEO.DoesNotExist:
         pass
     
-    return "CouponHub - Save Money with Exclusive Coupons"
+    return "{{AppName}} - Save Money with Exclusive Coupons"
 
 def get_meta_description(instance, request=None):
     """Get optimized meta description for different models, using manual SEO data if available"""
@@ -62,7 +62,7 @@ def get_meta_description(instance, request=None):
     except HomePageSEO.DoesNotExist:
         pass
     
-    return "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub."  
+    return "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with {{AppName}}."  
 
 
 def get_meta_keywords(instance, request=None):
@@ -111,7 +111,7 @@ def get_open_graph_data(instance, request):
             'og_url': f"{site_url}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}",
             'og_image': og_image or (instance.store.logo.url if instance.store.logo else default_image),
             'og_type': 'website',
-            'og_site_name': 'CouponHub',
+            'og_site_name': '{{AppName}}',
             'twitter_card': 'summary_large_image',
             'twitter_title': (instance.seo.twitter_title if hasattr(instance, 'seo') and instance.seo and instance.seo.twitter_title else None) or og_title or f"{instance.title} - {instance.discount_display}",
             'twitter_description': (instance.seo.twitter_description if hasattr(instance, 'seo') and instance.seo and instance.seo.twitter_description else None) or og_description or instance.description,
@@ -133,7 +133,7 @@ def get_open_graph_data(instance, request):
             'og_url': f"{site_url}{reverse('store_detail', kwargs={'store_slug': instance.slug})}",
             'og_image': og_image or (instance.logo.url if instance.logo else default_image),
             'og_type': 'website',
-            'og_site_name': 'CouponHub',
+            'og_site_name': '{{AppName}}',
             'twitter_card': 'summary_large_image',
             'twitter_title': (instance.seo.twitter_title if hasattr(instance, 'seo') and instance.seo and instance.seo.twitter_title else None) or og_title or f"{instance.name} Coupons & Promo Codes",
             'twitter_description': (instance.seo.twitter_description if hasattr(instance, 'seo') and instance.seo and instance.seo.twitter_description else None) or og_description or f"Save money with {instance.name} coupons and deals",
@@ -155,7 +155,7 @@ def get_open_graph_data(instance, request):
             'og_url': f"{site_url}{reverse('category_detail', kwargs={'category_slug': instance.slug})}",
             'og_image': og_image or default_image,
             'og_type': 'website',
-            'og_site_name': 'CouponHub',
+            'og_site_name': '{{AppName}}',
             'twitter_card': 'summary_large_image',
             'twitter_title': (instance.seo.twitter_title if hasattr(instance, 'seo') and instance.seo and instance.seo.twitter_title else None) or og_title or f"{instance.name} Coupons & Deals",
             'twitter_description': (instance.seo.twitter_description if hasattr(instance, 'seo') and instance.seo and instance.seo.twitter_description else None) or og_description or f"Find the best {instance.name} coupons and deals",
@@ -166,15 +166,15 @@ def get_open_graph_data(instance, request):
     try:
         homepage_seo = HomePageSEO.objects.get()
         return {
-            'og_title': homepage_seo.og_title or "CouponHub - Save Money with Exclusive Coupons",
-            'og_description': homepage_seo.og_description or "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.",
+            'og_title': homepage_seo.og_title or "{{AppName}} - Save Money with Exclusive Coupons",
+            'og_description': homepage_seo.og_description or "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with {{AppName}}.",
             'og_url': site_url,
             'og_image': homepage_seo.get_og_image_url() or default_image,
             'og_type': 'website',
-            'og_site_name': 'CouponHub',
+            'og_site_name': '{{AppName}}',
             'twitter_card': 'summary_large_image',
-            'twitter_title': homepage_seo.twitter_title or "CouponHub - Save Money with Exclusive Coupons",
-            'twitter_description': homepage_seo.twitter_description or "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.",
+            'twitter_title': homepage_seo.twitter_title or "{{AppName}} - Save Money with Exclusive Coupons",
+            'twitter_description': homepage_seo.twitter_description or "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with {{AppName}}.",
             'twitter_image': homepage_seo.get_twitter_image_url() or default_image,
         }
     except HomePageSEO.DoesNotExist:
@@ -182,15 +182,15 @@ def get_open_graph_data(instance, request):
     
     # Default Open Graph data
     return {
-        'og_title': 'CouponHub - Save Money with Exclusive Coupons',
-        'og_description': 'Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.',
+        'og_title': '{{AppName}} - Save Money with Exclusive Coupons',
+        'og_description': 'Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with {{AppName}}.',
         'og_url': f"{site_url}{request.path}",
         'og_image': default_image,
         'og_type': 'website',
-        'og_site_name': 'CouponHub',
+        'og_site_name': '{{AppName}}',
         'twitter_card': 'summary_large_image',
-        'twitter_title': 'CouponHub - Save Money with Exclusive Coupons',
-        'twitter_description': 'Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouponHub.',
+        'twitter_title': '{{AppName}} - Save Money with Exclusive Coupons',
+        'twitter_description': 'Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with {{AppName}}.',
         'twitter_image': default_image,
     }
 

@@ -453,32 +453,49 @@ if (newsletterForm) {
             return;
         }
         
+        // Get CSRF token from meta tag
+        const csrftoken = document.querySelector('meta[name="csrf-token"]').content;
+        
         // Send AJAX request
         fetch('{% url "newsletter_subscribe" %}', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                'X-CSRFToken': csrftoken
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 showNewsletterMessage(data.message, 'success');
                 newsletterForm.reset();
             } else {
                 showNewsletterMessage(data.message, 'error');
+                
+                // Log detailed errors for debugging
+                if (data.errors) {
+                    console.error('Form validation errors:', data.errors);
+                }
             }
         })
         .catch(error => {
-            showNewsletterMessage('An error occurred. Please try again.', 'error');
             console.error('Error:', error);
+            if (error.message) {
+                showNewsletterMessage(error.message, 'error');
+            } else {
+                showNewsletterMessage('An error occurred. Please try again.', 'error');
+            }
         });
     });
 }
             
 
-
+            
             function showNewsletterMessage(message, type) {
                 newsletterMessage.textContent = message;
                 newsletterMessage.classList.remove('hidden', 'text-green-400', 'text-red-400');
