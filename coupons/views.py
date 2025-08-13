@@ -206,7 +206,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     filterset_fields = ['is_active']
     search_fields = ['name', 'description']
 # Frontend Views
-@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
+# @method_decorator(cache_page(60 * 10), name='dispatch')
 class HomeView(ListView):
     model = Coupon
     template_name = 'home.html'
@@ -298,8 +298,8 @@ class HomeView(ListView):
             context['hero_description'] = homepage_seo.hero_description
         except HomePageSEO.DoesNotExist:
             # Default values if no homepage SEO is set
-            context['meta_title'] = "CoupZilla - Save Money with Exclusive Coupons"
-            context['meta_description'] = "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CoupZilla."
+            context['meta_title'] = "CouPradise - Save Money with Exclusive Coupons"
+            context['meta_description'] = "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise."
             context['meta_keywords'] = "coupons, promo codes, deals, discounts, savings, coupon codes"
             context['hero_title'] = "Save Money with Exclusive Coupons"
             context['hero_description'] = "Discover the best deals and discounts from your favorite stores."
@@ -559,7 +559,7 @@ class SearchView(ListView):
             context['search_results_count'] = self.get_queryset().count()
         
         # Add SEO data
-        context['meta_title'] = f"Search Results for '{query}' - CoupZilla" if query else "Search Coupons - CoupZilla"
+        context['meta_title'] = f"Search Results for '{query}' - CouPradise" if query else "Search Coupons - CouPradise"
         context['meta_description'] = f"Find the best coupons for '{query}'. Save money with our verified coupon codes and deals." if query else "Search for coupons, stores, and categories. Find the best deals and discounts."
         context['meta_keywords'] = f"{query}, coupons, deals, discounts, promo codes" if query else "coupons, deals, discounts, promo codes, search"
         
@@ -624,7 +624,7 @@ def my_coupons(request):
     saved_coupons = UserCoupon.objects.filter(user=request.user)
     context = {
         'saved_coupons': saved_coupons,
-        'meta_title': "My Saved Coupons - CoupZilla",
+        'meta_title': "My Saved Coupons - CouPradise",
         'meta_description': "View and manage your saved coupons. Never miss a deal with your personalized coupon collection.",
         'meta_keywords': "my coupons, saved coupons, personalized deals, coupon collection"
     }
@@ -649,8 +649,8 @@ class CouponCreateView(LoginRequiredMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['meta_title'] = "Create a New Coupon - CoupZilla"
-        context['meta_description'] = "Create and share a new coupon with the CoupZilla community. Help others save money!"
+        context['meta_title'] = "Create a New Coupon - CouPradise"
+        context['meta_description'] = "Create and share a new coupon with the CouPradise community. Help others save money!"
         context['meta_keywords'] = "create coupon, share coupon, submit deal, add discount code"
         return context
 
@@ -673,7 +673,7 @@ class CouponUpdateView(LoginRequiredMixin, UpdateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['meta_title'] = f"Update Coupon: {self.object.title} - CoupZilla"
+        context['meta_title'] = f"Update Coupon: {self.object.title} - CouPradise"
         context['meta_description'] = f"Update the details for {self.object.title} coupon."
         context['meta_keywords'] = f"update coupon, edit coupon, {self.object.title}, {self.object.store.name}"
         return context
@@ -691,7 +691,7 @@ class CouponDeleteView(LoginRequiredMixin, DeleteView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['meta_title'] = f"Delete Coupon: {self.object.title} - CoupZilla"
+        context['meta_title'] = f"Delete Coupon: {self.object.title} - CouPradise"
         context['meta_description'] = f"Confirm deletion of {self.object.title} coupon."
         context['meta_keywords'] = f"delete coupon, remove coupon, {self.object.title}, {self.object.store.name}"
         return context
@@ -714,8 +714,8 @@ def signup_view(request):
     
     context = {
         'form': form,
-        'meta_title': "Sign Up - CoupZilla",
-        'meta_description': "Create a new CoupZilla account to save and manage your favorite coupons.",
+        'meta_title': "Sign Up - CouPradise",
+        'meta_description': "Create a new CouPradise account to save and manage your favorite coupons.",
         'meta_keywords': "sign up, register, create account, coupon account"
     }
     return render(request, 'registration/signup.html', context)
@@ -745,15 +745,15 @@ def profile_view(request, username=None):
         'total_saved': total_saved,
         'total_used': total_used,
         'is_own_profile': user == request.user,
-        'meta_title': f"{user.username}'s Profile - CoupZilla",
-        'meta_description': f"View {user.username}'s profile, saved coupons, and usage history on CoupZilla.",
+        'meta_title': f"{user.username}'s Profile - CouPradise",
+        'meta_description': f"View {user.username}'s profile, saved coupons, and usage history on CouPradise.",
         'meta_keywords': f"{user.username}, profile, saved coupons, coupon history"
     }
     
     return render(request, 'registration/profile.html', context)
 
 # Add these new views to your views.py file
-@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
+@method_decorator(cache_page(60 * 10), name='dispatch')  
 class AllCouponsView(ListView):
     model = Coupon
     template_name = 'all_coupons.html'
@@ -800,7 +800,7 @@ class AllCouponsView(ListView):
         context['page_title'] = 'All Coupons'
         
         # Add SEO data
-        context['meta_title'] = "All Coupons - CoupZilla"
+        context['meta_title'] = "All Coupons - CouPradise"
         context['meta_description'] = "Browse all available coupons and deals. Save money with our verified coupon codes and discounts."
         context['meta_keywords'] = "all coupons, browse coupons, coupon codes, deals, discounts"
         
@@ -853,7 +853,7 @@ class FeaturedCouponsView(ListView):
         context['page_title'] = 'Featured Coupons'
         
         # Add SEO data
-        context['meta_title'] = "Featured Coupons - CoupZilla"
+        context['meta_title'] = "Featured Coupons - CouPradise"
         context['meta_description'] = "Discover our hand-picked featured coupons and deals. Save big with these exclusive offers."
         context['meta_keywords'] = "featured coupons, best deals, exclusive offers, hand-picked deals"
         
@@ -906,7 +906,7 @@ class ExpiringCouponsView(ListView):
         context['page_title'] = 'Expiring Soon Coupons'
         
         # Add SEO data
-        context['meta_title'] = "Expiring Soon Coupons - CoupZilla"
+        context['meta_title'] = "Expiring Soon Coupons - CouPradise"
         context['meta_description'] = "Don't miss out! These coupons are expiring soon. Use them before they're gone."
         context['meta_keywords'] = "expiring coupons, ending soon, last chance, limited time offers"
         
@@ -958,7 +958,7 @@ class LatestCouponsView(ListView):
         context['page_title'] = 'Latest Coupons'
         
         # Add SEO data
-        context['meta_title'] = "Latest Coupons - CoupZilla"
+        context['meta_title'] = "Latest Coupons - CouPradise"
         context['meta_description'] = "Stay updated with the latest coupons and deals. Be the first to know about new offers."
         context['meta_keywords'] = "latest coupons, new deals, recent offers, fresh discounts"
         
@@ -991,7 +991,7 @@ class AllStoresView(ListView):
         context['page_title'] = 'All Stores'
         
         # Add SEO data
-        context['meta_title'] = "All Stores - CoupZilla"
+        context['meta_title'] = "All Stores - CouPradise"
         context['meta_description'] = "Browse all stores offering coupons and deals. Find discounts from your favorite brands and retailers."
         context['meta_keywords'] = "all stores, store directory, brands, retailers, shop by store"
         
@@ -1024,7 +1024,7 @@ class AllCategoriesView(ListView):
         context['page_title'] = 'All Categories'
         
         # Add SEO data
-        context['meta_title'] = "All Categories - CoupZilla"
+        context['meta_title'] = "All Categories - CouPradise"
         context['meta_description'] = "Browse coupons by category. Find deals for electronics, fashion, food, travel, and more."
         context['meta_keywords'] = "coupon categories, browse by category, deal categories, discount categories"
         
@@ -1102,7 +1102,7 @@ def newsletter_subscribe(request):
                 subscriber.save()
                 
                 # Send reactivation email
-                send_subscription_email(email, "Welcome back to CoupZilla!")
+                send_subscription_email(email, "Welcome back to CouPradise!")
                 
                 return JsonResponse({
                     'success': True,
@@ -1113,7 +1113,7 @@ def newsletter_subscribe(request):
         subscriber = form.save()
         
         # Send confirmation email
-        send_subscription_email(email, "Welcome to CoupZilla!")
+        send_subscription_email(email, "Welcome to CouPradise!")
         
         return JsonResponse({
             'success': True,
@@ -1142,7 +1142,7 @@ def send_subscription_email(email, subject):
         # Create email message
         email_message = EmailMultiAlternatives(
             subject,
-            f"Thank you for subscribing to CoupZilla's newsletter!\n\nYou'll receive the latest deals and coupons directly in your inbox.",
+            f"Thank you for subscribing to CouPradise's newsletter!\n\nYou'll receive the latest deals and coupons directly in your inbox.",
             settings.DEFAULT_FROM_EMAIL,
             [email]
         )
@@ -1159,32 +1159,32 @@ def send_subscription_email(email, subject):
 
 def about(request):
     context = {
-        'meta_title': "About Us - CoupZilla",
-        'meta_description': "Learn about CoupZilla's mission to help people save money with the best coupons and deals.",
-        'meta_keywords': "about CoupZilla, our mission, company, team"
+        'meta_title': "About Us - CouPradise",
+        'meta_description': "Learn about CouPradise's mission to help people save money with the best coupons and deals.",
+        'meta_keywords': "about CouPradise, our mission, company, team"
     }
     return render(request, 'about.html', context)
 
 def contact(request):
     context = {
-        'meta_title': "Contact Us - CoupZilla",
-        'meta_description': "Get in touch with the CoupZilla team. We'd love to hear from you!",
-        'meta_keywords': "contact CoupZilla, customer support, feedback, questions"
+        'meta_title': "Contact Us - CouPradise",
+        'meta_description': "Get in touch with the CouPradise team. We'd love to hear from you!",
+        'meta_keywords': "contact CouPradise, customer support, feedback, questions"
     }
     return render(request, 'contact.html', context)
 
 def privacy_policy(request):
     context = {
-        'meta_title': "Privacy Policy - CoupZilla",
-        'meta_description': "Read CoupZilla's privacy policy to understand how we collect, use, and protect your personal information.",
+        'meta_title': "Privacy Policy - CouPradise",
+        'meta_description': "Read CouPradise's privacy policy to understand how we collect, use, and protect your personal information.",
         'meta_keywords': "privacy policy, data protection, personal information, GDPR"
     }
     return render(request, 'privacy_policy.html', context)
 
 def terms_of_service(request):
     context = {
-        'meta_title': "Terms of Service - CoupZilla",
-        'meta_description': "Read CoupZilla's terms of service to understand the rules and guidelines for using our website.",
+        'meta_title': "Terms of Service - CouPradise",
+        'meta_description': "Read CouPradise's terms of service to understand the rules and guidelines for using our website.",
         'meta_keywords': "terms of service, terms and conditions, user agreement, website terms"
     }
     return render(request, 'terms_of_service.html', context)
@@ -1229,8 +1229,8 @@ def unsubscribe(request):
         return render(request, 'unsubscribe.html', {
             'success': False,
             'message': 'No email provided.',
-            'meta_title': "Unsubscribe - CoupZilla",
-            'meta_description': "Unsubscribe from CoupZilla's newsletter.",
+            'meta_title': "Unsubscribe - CouPradise",
+            'meta_description': "Unsubscribe from CouPradise's newsletter.",
             'meta_keywords': "unsubscribe, newsletter, email preferences"
         })
     
@@ -1242,16 +1242,16 @@ def unsubscribe(request):
         return render(request, 'unsubscribe.html', {
             'success': True,
             'message': 'You have been successfully unsubscribed from our newsletter.',
-            'meta_title': "Unsubscribe Successful - CoupZilla",
-            'meta_description': "You have been successfully unsubscribed from CoupZilla's newsletter.",
+            'meta_title': "Unsubscribe Successful - CouPradise",
+            'meta_description': "You have been successfully unsubscribed from CouPradise's newsletter.",
             'meta_keywords': "unsubscribe successful, newsletter, email preferences"
         })
     except NewsletterSubscriber.DoesNotExist:
         return render(request, 'unsubscribe.html', {
             'success': False,
             'message': 'This email is not subscribed to our newsletter.',
-            'meta_title': "Unsubscribe - CoupZilla",
-            'meta_description': "Unsubscribe from CoupZilla's newsletter.",
+            'meta_title': "Unsubscribe - CouPradise",
+            'meta_description': "Unsubscribe from CouPradise's newsletter.",
             'meta_keywords': "unsubscribe, newsletter, email preferences"
         })
 
@@ -1271,8 +1271,8 @@ def newsletter_management(request):
     context = {
         'newsletters': newsletters,
         'form': form,
-        'meta_title': "Newsletter Management - CoupZilla",
-        'meta_description': "Manage and send newsletters to CoupZilla subscribers.",
+        'meta_title': "Newsletter Management - CouPradise",
+        'meta_description': "Manage and send newsletters to CouPradise subscribers.",
         'meta_keywords': "newsletter management, email marketing, subscriber management"
     }
     return render(request, 'newsletter_management.html', context)

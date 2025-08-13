@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'analytics.middleware.AnalyticsMiddleware',  
 ]
@@ -73,31 +74,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'coupon_project.wsgi.application'
 
-# Database
-# Use DATABASE_URL if available, otherwise use SQLite
-DATABASE_URL = os.environ.get('DATABASE_URL', f'sqlite:///{BASE_DIR / "db.sqlite3"}')
+# Database configuration - SIMPLIFIED FOR SQLITE
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
-# Default to SQLite if no DATABASE_URL is provided
-if DATABASE_URL.startswith('sqlite'):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / DATABASE_URL.replace('sqlite:///', ''),
-        }
-    }
-elif DATABASE_URL.startswith('postgres'):
-    import dj_database_url
-    DATABASES = {
-        'default': dj_database_url.parse(DATABASE_URL)
-    }
-else:
-    # Fallback to SQLite
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
-    }
+
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -123,6 +108,11 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -159,11 +149,6 @@ if ngrok_url:
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'
 LOGOUT_REDIRECT_URL = 'home'
-
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / 'static',
-]
 
 # Email settings
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
@@ -211,27 +196,20 @@ CACHE_TIMEOUT = {
     'long': 60 * 60,      # 1 hour
 }
 
-
-
-
-
-
-
-
 # App Settings
-APP_NAME = "CoupZilla"
+APP_NAME = "CouPradise"
 APP_TAGLINE = "Save Money with Exclusive Coupons"
 APP_ICON = "fas fa-ticket-alt"
-APP_FAVICON = "img/coupzilla.ico"
-APP_LOGO = "img/coupzilla.jpg"
+APP_FAVICON = "img/coupradise.ico"
+APP_LOGO = "img/coupradise.jpg"
 
 # Social Media Links
 SOCIAL_LINKS = {
-    'twitter': 'https://twitter.com/coupzilla',
-    'facebook': 'https://facebook.com/coupzilla',
-    'instagram': 'https://instagram.com/coupzilla',
+    'twitter': 'https://twitter.com/coupradise',
+    'facebook': 'https://facebook.com/coupradise',
+    'instagram': 'https://instagram.com/coupradise',
 }
 
 # Contact Information
-CONTACT_EMAIL = 'coupzilla.deals@gmail.com'
+CONTACT_EMAIL = 'coupradise.deals@gmail.com'
 CONTACT_PHONE = '+1 (555) 123-4567'

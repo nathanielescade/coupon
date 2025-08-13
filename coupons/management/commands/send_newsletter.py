@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
-from core.models import NewsletterSubscriber
+from coupons.models import NewsletterSubscriber
 
 class Command(BaseCommand):
     help = 'Send newsletter to all active subscribers'

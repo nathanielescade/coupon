@@ -69,19 +69,19 @@ class SEO(models.Model):
 
 class HomePageSEO(models.Model):
     """Model for homepage-specific SEO settings"""
-    meta_title = models.CharField(max_length=255, default="CoupZilla - Save Money with Exclusive Coupons")
-    meta_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CoupZilla.")
+    meta_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
+    meta_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.")
     meta_keywords = models.CharField(max_length=255, default="coupons, promo codes, deals, discounts, savings, coupon codes")
     
     # Open Graph fields
-    og_title = models.CharField(max_length=255, default="CoupZilla - Save Money with Exclusive Coupons")
-    og_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CoupZilla.")
+    og_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
+    og_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.")
     og_image = models.URLField(blank=True)
     og_image_upload = models.ImageField(upload_to='seo/og_images/', blank=True, null=True)
     
     # Twitter Card fields
-    twitter_title = models.CharField(max_length=255, default="CoupZilla - Save Money with Exclusive Coupons")
-    twitter_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CoupZilla.")
+    twitter_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
+    twitter_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.")
     twitter_image = models.URLField(blank=True)
     twitter_image_upload = models.ImageField(upload_to='seo/twitter_images/', blank=True, null=True)
     
@@ -315,7 +315,7 @@ class Newsletter(models.Model):
                 # Create email message
                 email = EmailMultiAlternatives(
                     self.subject,
-                    f"{self.content}\n\nCheck out the latest deals and coupons on CoupZilla!",
+                    f"{self.content}\n\nCheck out the latest deals and coupons on CouPradise!",
                     from_email,
                     [subscriber.email]
                 )

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load coupon_extras %}
 {% block meta_title %}{{ meta_title }}{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block meta_keywords %}{{ meta_keywords }}{% endblock %}
@@ -10,13 +10,11 @@
 {% block twitter_title %}{{ open_graph_data.twitter_title }}{% endblock %}
 {% block twitter_description %}{{ open_graph_data.twitter_description }}{% endblock %}
 {% block twitter_image %}{{ open_graph_data.twitter_image }}{% endblock %}
-
 {% block structured_data %}
 <script type="application/ld+json">
 {{ structured_data|json_script:"structured-data" }}
 </script>
 {% endblock %}
-
 {% block breadcrumb %}
 <nav class="container mx-auto px-4 py-2 text-sm">
     <div class="flex items-center text-blue-300">
@@ -31,7 +29,6 @@
     </div>
 </nav>
 {% endblock %}
-
 {% block content %}
 <div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
     <div class="p-6">
@@ -76,11 +73,14 @@
                     <div class="mt-4 md:mt-0">
                         <div class="text-sm text-blue-300 mb-2">Coupon Code</div>
                         <div class="flex items-center">
-                            <div class="font-mono font-bold text-xl text-blue-100 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700" id="main-coupon-code">
+                            <div class="font-mono font-bold text-xl text-blue-100 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700" id="main-coupon-code" style="display:none;">
                                 {{ coupon.code }}
                             </div>
-                            <button onclick="copyCode('{{ coupon.code }}', '{{ coupon.id }}', event)" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium transition flex items-center">
-                                <i class="far fa-copy mr-2"></i> Copy Code
+                            <div id="main-coupon-placeholder" class="font-mono font-bold text-xl text-blue-400 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700">
+                                <i class="fas fa-cut mr-2"></i> Click to reveal
+                            </div>
+                            <button id="get-code-btn-{{ coupon.id }}" onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.id }}', '{{ coupon.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium transition flex items-center">
+                                <i class="fas fa-ticket-alt mr-2"></i> GET CODE
                             </button>
                         </div>
                     </div>
@@ -96,12 +96,6 @@
                 
                 <div class="flex flex-wrap gap-3 mt-6">
                     {% if not coupon.is_expired %}
-                    {% if coupon.affiliate_link %}
-                    <a href="{{ coupon.affiliate_link }}" target="_blank" rel="noopener noreferrer" class="btn-gradient text-white px-6 py-3 rounded-lg font-semibold transition hover:opacity-90 flex items-center">
-                        <i class="fas fa-external-link-alt mr-2"></i> Use This Deal
-                    </a>
-                    {% endif %}
-                    
                     {% if user.is_authenticated %}
                     {% if is_saved %}
                     <a href="#" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
@@ -124,69 +118,8 @@
         
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2">
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
-                    <p class="text-blue-300">{{ coupon.description }}</p>
-                </div>
-                
-                {% if coupon.terms_and_conditions %}
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
-                    <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
-                </div>
-                {% endif %}
-                
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Discount Type</p>
-                            <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Coupon Type</p>
-                            <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Start Date</p>
-                            <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Expiry Date</p>
-                            <p class="font-medium text-blue-100">
-                                {% if coupon.expiry_date %}
-                                {{ coupon.expiry_date|date:"M d, Y" }}
-                                {% else %}
-                                No expiration
-                                {% endif %}
-                            </p>
-                        </div>
-                        {% if coupon.minimum_purchase %}
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Minimum Purchase</p>
-                            <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
-                        </div>
-                        {% endif %}
-                        {% if coupon.usage_limit %}
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Usage Limit</p>
-                            <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">About {{ coupon.store.name }}</h2>
-                    <p class="text-blue-300">{{ coupon.store.description|default:"No description available." }}</p>
-                    <div class="mt-4">
-                        <a href="{{ coupon.store.website }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 font-medium flex items-center">
-                            Visit Store Website <i class="fas fa-external-link-alt ml-2 text-sm"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <div>
+                <!-- Mobile Order: Related Coupons First -->
+                <div class="lg:hidden mb-6">
                     <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {% for related_coupon in related_coupons %}
@@ -210,6 +143,162 @@
                         {% endfor %}
                     </div>
                 </div>
+                
+                <!-- Mobile Order: Details Second -->
+                <div class="lg:hidden mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Discount Type</p>
+                            <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Coupon Type</p>
+                            <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Start Date</p>
+                            <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Expiry Date</p>
+                            <p class="font-medium text-blue-100">
+                                {% if coupon.expiry_date %}
+                                    {% if coupon.is_expired %}
+                                        <span class="text-red-400">Expired</span>
+                                    {% elif coupon.expiry_date|countdown_from_3_days %}
+                                        Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
+                                    {% else %}
+                                        {{ coupon.expiry_date|date:"M d, Y" }}
+                                    {% endif %}
+                                {% else %}
+                                    No expiration
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if coupon.minimum_purchase %}
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Minimum Purchase</p>
+                            <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
+                        </div>
+                        {% endif %}
+                        {% if coupon.usage_limit %}
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Usage Limit</p>
+                            <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Desktop Order: Description First -->
+                <div class="hidden lg:block mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
+                    <p class="text-blue-300">{{ coupon.description }}</p>
+                </div>
+                
+                {% if coupon.terms_and_conditions %}
+                <div class="hidden lg:block mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
+                    <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Desktop Order: Details Second -->
+                <div class="hidden lg:block mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Discount Type</p>
+                            <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Coupon Type</p>
+                            <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Start Date</p>
+                            <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Expiry Date</p>
+                            <p class="font-medium text-blue-100">
+                                {% if coupon.expiry_date %}
+                                    {% if coupon.is_expired %}
+                                        <span class="text-red-400">Expired</span>
+                                    {% elif coupon.expiry_date|countdown_from_3_days %}
+                                        Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
+                                    {% else %}
+                                        {{ coupon.expiry_date|date:"M d, Y" }}
+                                    {% endif %}
+                                {% else %}
+                                    No expiration
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% if coupon.minimum_purchase %}
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Minimum Purchase</p>
+                            <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
+                        </div>
+                        {% endif %}
+                        {% if coupon.usage_limit %}
+                        <div class="card-bg p-4 rounded-lg border border-blue-700">
+                            <p class="text-sm text-blue-400">Usage Limit</p>
+                            <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Desktop Order: Related Coupons Third -->
+                <div class="hidden lg:block">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for related_coupon in related_coupons %}
+                        <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
+                                {% if related_coupon.is_verified %}
+                                <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
+                            <div class="flex justify-between items-center">
+                                <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
+                                <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-span-full text-center py-4">
+                            <p class="text-blue-400">No related coupons found.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Mobile Order: Description Third -->
+                <div class="lg:hidden mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
+                    <p class="text-blue-300">{{ coupon.description }}</p>
+                </div>
+                
+                {% if coupon.terms_and_conditions %}
+                <div class="lg:hidden mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
+                    <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="mb-6">
+                    <h2 class="text-lg font-semibold text-blue-200 mb-2">About {{ coupon.store.name }}</h2>
+                    <p class="text-blue-300">{{ coupon.store.description|default:"No description available." }}</p>
+                    <div class="mt-4">
+                        <a href="{{ coupon.store.website }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 font-medium flex items-center">
+                            Visit Store Website <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
             
             <div>
@@ -218,11 +307,11 @@
                     <ol class="space-y-3">
                         <li class="flex items-start">
                             <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</div>
-                            <p class="text-blue-300">Click on "Copy Code" button to copy the coupon code</p>
+                            <p class="text-blue-300">Click on "GET CODE" button to copy the code</p>
                         </li>
                         <li class="flex items-start">
                             <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</div>
-                            <p class="text-blue-300">Click on "Use This Deal" to visit the store's website</p>
+                            <p class="text-blue-300">The store will open in a new tab automatically</p>
                         </li>
                         <li class="flex items-start">
                             <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</div>
@@ -238,49 +327,176 @@
         </div>
     </div>
 </div>
+<!-- Coupon Code Modal -->
+<div id="coupon-modal-{{ coupon.id }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Your Coupon Code</h3>
+            <button onclick="closeCouponModal('{{ coupon.id }}')" class="text-blue-300 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-blue-200 mb-2">Use this code at checkout:</p>
+            <div class="bg-black/30 p-4 rounded-lg border border-blue-600 flex justify-between items-center">
+                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ coupon.id }}">{{ coupon.code }}</span>
+                <button onclick="copyCodeFromModal('{{ coupon.code }}', '{{ coupon.id }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                    <i class="fas fa-copy mr-1"></i> Copy
+                </button>
+            </div>
+            <div id="copy-feedback-{{ coupon.id }}" class="mt-2 text-green-400 text-sm hidden">
+                <i class="fas fa-check-circle mr-1"></i> Code copied to clipboard!
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-blue-200 text-sm mb-2">This code is valid until:</p>
+            <p class="text-white font-medium">
+                {% if coupon.expiry_date %}
+                {{ coupon.expiry_date|date:"F d, Y" }}
+                {% else %}
+                No expiration date
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button onclick="goToStore('{{ coupon.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
+                <i class="fas fa-shopping-cart mr-2"></i> Shop at {{ coupon.store.name }}
+            </button>
+            <button onclick="closeCouponModal('{{ coupon.id }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+                <i class="fas fa-times text-blue-300"></i>
+            </button>
+        </div>
+        
+        <div class="mt-4 text-xs text-blue-400 text-center">
+            <p>By using this coupon, you may be supporting our site through affiliate links</p>
+        </div>
+    </div>
+</div>
 <script>
-function copyCode(code, couponId, event) {
-    // Don't prevent default on mobile as it can interfere with the copy
-    if (event && window.innerWidth > 768) {
-        event.preventDefault();
+// Check if user is returning from a store visit
+document.addEventListener('DOMContentLoaded', function() {
+    checkForPendingCouponReveal();
+    
+    // Listen for window focus event to detect when user returns from store
+    window.addEventListener('focus', function() {
+        checkForPendingCouponReveal();
+    });
+});
+
+function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
+    // Get the button to disable it temporarily
+    const button = document.getElementById("get-code-btn-" + couponId);
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Copying...';
     }
     
-    // Modern clipboard API with fallback
+    // First copy the code to clipboard
     if (navigator.clipboard && window.isSecureContext) {
-        // Use modern clipboard API in secure contexts
         navigator.clipboard.writeText(code).then(function() {
-            showCopySuccess(event);
-            trackCopyEvent(couponId, code);
+            showCopyNotification();
+            scheduleStoreOpen(affiliateLink, code, couponId, storeName);
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, event, couponId);
+            fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
         });
     } else {
-        // Use fallback method
-        fallbackCopyTextToClipboard(code, event, couponId);
+        fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
     }
 }
-function showCopySuccess(event) {
-    const button = event.target.closest('button');
-    const originalHTML = button.innerHTML;
-    button.innerHTML = '<i class="fas fa-check mr-1"></i> Copied!';
-    button.classList.add('bg-green-600');
+
+function showCopyNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Coupon code copied to clipboard!';
+    document.body.appendChild(notification);
     
+    // Remove notification after 3 seconds
     setTimeout(function() {
-        button.innerHTML = originalHTML;
-        button.classList.remove('bg-green-600');
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        setTimeout(function() {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+
+function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
+    // Store coupon information in sessionStorage
+    sessionStorage.setItem('pendingCoupon', JSON.stringify({
+        code: code,
+        couponId: couponId,
+        storeName: storeName,
+        affiliateLink: affiliateLink,
+        timestamp: new Date().getTime(),
+        codeCopied: true
+    }));
+    
+    // Show a secondary notification that we're opening the store
+    const redirectNotification = document.createElement('div');
+    redirectNotification.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    redirectNotification.innerHTML = '<i class="fas fa-external-link-alt mr-2"></i> Opening store in a new tab...';
+    document.body.appendChild(redirectNotification);
+    
+    // Delay opening the store for 1.5 seconds to let user see the copy notification
+    setTimeout(function() {
+        // Open store in new tab
+        window.open(affiliateLink, '_blank');
+        
+        // Remove the redirect notification
+        if (document.body.contains(redirectNotification)) {
+            redirectNotification.style.opacity = '0';
+            redirectNotification.style.transition = 'opacity 0.5s';
+            setTimeout(function() {
+                if (document.body.contains(redirectNotification)) {
+                    document.body.removeChild(redirectNotification);
+                }
+            }, 500);
+        }
+        
+        // Update UI to show code and change button
+        revealCodeAndChangeButton(code, couponId);
     }, 2000);
 }
-function trackCopyEvent(couponId, code) {
-    // Track the copy_code event with proper parameters
-    if (typeof trackEvent === 'function') {
-        trackEvent('copy_code', window.location.pathname, 'copy_button', {
-            coupon_id: couponId,
-            coupon_code: code
-        });
+
+function revealCodeAndChangeButton(code, couponId) {
+    // Update the original coupon card to show the code
+    const originalCodeElement = document.getElementById("main-coupon-code");
+    const originalPlaceholder = document.getElementById("main-coupon-placeholder");
+    const getButton = document.getElementById("get-code-btn-" + couponId);
+    
+    if (originalCodeElement && originalPlaceholder && getButton) {
+        originalCodeElement.style.display = "block";
+        originalPlaceholder.style.display = "none";
+        
+        // Change button to "Copy Code"
+        getButton.innerHTML = '<i class="fas fa-copy mr-2"></i> Copy Code';
+        getButton.disabled = false;
+        getButton.onclick = function() {
+            copyCodeAgain(code, couponId);
+        };
     }
 }
-function fallbackCopyTextToClipboard(text, event, couponId) {
+
+function copyCodeAgain(code, couponId) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(function() {
+            showCopyNotification();
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyTextToClipboard(code, couponId);
+        });
+    } else {
+        fallbackCopyTextToClipboard(code, couponId);
+    }
+}
+
+function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
     
@@ -296,18 +512,132 @@ function fallbackCopyTextToClipboard(text, event, couponId) {
         // Execute copy command
         var successful = document.execCommand('copy');
         if (successful) {
-            showCopySuccess(event);
-            trackCopyEvent(couponId, text);
+            showCopyNotification();
+            if (affiliateLink && storeName) {
+                scheduleStoreOpen(affiliateLink, text, couponId, storeName);
+            }
         } else {
             console.error('Unable to copy using fallback');
             alert('Copy failed. Please copy the code manually: ' + text);
+            // Re-enable the button if copy failed
+            const button = document.getElementById("get-code-btn-" + couponId);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-ticket-alt mr-2"></i> GET CODE';
+            }
         }
     } catch (err) {
         console.error('Fallback error:', err);
         alert('Copy failed. Please copy the code manually: ' + text);
+        // Re-enable the button if copy failed
+        const button = document.getElementById("get-code-btn-" + couponId);
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-ticket-alt mr-2"></i> GET CODE';
+        }
     }
     
     document.body.removeChild(textArea);
+}
+
+function checkForPendingCouponReveal() {
+    const pendingCoupon = sessionStorage.getItem('pendingCoupon');
+    
+    if (pendingCoupon) {
+        try {
+            const couponData = JSON.parse(pendingCoupon);
+            
+            // Check if the reveal happened within the last 30 minutes
+            const thirtyMinutesAgo = new Date().getTime() - (30 * 60 * 1000);
+            if (couponData.timestamp > thirtyMinutesAgo) {
+                // If code was already copied, just show the modal
+                if (couponData.codeCopied) {
+                    showCouponModal(couponData.couponId, couponData.code);
+                } else {
+                    // Otherwise, copy the code and show the modal
+                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.couponId, couponData.storeName);
+                }
+                
+                // Clear the pending coupon
+                sessionStorage.removeItem('pendingCoupon');
+                
+                // Track the reveal event
+                trackRevealEvent(couponData.couponId, couponData.code);
+            } else {
+                // Expired, remove it
+                sessionStorage.removeItem('pendingCoupon');
+            }
+        } catch (e) {
+            console.error('Error parsing pending coupon data', e);
+            sessionStorage.removeItem('pendingCoupon');
+        }
+    }
+}
+
+function showCouponModal(couponId, code) {
+    const modal = document.getElementById('coupon-modal-' + couponId);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        
+        // Auto-select the code for easier copying
+        const codeElement = document.getElementById('modal-code-' + couponId);
+        if (codeElement) {
+            // Create a range to select the text
+            const range = document.createRange();
+            range.selectNode(codeElement);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        }
+        
+        // Also update the original coupon card to show the code
+        revealCodeAndChangeButton(code, couponId);
+    }
+}
+
+function closeCouponModal(couponId) {
+    const modal = document.getElementById('coupon-modal-' + couponId);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+}
+
+function goToStore(affiliateLink) {
+    window.open(affiliateLink, '_blank');
+}
+
+function copyCodeFromModal(code, couponId) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(function() {
+            showCopyFeedback(couponId);
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyTextToClipboard(code, couponId);
+        });
+    } else {
+        fallbackCopyTextToClipboard(code, couponId);
+    }
+}
+
+function showCopyFeedback(couponId) {
+    const feedbackElement = document.getElementById('copy-feedback-' + couponId);
+    if (feedbackElement) {
+        feedbackElement.classList.remove('hidden');
+        setTimeout(function() {
+            feedbackElement.classList.add('hidden');
+        }, 3000);
+    }
+}
+
+function trackRevealEvent(couponId, code) {
+    // Track the reveal_code event with proper parameters
+    if (typeof trackEvent === 'function') {
+        trackEvent('reveal_code', window.location.pathname, 'reveal_button', {
+            coupon_id: couponId,
+            coupon_code: code
+        });
+    }
 }
 </script>
 {% endblock %}
