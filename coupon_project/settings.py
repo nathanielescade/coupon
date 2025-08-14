@@ -105,16 +105,17 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
+# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # Where collected static files go
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / 'static',  # Your main static files directory
+    BASE_DIR / 'coupon_project/static',  # Add if you have app-specific static files
 ]
 
 # Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
-
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -196,8 +197,8 @@ CACHE_TIMEOUT = {
 APP_NAME = "CouPradise"
 APP_TAGLINE = "Save Money with Exclusive Coupons"
 APP_ICON = "fas fa-ticket-alt"
-APP_FAVICON = "img/coupradise.ico"
-APP_LOGO = "img/coupradise.jpg"
+APP_FAVICON = "img/favicon.ico"
+APP_LOGO = "img/logo.jpg"
 
 # Social Media Links
 SOCIAL_LINKS = {

@@ -5,8 +5,9 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
                 <div class="logo mb-4">
-                    <i class="{{ APP_ICON }} logo-icon"></i>
-                    <span class="logo-text">{{ APP_NAME }}</span>
+                    <a href="{% url 'home' %}">
+                    <img src="{% static APP_LOGO %}" alt="{{ APP_NAME }} Logo" class="h-10  w-auto ">
+                </a>
                 </div>
                 <p class="text-blue-300">{{ APP_TAGLINE }}</p>
             </div>

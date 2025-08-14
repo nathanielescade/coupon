@@ -3,9 +3,10 @@
 <nav class="bg-gradient-to-r from-black to-blue-900 shadow-lg sticky top-0 z-50 border-b border-blue-800">
     <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
-            <div class="logo">
-                <i class="{{ APP_ICON }} logo-icon"></i>
-                <a href="{% url 'home' %}" class="text-xl font-bold text-blue-400 tracking-wide">{{ APP_NAME }}</a>
+            <div class="logo flex items-center">
+                <a href="{% url 'home' %}">
+                    <img src="{% static APP_LOGO %}" alt="{{ APP_NAME }} Logo" class="h-10  w-24 md:w-auto">
+                </a>
             </div>
             
             <div class="hidden md:flex items-center space-x-6">
