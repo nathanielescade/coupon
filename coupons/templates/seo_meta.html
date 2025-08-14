@@ -1,0 +1,28 @@
+{% load static %}
+<!-- SEO Meta Tags -->
+<title>{% block meta_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}</title>
+<meta name="description" content="{% block meta_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
+<meta name="keywords" content="{% block meta_keywords %}coupons, promo codes, deals, discounts, savings, coupon codes{% endblock %}">
+<link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:title" content="{% block og_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
+<meta property="og:image" content="{% block og_image %}{% static APP_LOGO %}{% endblock %}">
+<meta property="og:site_name" content="{{ APP_NAME }}">
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image">
+<meta property="twitter:url" content="{{ request.build_absolute_uri }}">
+<meta property="twitter:title" content="{% block twitter_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
+<meta property="twitter:description" content="{% block twitter_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
+<meta property="twitter:image" content="{% block twitter_image %}{% static APP_LOGO %}{% endblock %}">
+
+<!-- Structured Data -->
+{% block structured_data %}{% endblock %}
+
+<!-- Favicon and Logo -->
+<link rel="icon" href="{% static APP_FAVICON %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static APP_LOGO %}">

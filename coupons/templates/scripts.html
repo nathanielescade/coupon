@@ -1,0 +1,158 @@
+{% load static %}
+<script>
+    // Mobile menu and search toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileSearchButton = document.getElementById('mobile-search-button');
+        const mobileSearch = document.getElementById('mobile-search');
+        
+        // Toggle mobile menu
+        if (mobileMenuButton) {
+            mobileMenuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                
+                // Toggle between bars and X icon
+                if (mobileMenu.classList.contains('hidden')) {
+                    mobileMenuButton.innerHTML = '<i class="fas fa-bars text-xl"></i>';
+                } else {
+                    mobileMenuButton.innerHTML = '<i class="fas fa-times text-xl"></i>';
+                }
+            });
+        }
+        
+        // Toggle mobile search
+        if (mobileSearchButton) {
+            mobileSearchButton.addEventListener('click', function() {
+                mobileSearch.classList.toggle('hidden');
+                
+                // Focus on search input when opened
+                if (!mobileSearch.classList.contains('hidden')) {
+                    mobileSearch.querySelector('input').focus();
+                }
+            });
+        }
+        
+        // Fix dropdown functionality
+        const dropdowns = document.querySelectorAll('.group');
+        dropdowns.forEach(dropdown => {
+            const dropdownMenu = dropdown.querySelector('[id$="-dropdown"]');
+            if (dropdownMenu) {
+                dropdown.addEventListener('mouseenter', () => {
+                    dropdownMenu.classList.remove('hidden');
+                });
+                dropdown.addEventListener('mouseleave', () => {
+                    dropdownMenu.classList.add('hidden');
+                });
+            }
+        });
+        
+        // Newsletter form submission
+        const newsletterForm = document.getElementById('newsletter-form');
+        const newsletterMessage = document.getElementById('newsletter-message');
+        if (newsletterForm) {
+            newsletterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(newsletterForm);
+                const email = formData.get('email');
+                
+                // Simple validation
+                if (!email) {
+                    showNewsletterMessage('Please enter a valid email address.', 'error');
+                    return;
+                }
+                
+                // Add email format validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showNewsletterMessage('Please enter a valid email address.', 'error');
+                    return;
+                }
+                
+                // Get CSRF token from meta tag
+                const csrftoken = document.querySelector('meta[name="csrf-token"]').content;
+                
+                // Send AJAX request
+                fetch('{% url "newsletter_subscribe" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showNewsletterMessage(data.message, 'success');
+                        newsletterForm.reset();
+                    } else {
+                        showNewsletterMessage(data.message, 'error');
+                        
+                        // Log detailed errors for debugging
+                        if (data.errors) {
+                            console.error('Form validation errors:', data.errors);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (error.message) {
+                        showNewsletterMessage(error.message, 'error');
+                    } else {
+                        showNewsletterMessage('An error occurred. Please try again.', 'error');
+                    }
+                });
+            });
+        }
+        
+        function showNewsletterMessage(message, type) {
+            newsletterMessage.textContent = message;
+            newsletterMessage.classList.remove('hidden', 'text-green-400', 'text-red-400');
+            
+            if (type === 'success') {
+                newsletterMessage.classList.add('text-green-400');
+            } else {
+                newsletterMessage.classList.add('text-red-400');
+            }
+            
+            // Hide message after 5 seconds
+            setTimeout(() => {
+                newsletterMessage.classList.add('hidden');
+            }, 5000);
+        }
+    });
+    
+    // Function to toggle mobile submenus
+    function toggleMobileSubmenu(id) {
+        const submenu = document.getElementById(id);
+        const icon = document.getElementById(id + '-icon');
+        
+        if (submenu.classList.contains('hidden')) {
+            submenu.classList.remove('hidden');
+            icon.classList.add('rotate-180');
+        } else {
+            submenu.classList.add('hidden');
+            icon.classList.remove('rotate-180');
+        }
+    }
+    
+    // Function to toggle desktop dropdowns
+    function toggleDesktopDropdown(id) {
+        const dropdown = document.getElementById(id);
+        
+        if (dropdown.classList.contains('hidden')) {
+            dropdown.classList.remove('hidden');
+        } else {
+            dropdown.classList.add('hidden');
+        }
+    }
+</script>
+<script src="{% static 'js/analytics.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block extra_js %}{% endblock %}

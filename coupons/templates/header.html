@@ -1,0 +1,153 @@
+{% load static %}
+<!-- Navigation -->
+<nav class="bg-gradient-to-r from-black to-blue-900 shadow-lg sticky top-0 z-50 border-b border-blue-800">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+            <div class="logo">
+                <i class="{{ APP_ICON }} logo-icon"></i>
+                <a href="{% url 'home' %}" class="logo-text">{{ APP_NAME }}</a>
+            </div>
+            
+            <div class="hidden md:flex items-center space-x-6">
+                <a href="{% url 'home' %}" class="text-blue-300 hover:text-blue-400 font-medium transition whitespace-nowrap">Home</a>
+                <a href="{% url 'my_coupons' %}" class="text-blue-300 hover:text-blue-400 font-medium transition whitespace-nowrap">My Coupons</a>
+                
+                <!-- Stores Dropdown -->
+                <div class="relative group">
+                    <div class="flex items-center whitespace-nowrap">
+                        <a href="{% url 'all_stores' %}" class="text-blue-300 hover:text-blue-400 font-medium transition">Stores</a>
+                        <button class="ml-1 text-blue-300 hover:text-blue-400 focus:outline-none" onclick="toggleDesktopDropdown('stores-dropdown')">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                    </div>
+                    <div id="stores-dropdown" class="absolute hidden card-bg rounded-lg mt-1 w-48 z-10 border border-blue-700 shadow-xl">
+                        <div class="py-2">
+                            {% for store in stores|slice:":10" %}
+                            <a href="{% url 'store_detail' store.slug %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">{{ store.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Categories Dropdown -->
+                <div class="relative group">
+                    <div class="flex items-center whitespace-nowrap">
+                        <a href="{% url 'all_categories' %}" class="text-blue-300 hover:text-blue-400 font-medium transition">Categories</a>
+                        <button class="ml-1 text-blue-300 hover:text-blue-400 focus:outline-none" onclick="toggleDesktopDropdown('categories-dropdown')">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                    </div>
+                    <div id="categories-dropdown" class="absolute hidden card-bg rounded-lg mt-1 w-48 z-10 border border-blue-700 shadow-xl">
+                        <div class="py-2">
+                            {% for category in categories %}
+                            <a href="{% url 'category_detail' category.slug %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">{{ category.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <!-- Desktop Search -->
+                <div class="search-container hidden md:block">
+                    <form action="{% url 'search' %}" method="GET" class="search-input">
+                        <div class="relative">
+                            <input type="text" name="q" placeholder="Search coupons..." class="pl-10 pr-4 py-2 rounded-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <i class="fas fa-search absolute left-3 top-3 text-blue-400"></i>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Mobile Search Icon -->
+                <button id="mobile-search-button" class="md:hidden text-blue-300">
+                    <i class="fas fa-search text-xl"></i>
+                </button>
+                
+                {% if user.is_authenticated %}
+                <div class="relative group">
+                    <button class="flex items-center space-x-2 text-blue-300 hover:text-blue-400 whitespace-nowrap">
+                        <i class="fas fa-user-circle text-xl"></i>
+                        <span class="hidden md:inline">{{ user.username }}</span>
+                    </button>
+                    <div class="absolute hidden group-hover:block card-bg rounded-lg mt-1 w-48 right-0 z-10 border border-blue-700 shadow-xl">
+                        <div class="py-2">
+                            <a href="{% url 'profile' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">My Profile</a>
+                            <a href="{% url 'my_coupons' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">My Coupons</a>
+                            <a href="{% url 'coupon_create' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Add Coupon</a>
+                            {% if user.is_staff %}
+                            <a href="{% url 'admin_panel:dashboard' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Admin Panel</a>
+                            <a href="{% url 'analytics:dashboard' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Analytics</a>
+                            <a href="{% url 'admin:index' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Django Admin</a>
+                            {% endif %}
+                            <form method="post" action="{% url 'logout' %}" class="block">
+                                {% csrf_token %}
+                                <button type="submit" class="block w-full text-left px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Logout</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="text-blue-300 hover:text-blue-400 whitespace-nowrap">Login</a>
+                {% endif %}
+                
+                <!-- Mobile menu button -->
+                <button id="mobile-menu-button" class="md:hidden text-blue-300">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Mobile Search -->
+        <div id="mobile-search" class="hidden md:hidden mt-4">
+            <form action="{% url 'search' %}" method="GET" class="flex">
+                <input type="text" name="q" placeholder="Search coupons..." class="flex-1 px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="btn-gradient text-white px-4 py-2 rounded-r-lg font-semibold hover:opacity-90 transition">Search</button>
+            </form>
+        </div>
+        
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden mt-4 bg-black/30 rounded-lg border border-blue-700">
+            <div class="px-4 py-3 space-y-3">
+                <a href="{% url 'home' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">Home</a>
+                <a href="{% url 'my_coupons' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">My Coupons</a>
+                
+                <!-- Stores dropdown -->
+                <div class="py-2">
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'all_stores' %}" class="font-medium text-blue-300 hover:text-blue-400">Stores</a>
+                        <button class="text-blue-300 hover:text-blue-400 focus:outline-none" onclick="toggleMobileSubmenu('mobile-stores')">
+                            <i class="fas fa-chevron-down text-xs transition-transform" id="mobile-stores-icon"></i>
+                        </button>
+                    </div>
+                    <div id="mobile-stores" class="pl-4 space-y-1 hidden">
+                        {% for store in stores|slice:":5" %}
+                        <a href="{% url 'store_detail' store.slug %}" class="block py-1 text-blue-200 hover:text-blue-300">{{ store.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Categories dropdown -->
+                <div class="py-2">
+                    <div class="flex justify-between items-center">
+                        <a href="{% url 'all_categories' %}" class="font-medium text-blue-300 hover:text-blue-400">Categories</a>
+                        <button class="text-blue-300 hover:text-blue-400 focus:outline-none" onclick="toggleMobileSubmenu('mobile-categories')">
+                            <i class="fas fa-chevron-down text-xs transition-transform" id="mobile-categories-icon"></i>
+                        </button>
+                    </div>
+                    <div id="mobile-categories" class="pl-4 space-y-1 hidden">
+                        {% for category in categories|slice:":5" %}
+                        <a href="{% url 'category_detail' category.slug %}" class="block py-1 text-blue-200 hover:text-blue-300">{{ category.name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if not user.is_authenticated %}
+                <div class="pt-2 border-t border-blue-700 mt-2">
+                    <a href="{% url 'login' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">Login</a>
+                    <a href="{% url 'signup' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">Sign Up</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

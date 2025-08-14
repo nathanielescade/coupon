@@ -1,0 +1,129 @@
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    body {
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+        color: #e0e7ff;
+        min-height: 100vh;
+    }
+    
+    .coupon-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .coupon-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .gradient-bg {
+        background: linear-gradient(135deg, #000428 0%, #004e92 100%);
+    }
+    
+    .card-bg {
+        background: linear-gradient(to bottom right, rgba(0,0,0,0.7), rgba(0,78,146,0.8));
+    }
+    
+    .btn-gradient {
+        background: linear-gradient(to right, #004e92, #000428);
+    }
+    
+    .btn-gradient:hover {
+        background: linear-gradient(to right, #003d73, #000321);
+    }
+    
+    .text-gradient {
+        background: linear-gradient(to right, #3b82f6, #60a5fa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    
+    /* Logo styling */
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+    }
+    
+    .logo-icon {
+        font-size: 28px;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    }
+    
+    .logo-text {
+        font-size: 24px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing: -0.5px;
+    }
+    
+    /* Improved search input styling */
+    .search-container {
+        flex-shrink: 0;
+    }
+    
+    .search-input {
+        width: 200px;
+        transition: width 0.3s ease;
+    }
+    
+    .search-input:focus-within {
+        width: 250px;
+    }
+    
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .search-input {
+            width: 150px;
+        }
+        
+        .search-input:focus-within {
+            width: 200px;
+        }
+    }
+    
+    /* Category and filter styling */
+    .category-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+    
+    .filter-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+    
+    .category-tag {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .filter-btn {
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+        .category-container {
+            gap: 0.5rem;
+        }
+        
+        .filter-container {
+            gap: 0.25rem;
+        }
+    }
+</style>
