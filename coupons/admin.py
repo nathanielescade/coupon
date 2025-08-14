@@ -1,5 +1,8 @@
 from django.contrib import admin
-from .models import Coupon, CouponProvider, Store, Category, UserCoupon, CouponUsage
+from .models import (
+    Coupon, CouponProvider, Store, Category, UserCoupon, CouponUsage, 
+    NewsletterSubscriber, Newsletter, SEO, HomePageSEO
+)
 
 @admin.register(CouponProvider)
 class CouponProviderAdmin(admin.ModelAdmin):
@@ -31,6 +34,29 @@ class CouponAdmin(admin.ModelAdmin):
     search_fields = ('title', 'description', 'code')
     readonly_fields = ('id', 'usage_count', 'created_at', 'updated_at')
     date_hierarchy = 'created_at'
+    fieldsets = (
+        (None, {
+            'fields': ('title', 'description', 'store', 'category', 'provider')
+        }),
+        ('Coupon Details', {
+            'fields': ('code', 'coupon_type', 'discount_type', 'discount_value', 'minimum_purchase')
+        }),
+        ('Dates', {
+            'fields': ('start_date', 'expiry_date')
+        }),
+        ('Status', {
+            'fields': ('is_active', 'is_featured', 'is_verified')
+        }),
+        ('Usage', {
+            'fields': ('usage_limit', 'usage_count', 'terms_and_conditions')
+        }),
+        ('Affiliate', {
+            'fields': ('affiliate_link',)
+        }),
+        ('SEO', {
+            'fields': ('seo',)
+        }),
+    )
 
 @admin.register(UserCoupon)
 class UserCouponAdmin(admin.ModelAdmin):
@@ -45,17 +71,6 @@ class CouponUsageAdmin(admin.ModelAdmin):
     list_filter = ('used_at',)
     search_fields = ('coupon__title', 'user__username', 'ip_address')
     readonly_fields = ('used_at',)
-
-
-
-from django.contrib import admin
-from .models import NewsletterSubscriber
-
-
-
-
-from django.contrib import admin
-from .models import NewsletterSubscriber, Newsletter
 
 @admin.register(NewsletterSubscriber)
 class NewsletterSubscriberAdmin(admin.ModelAdmin):
@@ -94,3 +109,57 @@ class NewsletterAdmin(admin.ModelAdmin):
             else:
                 self.message_user(request, f"Newsletter '{newsletter.subject}' was already sent on {newsletter.sent_at}", level='warning')
     send_newsletter_action.short_description = "Send selected newsletters"
+
+@admin.register(SEO)
+class SEOAdmin(admin.ModelAdmin):
+    list_display = ('content_type', 'content_id', 'meta_title', 'created_at', 'updated_at')
+    list_filter = ('content_type', 'created_at', 'no_index', 'no_follow')
+    search_fields = ('meta_title', 'meta_description', 'meta_keywords', 'content_id')
+    readonly_fields = ('created_at', 'updated_at')
+    fieldsets = (
+        (None, {
+            'fields': ('content_type', 'content_id')
+        }),
+        ('Basic SEO', {
+            'fields': ('meta_title', 'meta_description', 'meta_keywords')
+        }),
+        ('Open Graph', {
+            'fields': ('og_title', 'og_description', 'og_image', 'og_image_upload')
+        }),
+        ('Twitter Card', {
+            'fields': ('twitter_title', 'twitter_description', 'twitter_image', 'twitter_image_upload')
+        }),
+        ('Advanced', {
+            'fields': ('canonical_url', 'no_index', 'no_follow')
+        }),
+    )
+
+@admin.register(HomePageSEO)
+class HomePageSEOAdmin(admin.ModelAdmin):
+    list_display = ('meta_title', 'hero_title', 'updated_at')
+    readonly_fields = ('created_at', 'updated_at')
+    
+    # Prevent creation of multiple instances
+    def has_add_permission(self, request):
+        # Check if there's already an instance
+        if HomePageSEO.objects.exists():
+            return False
+        return super().has_add_permission(request)
+    
+    fieldsets = (
+        ('Basic SEO', {
+            'fields': ('meta_title', 'meta_description', 'meta_keywords')
+        }),
+        ('Open Graph', {
+            'fields': ('og_title', 'og_description', 'og_image', 'og_image_upload')
+        }),
+        ('Twitter Card', {
+            'fields': ('twitter_title', 'twitter_description', 'twitter_image', 'twitter_image_upload')
+        }),
+        ('Advanced', {
+            'fields': ('canonical_url', 'no_index', 'no_follow')
+        }),
+        ('Homepage Content', {
+            'fields': ('hero_title', 'hero_description')
+        }),
+    )

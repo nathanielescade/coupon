@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True').lower() == 'True'
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Parse allowed hosts from environment variable
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
@@ -42,13 +42,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Move this up for better static file handling
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'analytics.middleware.AnalyticsMiddleware',  
 ]
@@ -66,7 +66,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'coupons.context_processors.app_settings',  # Add this line
+                'coupons.context_processors.app_settings',
             ],
         },
     },
@@ -81,8 +81,6 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -107,14 +105,15 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
 
+# Media files
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -134,7 +133,7 @@ REST_FRAMEWORK = {
 
 # CORS settings
 cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:8000,http://127.0.0.1:8000').split(',')
-CORS_ALLOWED_ORIGINS = cors_origins
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_origins if origin.strip()]
 
 # Add ngrok URL to CORS if available
 if ngrok_url:
@@ -154,7 +153,7 @@ LOGOUT_REDIRECT_URL = 'home'
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'True'
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
@@ -162,9 +161,6 @@ ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', DEFAULT_FROM_EMAIL)
 
 # SEO Settings
 SITE_URL = os.environ.get('SITE_URL', 'http://localhost:8000')
-
-# Sitemap Settings
-TEMPLATES[0]['OPTIONS']['context_processors'].append('django.template.context_processors.request')
 
 # Cache configuration
 cache_backend = os.environ.get('CACHE_BACKEND', 'django.core.cache.backends.locmem.LocMemCache')
