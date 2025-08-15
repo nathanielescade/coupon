@@ -104,7 +104,6 @@ def get_open_graph_data(instance, request):
             og_title = instance.seo.og_title
             og_description = instance.seo.og_description
             og_image = instance.seo.get_og_image_url()  # Use the property method
-        
         return {
             'og_title': og_title or f"{instance.title} - {instance.discount_display}",
             'og_description': og_description or instance.description,
