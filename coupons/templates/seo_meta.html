@@ -8,6 +8,7 @@
 <link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
 
 <!-- Open Graph / Facebook -->
+ 
 <meta property="og:type" content="{% block og_type %}website{% endblock %}">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
 <meta property="og:title" content="{% block og_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
