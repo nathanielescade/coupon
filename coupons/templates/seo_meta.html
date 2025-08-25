@@ -27,5 +27,11 @@
 {% block structured_data %}{% endblock %}
 
 <!-- Favicon and Logo -->
-<link rel="icon" href="{% static APP_FAVICON %}">
-<link rel="apple-touch-icon" sizes="180x180" href="{% static APP_LOGO %}">
+<link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+<link rel="manifest" href="{% static 'img/site.webmanifest' %}">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="{% static 'img/android-chrome-144x144.png' %}">
+<meta name="theme-color" content="#ffffff">
