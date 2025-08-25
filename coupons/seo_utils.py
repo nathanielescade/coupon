@@ -1,4 +1,3 @@
-# seo_utils.py
 from django.utils.text import slugify, Truncator
 from django.urls import reverse
 from django.conf import settings
@@ -58,6 +57,31 @@ def get_meta_description(instance, request=None):
         pass
     
     return "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise."
+
+def get_meta_keywords(instance, request=None):
+    """Get meta keywords for different models, using manual SEO data if available"""
+    if isinstance(instance, Coupon):
+        if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_keywords:
+            return instance.seo.meta_keywords
+        return f"{instance.store.name}, {instance.category.name}, {instance.title}, coupon, promo code, discount"
+    elif isinstance(instance, Store):
+        if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_keywords:
+            return instance.seo.meta_keywords
+        return f"{instance.name}, coupons, promo codes, deals, discounts, savings"
+    elif isinstance(instance, Category):
+        if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_keywords:
+            return instance.seo.meta_keywords
+        return f"{instance.name}, coupons, deals, discounts, savings, promo codes"
+    
+    # For homepage
+    try:
+        homepage_seo = HomePageSEO.objects.get()
+        if homepage_seo.meta_keywords:
+            return homepage_seo.meta_keywords
+    except HomePageSEO.DoesNotExist:
+        pass
+    
+    return "coupons, promo codes, deals, discounts, savings, coupon codes"
 
 def get_open_graph_data(instance, request):
     """Generate Open Graph data for social sharing, using manual SEO data if available"""
@@ -157,3 +181,64 @@ def get_open_graph_data(instance, request):
         'twitter_description': 'Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.',
         'twitter_image': default_image,
     }
+
+def get_breadcrumbs(instance):
+    """Generate breadcrumb navigation for different models"""
+    breadcrumbs = [{'name': 'Home', 'url': '/'}]
+    
+    if isinstance(instance, Coupon):
+        breadcrumbs.append({'name': 'Stores', 'url': reverse('all_stores')})
+        breadcrumbs.append({'name': instance.store.name, 'url': reverse('store_detail', kwargs={'store_slug': instance.store.slug})})
+        breadcrumbs.append({'name': instance.title, 'url': None})
+    elif isinstance(instance, Store):
+        breadcrumbs.append({'name': 'Stores', 'url': reverse('all_stores')})
+        breadcrumbs.append({'name': instance.name, 'url': None})
+    elif isinstance(instance, Category):
+        breadcrumbs.append({'name': 'Categories', 'url': reverse('all_categories')})
+        breadcrumbs.append({'name': instance.name, 'url': None})
+    
+    return breadcrumbs
+
+def get_structured_data(instance):
+    """Generate structured data (JSON-LD) for different models"""
+    if isinstance(instance, Coupon):
+        return {
+            "@context": "https://schema.org/",
+            "@type": "Offer",
+            "name": instance.title,
+            "description": instance.description,
+            "url": f"{settings.SITE_URL}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}",
+            "availability": "https://schema.org/InStock" if instance.is_active and not instance.is_expired else "https://schema.org/OutOfStock",
+            "validFrom": instance.start_date.isoformat(),
+            "validThrough": instance.expiry_date.isoformat() if instance.expiry_date else None,
+            "discount": instance.discount_display,
+            "provider": {
+                "@type": "Organization",
+                "name": instance.store.name,
+                "url": instance.store.website
+            },
+            "category": instance.category.name
+        }
+    elif isinstance(instance, Store):
+        return {
+            "@context": "https://schema.org/",
+            "@type": "Store",
+            "name": instance.name,
+            "description": instance.description,
+            "url": instance.website,
+            "logo": instance.logo.url if instance.logo else None,
+            "image": instance.logo.url if instance.logo else None,
+            "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "US"
+            }
+        }
+    elif isinstance(instance, Category):
+        return {
+            "@context": "https://schema.org/",
+            "@type": "Thing",
+            "name": instance.name,
+            "description": instance.description,
+            "url": f"{settings.SITE_URL}{reverse('category_detail', kwargs={'category_slug': instance.slug})}"
+        }
+    return None

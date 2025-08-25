@@ -206,7 +206,11 @@ class CategoryViewSet(viewsets.ModelViewSet):
     filterset_fields = ['is_active']
     search_fields = ['name', 'description']
 # Frontend Views
+
+
+
 # @method_decorator(cache_page(60 * 10), name='dispatch')
+# views.py - HomeView
 class HomeView(ListView):
     model = Coupon
     template_name = 'home.html'
@@ -247,6 +251,7 @@ class HomeView(ListView):
             
         return coupons
     
+# views.py - HomeView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -297,13 +302,13 @@ class HomeView(ListView):
             context['hero_title'] = homepage_seo.hero_title
             context['hero_description'] = homepage_seo.hero_description
             
-            # Add Open Graph data
+            # Add Open Graph data - Fix: Remove parentheses from property methods
             context['og_title'] = homepage_seo.og_title
             context['og_description'] = homepage_seo.og_description
-            context['og_image'] = homepage_seo.get_og_image_url
+            context['og_image'] = homepage_seo.get_og_image_url  # Remove parentheses
             context['twitter_title'] = homepage_seo.twitter_title
             context['twitter_description'] = homepage_seo.twitter_description
-            context['twitter_image'] = homepage_seo.get_twitter_image_url
+            context['twitter_image'] = homepage_seo.get_twitter_image_url  # Remove parentheses
         except HomePageSEO.DoesNotExist:
             # Default values if no homepage SEO is set
             context['meta_title'] = "CouPradise - Save Money with Exclusive Coupons"
@@ -315,13 +320,19 @@ class HomeView(ListView):
             # Default Open Graph data
             context['og_title'] = "CouPradise - Save Money with Exclusive Coupons"
             context['og_description'] = "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise."
-            context['og_image'] = "/static/img/og-image.jpg"  # Add a default image
+            context['og_image'] = "/static/img/default-og-image.jpg"  # Add a default image
             context['twitter_title'] = "CouPradise - Save Money with Exclusive Coupons"
             context['twitter_description'] = "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise."
-            context['twitter_image'] = "/static/img/og-image.jpg"
+            context['twitter_image'] = "/static/img/default-og-image.jpg"
         
         return context
 
+
+
+
+
+
+# views.py - CouponDetailView
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CouponDetailView(DetailView):
     model = Coupon
@@ -370,16 +381,17 @@ class CouponDetailView(DetailView):
         context['meta_description'] = get_meta_description(self.object)
         context['meta_keywords'] = f"{self.object.store.name}, {self.object.category.name}, {self.object.title}, coupon, promo code, discount"
         context['structured_data'] = get_structured_data(self.object)
-        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
-        context['breadcrumbs'] = get_breadcrumbs(self.object)
-
+        
+        # Add Open Graph data
         og_data = get_open_graph_data(self.object, self.request)
         context.update(og_data)
         
+        # Add breadcrumbs
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
 
+# views.py - StoreDetailView
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class StoreDetailView(DetailView):
     model = Store
@@ -443,16 +455,17 @@ class StoreDetailView(DetailView):
         context['meta_description'] = get_meta_description(self.object)
         context['meta_keywords'] = f"{self.object.name}, coupons, promo codes, deals, discounts, savings"
         context['structured_data'] = get_structured_data(self.object)
-        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
-        context['breadcrumbs'] = get_breadcrumbs(self.object)
-
+        
+        # Add Open Graph data
         og_data = get_open_graph_data(self.object, self.request)
         context.update(og_data)
         
+        # Add breadcrumbs
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
 
+# views.py - CategoryDetailView
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CategoryDetailView(DetailView):
     model = Category
@@ -516,14 +529,17 @@ class CategoryDetailView(DetailView):
         context['meta_description'] = get_meta_description(self.object)
         context['meta_keywords'] = f"{self.object.name}, coupons, deals, discounts, savings, promo codes"
         context['structured_data'] = get_structured_data(self.object)
-        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
-        context['breadcrumbs'] = get_breadcrumbs(self.object)
         
+        # Add Open Graph data
         og_data = get_open_graph_data(self.object, self.request)
         context.update(og_data)
         
+        # Add breadcrumbs
         context['breadcrumbs'] = get_breadcrumbs(self.object)
+        
         return context
+
+
 
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class SearchView(ListView):
