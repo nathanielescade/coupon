@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Count, Q
 from django.http import JsonResponse
+# Add this import at the top of views.py
+from analytics.models import CouponAnalytics
 from django.template.loader import render_to_string
 from django.core.paginator import Paginator
 from django.contrib.auth import login, authenticate
@@ -339,7 +341,6 @@ class HomeView(ListView):
 
 
 
-# views.py - CouponDetailView
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CouponDetailView(DetailView):
     model = Coupon
@@ -370,7 +371,6 @@ class CouponDetailView(DetailView):
         
         return obj
     
-        # views.py
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
@@ -384,17 +384,18 @@ class CouponDetailView(DetailView):
             expiry_date__gte=timezone.now()
         ).exclude(id=self.object.id)[:4]
         
-        # Always use seo_utils (handles custom SEO + fallbacks)
-        context['meta_title'] = get_meta_title(self.object, self.request)
-        context['meta_description'] = get_meta_description(self.object, self.request)
-        context['meta_keywords'] = get_meta_keywords(self.object, self.request)
+        # Add SEO data
+        context['meta_title'] = get_meta_title(self.object)
+        context['meta_description'] = get_meta_description(self.object)
+        context['meta_keywords'] = f"{self.object.store.name}, {self.object.category.name}, {self.object.title}, coupon, promo code, discount"
         context['structured_data'] = get_structured_data(self.object)
         context['open_graph_data'] = get_open_graph_data(self.object, self.request)
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
 
-            
+
+       
 
 # views.py - StoreDetailView
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
