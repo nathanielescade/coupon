@@ -1,7 +1,6 @@
 {% load static %}
 <!-- SEO Meta Tags -->
 <title>{% block meta_title %}{% if meta_title %}{{ meta_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}</title>
-<meta name='impact-site-verification' value='667edcd8-f909-4a17-9446-e4f8a31579d0' />
 <meta name="description" content="{% block meta_description %}{% if meta_description %}{{ meta_description }}{% else %}{% endif %}{% endblock %}">
 <meta name="keywords" content="{% block meta_keywords %}{% if meta_keywords %}{{ meta_keywords }}{% else %}{% endif %}{% endblock %}">
 <link rel="canonical" href="{{ request.build_absolute_uri }}">

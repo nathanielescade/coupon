@@ -5,26 +5,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token }}">
-    
+
+    <!-- SEO Meta -->
     {% include 'seo_meta.html' %}
-    
+
+    <!-- Impact Verification -->
+    <meta name="impact-site-verification" value="59821aa8-3d50-4472-9677-f0f6bef505b1">
+
+    <!-- Impact STAT Tag -->
+    <script>
+        (function(i,m,p,a,c,t){
+            c.ire_o=p;
+            c[p]=c[p]||function(){(c[p].a=c[p].a||[]).push(arguments)};
+            t=a.createElement(m);
+            var z=a.getElementsByTagName(m)[0];
+            t.async=1;
+            t.src=i;
+            z.parentNode.insertBefore(t,z)
+        })(
+            'https://utt.impactcdn.com/P-A6491500-aea7-4699-8c27-2fd4b05b224e1.js',
+            'script',
+            'impactStat',
+            document,
+            window
+        );
+        impactStat('transformLinks');
+        impactStat('trackImpression');
+    </script>
+
+    <!-- Stylesheets -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     {% include 'styles.html' %}
+
 </head>
 <body class="gradient-bg">
+
     {% include 'header.html' %}
-    
     {% include 'messages.html' %}
-    
+
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-6">
         {% block content %}{% endblock %}
     </main>
-    
+
     {% include 'footer.html' %}
-    
     {% include 'scripts.html' %}
+
 </body>
 </html>
