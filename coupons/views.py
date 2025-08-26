@@ -938,7 +938,6 @@ class AllCouponsView(ListView):
         return context
 
 
-
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class FeaturedCouponsView(ListView):
     model = Coupon
@@ -1006,9 +1005,6 @@ class FeaturedCouponsView(ListView):
         }
         
         return context
-
-
-
 
 @method_decorator(cache_page(60 * 5), name='dispatch')  # Cache for 5 minutes (shorter for expiring coupons)
 class ExpiringCouponsView(ListView):
@@ -1078,11 +1074,6 @@ class ExpiringCouponsView(ListView):
         
         return context
 
-
-
-
-
-
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class LatestCouponsView(ListView):
     model = Coupon
@@ -1149,9 +1140,6 @@ class LatestCouponsView(ListView):
         }
         
         return context
-
-
-
 
 
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes

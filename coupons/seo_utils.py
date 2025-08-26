@@ -104,9 +104,13 @@ def get_meta_keywords(instance, request=None):
 
 def get_open_graph_data(instance, request):
     """Generate Open Graph data for social sharing, using manual SEO data if available"""
-    site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://coupradise.com'
+    # Get the site URL from the request if available, otherwise use settings
+    if request:
+        site_url = f"{request.scheme}://{request.get_host()}"
+    else:
+        site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://coupradise.com'
     
-    # FIXED: Use the correct path for the app-specific static file
+    # Get default image URL
     try:
         default_image = f"{site_url}{static('img/og-image.png')}"
     except:
@@ -127,7 +131,7 @@ def get_open_graph_data(instance, request):
                 og_title = instance.seo.og_title
                 og_description = instance.seo.og_description
                 
-                # FIXED: Handle both methods and fields for image URLs
+                # Handle both methods and fields for image URLs
                 if hasattr(instance.seo, 'get_og_image_url'):
                     if callable(instance.seo.get_og_image_url):
                         og_image = instance.seo.get_og_image_url()
@@ -139,7 +143,7 @@ def get_open_graph_data(instance, request):
                 twitter_title = instance.seo.twitter_title
                 twitter_description = instance.seo.twitter_description
                 
-                # FIXED: Handle both methods and fields for image URLs
+                # Handle both methods and fields for image URLs
                 if hasattr(instance.seo, 'get_twitter_image_url'):
                     if callable(instance.seo.get_twitter_image_url):
                         twitter_image = instance.seo.get_twitter_image_url()
@@ -204,7 +208,7 @@ def get_open_graph_data(instance, request):
                 og_title = instance.seo.og_title
                 og_description = instance.seo.og_description
                 
-                # FIXED: Handle both methods and fields for image URLs
+                # Handle both methods and fields for image URLs
                 if hasattr(instance.seo, 'get_og_image_url'):
                     if callable(instance.seo.get_og_image_url):
                         og_image = instance.seo.get_og_image_url()
@@ -216,7 +220,7 @@ def get_open_graph_data(instance, request):
                 twitter_title = instance.seo.twitter_title
                 twitter_description = instance.seo.twitter_description
                 
-                # FIXED: Handle both methods and fields for image URLs
+                # Handle both methods and fields for image URLs
                 if hasattr(instance.seo, 'get_twitter_image_url'):
                     if callable(instance.seo.get_twitter_image_url):
                         twitter_image = instance.seo.get_twitter_image_url()
@@ -281,7 +285,7 @@ def get_open_graph_data(instance, request):
                 og_title = instance.seo.og_title
                 og_description = instance.seo.og_description
                 
-                # FIXED: Handle both methods and fields for image URLs
+                # Handle both methods and fields for image URLs
                 if hasattr(instance.seo, 'get_og_image_url'):
                     if callable(instance.seo.get_og_image_url):
                         og_image = instance.seo.get_og_image_url()
@@ -293,7 +297,7 @@ def get_open_graph_data(instance, request):
                 twitter_title = instance.seo.twitter_title
                 twitter_description = instance.seo.twitter_description
                 
-                # FIXED: Handle both methods and fields for image URLs
+                # Handle both methods and fields for image URLs
                 if hasattr(instance.seo, 'get_twitter_image_url'):
                     if callable(instance.seo.get_twitter_image_url):
                         twitter_image = instance.seo.get_twitter_image_url()
