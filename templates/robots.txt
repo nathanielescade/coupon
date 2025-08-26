@@ -1,9 +1,8 @@
 # project/templates/robots.txt
 User-agent: *
 Allow: /
-
 # Sitemap Index
-Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml
+Sitemap: https://www.coupradise.com/sitemap.xml
 
 # Disallow admin pages
 Disallow: /admin/
@@ -25,7 +24,11 @@ Disallow: /accounts/password/
 # Disallow form submissions
 Disallow: /newsletter/subscribe
 Disallow: /contact/submit
-Disallow: /unsubscribe
+Disallow: /unsubscribe/
+
+# Disallow search results and print pages
+Disallow: /search/
+Disallow: /*/print/
 
 # Disallow filter URLs with parameters
 Disallow: /*?sort=*
@@ -40,33 +43,14 @@ Disallow: /*?fbclid=*
 Disallow: /*?gclid=*
 Disallow: /*?ref=*
 
-# NEW: Disallow expired coupons pattern
+# Disallow expired coupons pattern
 Disallow: /coupon/expired/
 Disallow: /expired-coupon/
 
-# Crawl delay to prevent server overload
+# Crawl delay to prevent server overload (ignored by Google but respected by others)
 Crawl-delay: 1
 
-# Specific rules for common bots
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Slurp
-Allow: /
-
-User-agent: DuckDuckBot
-Allow: /
-
-User-agent: Baiduspider
-Allow: /
-
-User-agent: YandexBot
-Allow: /
-
-# Block aggressive bots
+# Block aggressive bots with longer delays
 User-agent: SemrushBot
 Crawl-delay: 10
 
@@ -79,7 +63,7 @@ Crawl-delay: 10
 User-agent: DotBot
 Crawl-delay: 10
 
-# Block unwanted bots
+# Block unwanted bots completely
 User-agent: BLEXBot
 Disallow: /
 

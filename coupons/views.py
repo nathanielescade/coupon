@@ -1634,9 +1634,3 @@ def preview_newsletter(request, newsletter_id):
     }
     
     return render(request, 'custom_newsletter_email.html', context)
-
-def robots_txt(request):
-    context = {
-        'request': request
-    }
-    return render(request, 'robots.txt', context, content_type='text/plain')

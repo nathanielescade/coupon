@@ -70,10 +70,6 @@ urlpatterns = [
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('contact/submit/', views.contact_submit, name='contact_submit'),
-    
-    # Sitemap
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
-    path('robots.txt', views.robots_txt, name='robots_txt'),
     # API URLs
     path('api/', include(router.urls)),
 ]
