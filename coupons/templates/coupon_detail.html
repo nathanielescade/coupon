@@ -1,6 +1,4 @@
 {% extends 'base.html' %}
-{% load static %}
-{% load coupon_extras %}
 {% block meta_title %}{{ meta_title }}{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block meta_keywords %}{{ meta_keywords }}{% endblock %}
@@ -11,14 +9,11 @@
 {% block twitter_description %}{{ open_graph_data.twitter_description }}{% endblock %}
 {% block twitter_image %}{{ open_graph_data.twitter_image }}{% endblock %}
 {% block structured_data %}
-<!-- <script type="application/ld+json">
+<script type="application/ld+json">
 {{ structured_data|json_script:"structured-data" }}
 </script>
-{% endblock %} -->
-
-
-
-
+{% endblock %}
+{% block content %}
 {% block breadcrumb %}
 <nav class="container mx-auto px-4 py-2 text-sm">
     <div class="flex items-center text-blue-300">
@@ -33,7 +28,6 @@
     </div>
 </nav>
 {% endblock %}
-{% block content %}
 <div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
     <div class="p-6">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
@@ -389,7 +383,6 @@ document.addEventListener('DOMContentLoaded', function() {
         checkForPendingCouponReveal();
     });
 });
-
 function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
     // Get the button to disable it temporarily
     const button = document.getElementById("get-code-btn-" + couponId);
@@ -411,7 +404,6 @@ function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
         fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
     }
 }
-
 function showCopyNotification() {
     const notification = document.createElement('div');
     notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
@@ -429,7 +421,6 @@ function showCopyNotification() {
         }, 500);
     }, 3000);
 }
-
 function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
     // Store coupon information in sessionStorage
     sessionStorage.setItem('pendingCoupon', JSON.stringify({
@@ -467,7 +458,6 @@ function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
         revealCodeAndChangeButton(code, couponId);
     }, 1500);
 }
-
 function revealCodeAndChangeButton(code, couponId) {
     // Update the original coupon card to show the code
     const originalCodeElement = document.getElementById("main-coupon-code");
@@ -486,7 +476,6 @@ function revealCodeAndChangeButton(code, couponId) {
         };
     }
 }
-
 function copyCodeAgain(code, couponId) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
@@ -499,7 +488,6 @@ function copyCodeAgain(code, couponId) {
         fallbackCopyTextToClipboard(code, couponId);
     }
 }
-
 function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
@@ -543,7 +531,6 @@ function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
     
     document.body.removeChild(textArea);
 }
-
 function checkForPendingCouponReveal() {
     const pendingCoupon = sessionStorage.getItem('pendingCoupon');
     
@@ -577,7 +564,6 @@ function checkForPendingCouponReveal() {
         }
     }
 }
-
 function showCouponModal(couponId, code) {
     const modal = document.getElementById('coupon-modal-' + couponId);
     if (modal) {
@@ -598,7 +584,6 @@ function showCouponModal(couponId, code) {
         revealCodeAndChangeButton(code, couponId);
     }
 }
-
 function closeCouponModal(couponId) {
     const modal = document.getElementById('coupon-modal-' + couponId);
     if (modal) {
@@ -606,11 +591,9 @@ function closeCouponModal(couponId) {
         document.body.style.overflow = ''; // Restore scrolling
     }
 }
-
 function goToStore(affiliateLink) {
     window.open(affiliateLink, '_blank');
 }
-
 function copyCodeFromModal(code, couponId) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
@@ -623,7 +606,6 @@ function copyCodeFromModal(code, couponId) {
         fallbackCopyTextToClipboard(code, couponId);
     }
 }
-
 function showCopyFeedback(couponId) {
     const feedbackElement = document.getElementById('copy-feedback-' + couponId);
     if (feedbackElement) {
@@ -633,7 +615,6 @@ function showCopyFeedback(couponId) {
         }, 3000);
     }
 }
-
 function trackRevealEvent(couponId, code) {
     // Track the reveal_code event with proper parameters
     if (typeof trackEvent === 'function') {

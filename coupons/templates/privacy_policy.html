@@ -1,6 +1,14 @@
 {% extends 'base.html' %}
-
-{% block title %}Privacy Policy - {{ APP_NAME }}{% endblock %}
+{% block meta_title %}{{ meta_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+{% block og_title %}{{ open_graph_data.og_title }}{% endblock %}
+{% block og_description %}{{ open_graph_data.og_description }}{% endblock %}
+{% block og_image %}{{ open_graph_data.og_image }}{% endblock %}
+{% block twitter_title %}{{ open_graph_data.twitter_title }}{% endblock %}
+{% block twitter_description %}{{ open_graph_data.twitter_description }}{% endblock %}
+{% block twitter_image %}{{ open_graph_data.twitter_image }}{% endblock %}
+<!-- {% block title %}Privacy Policy - {{ APP_NAME }}{% endblock %} -->
 
 {% block content %}
 <div class="max-w-4xl mx-auto">

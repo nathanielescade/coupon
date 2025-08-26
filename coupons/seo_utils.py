@@ -158,7 +158,14 @@ def get_open_graph_data(instance, request):
             og_description = instance.description
             
         if not og_image:
-            og_image = instance.store.logo.url if instance.store.logo else default_image
+            if instance.store.logo:
+                # Ensure absolute URL for the logo
+                if instance.store.logo.url.startswith(('http://', 'https://')):
+                    og_image = instance.store.logo.url
+                else:
+                    og_image = f"{site_url}{instance.store.logo.url}"
+            else:
+                og_image = default_image
             
         if not twitter_title:
             twitter_title = og_title
@@ -228,7 +235,14 @@ def get_open_graph_data(instance, request):
             og_description = f"Save money with {instance.name} coupons and deals"
             
         if not og_image:
-            og_image = instance.logo.url if instance.logo else default_image
+            if instance.logo:
+                # Ensure absolute URL for the logo
+                if instance.logo.url.startswith(('http://', 'https://')):
+                    og_image = instance.logo.url
+                else:
+                    og_image = f"{site_url}{instance.logo.url}"
+            else:
+                og_image = default_image
             
         if not twitter_title:
             twitter_title = og_title

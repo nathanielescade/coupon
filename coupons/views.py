@@ -387,7 +387,6 @@ class HomeView(ListView):
 
 
 
-
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CouponDetailView(DetailView):
     model = Coupon
@@ -431,15 +430,32 @@ class CouponDetailView(DetailView):
             expiry_date__gte=timezone.now()
         ).exclude(id=self.object.id)[:4]
         
-        # Add SEO data - Fixed to use get_meta_keywords properly
+        # Add SEO data
         context['meta_title'] = get_meta_title(self.object)
         context['meta_description'] = get_meta_description(self.object)
-        context['meta_keywords'] = get_meta_keywords(self.object)  # Fixed this line
+        context['meta_keywords'] = get_meta_keywords(self.object)
         context['structured_data'] = get_structured_data(self.object)
-        context['open_graph_data'] = get_open_graph_data(self.object, self.request)
+        
+        # Add Open Graph data with explicit image URL handling
+        og_data = get_open_graph_data(self.object, self.request)
+        
+        # Ensure the OG image is an absolute URL
+        if 'og_image' in og_data and og_data['og_image']:
+            if not og_data['og_image'].startswith(('http://', 'https://')):
+                og_data['og_image'] = self.request.build_absolute_uri(og_data['og_image'])
+        
+        # Ensure the Twitter image is an absolute URL
+        if 'twitter_image' in og_data and og_data['twitter_image']:
+            if not og_data['twitter_image'].startswith(('http://', 'https://')):
+                og_data['twitter_image'] = self.request.build_absolute_uri(og_data['twitter_image'])
+        
+        context['open_graph_data'] = og_data
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
+  
+  
+  
         
 
 # views.py - StoreDetailView
@@ -486,21 +502,29 @@ class StoreDetailView(DetailView):
         context['stores'] = Store.objects.filter(is_active=True)
         context['current_sort'] = sort
         
-        # Add SEO data - ensure these are always set
+        # Add SEO data
         context['meta_title'] = get_meta_title(self.object)
         context['meta_description'] = get_meta_description(self.object)
         context['meta_keywords'] = f"{self.object.name}, coupons, promo codes, deals, discounts, savings"
         context['structured_data'] = get_structured_data(self.object)
         
-        # Add Open Graph data - ensure these are always set
+        # Add Open Graph data with explicit image URL handling
         og_data = get_open_graph_data(self.object, self.request)
-        context['open_graph_data'] = og_data
         
-        # Add breadcrumbs
+        # Ensure the OG image is an absolute URL
+        if 'og_image' in og_data and og_data['og_image']:
+            if not og_data['og_image'].startswith(('http://', 'https://')):
+                og_data['og_image'] = self.request.build_absolute_uri(og_data['og_image'])
+        
+        # Ensure the Twitter image is an absolute URL
+        if 'twitter_image' in og_data and og_data['twitter_image']:
+            if not og_data['twitter_image'].startswith(('http://', 'https://')):
+                og_data['twitter_image'] = self.request.build_absolute_uri(og_data['twitter_image'])
+        
+        context['open_graph_data'] = og_data
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
-        return context      
-        
+        return context     
 
 
 
@@ -569,16 +593,23 @@ class CategoryDetailView(DetailView):
         context['meta_keywords'] = f"{self.object.name}, coupons, deals, discounts, savings, promo codes"
         context['structured_data'] = get_structured_data(self.object)
         
-        # Add Open Graph data
+        # Add Open Graph data with explicit image URL handling
         og_data = get_open_graph_data(self.object, self.request)
-        context.update(og_data)
         
-        # Add breadcrumbs
+        # Ensure the OG image is an absolute URL
+        if 'og_image' in og_data and og_data['og_image']:
+            if not og_data['og_image'].startswith(('http://', 'https://')):
+                og_data['og_image'] = self.request.build_absolute_uri(og_data['og_image'])
+        
+        # Ensure the Twitter image is an absolute URL
+        if 'twitter_image' in og_data and og_data['twitter_image']:
+            if not og_data['twitter_image'].startswith(('http://', 'https://')):
+                og_data['twitter_image'] = self.request.build_absolute_uri(og_data['twitter_image'])
+        
+        context['open_graph_data'] = og_data
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
-
-
 
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class SearchView(ListView):
@@ -889,7 +920,24 @@ class AllCouponsView(ListView):
         context['meta_description'] = "Browse all available coupons and deals. Save money with our verified coupon codes and discounts."
         context['meta_keywords'] = "all coupons, browse coupons, coupon codes, deals, discounts"
         
+        # Add Open Graph data
+        try:
+            default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+        except:
+            default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
+        context['open_graph_data'] = {
+            'og_title': "All Coupons - CouPradise",
+            'og_description': "Browse all available coupons and deals. Save money with our verified coupon codes and discounts.",
+            'og_image': default_og_image,
+            'twitter_title': "All Coupons - CouPradise",
+            'twitter_description': "Browse all available coupons and deals. Save money with our verified coupon codes and discounts.",
+            'twitter_image': default_og_image,
+        }
+        
         return context
+
+
 
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class FeaturedCouponsView(ListView):
@@ -942,7 +990,25 @@ class FeaturedCouponsView(ListView):
         context['meta_description'] = "Discover our hand-picked featured coupons and deals. Save big with these exclusive offers."
         context['meta_keywords'] = "featured coupons, best deals, exclusive offers, hand-picked deals"
         
+        # Add Open Graph data
+        try:
+            default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+        except:
+            default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
+        context['open_graph_data'] = {
+            'og_title': "Featured Coupons - CouPradise",
+            'og_description': "Discover our hand-picked featured coupons and deals. Save big with these exclusive offers.",
+            'og_image': default_og_image,
+            'twitter_title': "Featured Coupons - CouPradise",
+            'twitter_description': "Discover our hand-picked featured coupons and deals. Save big with these exclusive offers.",
+            'twitter_image': default_og_image,
+        }
+        
         return context
+
+
+
 
 @method_decorator(cache_page(60 * 5), name='dispatch')  # Cache for 5 minutes (shorter for expiring coupons)
 class ExpiringCouponsView(ListView):
@@ -995,7 +1061,27 @@ class ExpiringCouponsView(ListView):
         context['meta_description'] = "Don't miss out! These coupons are expiring soon. Use them before they're gone."
         context['meta_keywords'] = "expiring coupons, ending soon, last chance, limited time offers"
         
+        # Add Open Graph data
+        try:
+            default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+        except:
+            default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
+        context['open_graph_data'] = {
+            'og_title': "Expiring Soon Coupons - CouPradise",
+            'og_description': "Don't miss out! These coupons are expiring soon. Use them before they're gone.",
+            'og_image': default_og_image,
+            'twitter_title': "Expiring Soon Coupons - CouPradise",
+            'twitter_description': "Don't miss out! These coupons are expiring soon. Use them before they're gone.",
+            'twitter_image': default_og_image,
+        }
+        
         return context
+
+
+
+
+
 
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class LatestCouponsView(ListView):
@@ -1047,7 +1133,26 @@ class LatestCouponsView(ListView):
         context['meta_description'] = "Stay updated with the latest coupons and deals. Be the first to know about new offers."
         context['meta_keywords'] = "latest coupons, new deals, recent offers, fresh discounts"
         
+        # Add Open Graph data
+        try:
+            default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+        except:
+            default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
+        context['open_graph_data'] = {
+            'og_title': "Latest Coupons - CouPradise",
+            'og_description': "Stay updated with the latest coupons and deals. Be the first to know about new offers.",
+            'og_image': default_og_image,
+            'twitter_title': "Latest Coupons - CouPradise",
+            'twitter_description': "Stay updated with the latest coupons and deals. Be the first to know about new offers.",
+            'twitter_image': default_og_image,
+        }
+        
         return context
+
+
+
+
 
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class AllStoresView(ListView):
@@ -1080,7 +1185,27 @@ class AllStoresView(ListView):
         context['meta_description'] = "Browse all stores offering coupons and deals. Find discounts from your favorite brands and retailers."
         context['meta_keywords'] = "all stores, store directory, brands, retailers, shop by store"
         
+        # Add Open Graph data
+        try:
+            default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+        except:
+            default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
+        context['open_graph_data'] = {
+            'og_title': "All Stores - CouPradise",
+            'og_description': "Browse all stores offering coupons and deals. Find discounts from your favorite brands and retailers.",
+            'og_image': default_og_image,
+            'twitter_title': "All Stores - CouPradise",
+            'twitter_description': "Browse all stores offering coupons and deals. Find discounts from your favorite brands and retailers.",
+            'twitter_image': default_og_image,
+        }
+        
         return context
+
+
+
+
+
 
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class AllCategoriesView(ListView):
@@ -1113,7 +1238,27 @@ class AllCategoriesView(ListView):
         context['meta_description'] = "Browse coupons by category. Find deals for electronics, fashion, food, travel, and more."
         context['meta_keywords'] = "coupon categories, browse by category, deal categories, discount categories"
         
+        # Add Open Graph data
+        try:
+            default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+        except:
+            default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
+        context['open_graph_data'] = {
+            'og_title': "All Categories - CouPradise",
+            'og_description': "Browse coupons by category. Find deals for electronics, fashion, food, travel, and more.",
+            'og_image': default_og_image,
+            'twitter_title': "All Categories - CouPradise",
+            'twitter_description': "Browse coupons by category. Find deals for electronics, fashion, food, travel, and more.",
+            'twitter_image': default_og_image,
+        }
+        
         return context
+
+
+
+
+
 
 # Add this to your views.py
 from django.http import JsonResponse
@@ -1243,34 +1388,90 @@ def send_subscription_email(email, subject):
         return False
 
 def about(request):
+    # Add Open Graph data
+    try:
+        default_og_image = request.build_absolute_uri(static('img/og-image.png'))
+    except:
+        default_og_image = f"{request.scheme}://{request.get_host()}/static/img/og-image.png"
+        
     context = {
         'meta_title': "About Us - CouPradise",
         'meta_description': "Learn about CouPradise's mission to help people save money with the best coupons and deals.",
-        'meta_keywords': "about CouPradise, our mission, company, team"
+        'meta_keywords': "about CouPradise, our mission, company, team",
+        'open_graph_data': {
+            'og_title': "About Us - CouPradise",
+            'og_description': "Learn about CouPradise's mission to help people save money with the best coupons and deals.",
+            'og_image': default_og_image,
+            'twitter_title': "About Us - CouPradise",
+            'twitter_description': "Learn about CouPradise's mission to help people save money with the best coupons and deals.",
+            'twitter_image': default_og_image,
+        }
     }
     return render(request, 'about.html', context)
 
 def contact(request):
+    # Add Open Graph data
+    try:
+        default_og_image = request.build_absolute_uri(static('img/og-image.png'))
+    except:
+        default_og_image = f"{request.scheme}://{request.get_host()}/static/img/og-image.png"
+        
     context = {
         'meta_title': "Contact Us - CouPradise",
         'meta_description': "Get in touch with the CouPradise team. We'd love to hear from you!",
-        'meta_keywords': "contact CouPradise, customer support, feedback, questions"
+        'meta_keywords': "contact CouPradise, customer support, feedback, questions",
+        'open_graph_data': {
+            'og_title': "Contact Us - CouPradise",
+            'og_description': "Get in touch with the CouPradise team. We'd love to hear from you!",
+            'og_image': default_og_image,
+            'twitter_title': "Contact Us - CouPradise",
+            'twitter_description': "Get in touch with the CouPradise team. We'd love to hear from you!",
+            'twitter_image': default_og_image,
+        }
     }
     return render(request, 'contact.html', context)
 
 def privacy_policy(request):
+    # Add Open Graph data
+    try:
+        default_og_image = request.build_absolute_uri(static('img/og-image.png'))
+    except:
+        default_og_image = f"{request.scheme}://{request.get_host()}/static/img/og-image.png"
+        
     context = {
         'meta_title': "Privacy Policy - CouPradise",
         'meta_description': "Read CouPradise's privacy policy to understand how we collect, use, and protect your personal information.",
-        'meta_keywords': "privacy policy, data protection, personal information, GDPR"
+        'meta_keywords': "privacy policy, data protection, personal information, GDPR",
+        'open_graph_data': {
+            'og_title': "Privacy Policy - CouPradise",
+            'og_description': "Read CouPradise's privacy policy to understand how we collect, use, and protect your personal information.",
+            'og_image': default_og_image,
+            'twitter_title': "Privacy Policy - CouPradise",
+            'twitter_description': "Read CouPradise's privacy policy to understand how we collect, use, and protect your personal information.",
+            'twitter_image': default_og_image,
+        }
     }
     return render(request, 'privacy_policy.html', context)
 
 def terms_of_service(request):
+    # Add Open Graph data
+    try:
+        default_og_image = request.build_absolute_uri(static('img/og-image.png'))
+    except:
+        default_og_image = f"{request.scheme}://{request.get_host()}/static/img/og-image.png"
+        
     context = {
         'meta_title': "Terms of Service - CouPradise",
         'meta_description': "Read CouPradise's terms of service to understand the rules and guidelines for using our website.",
-        'meta_keywords': "terms of service, terms and conditions, user agreement, website terms"
+        'meta_keywords': "terms of service, terms and conditions, user agreement, website terms",
+        'open_graph_data': {
+            'og_title': "Terms of Service - CouPradise",
+            'og_description': "Read CouPradise's terms of service to understand the rules and guidelines for using our website.",
+            'og_image': default_og_image,
+            'twitter_title': "Terms of Service - CouPradise",
+            'twitter_description': "Read CouPradise's terms of service to understand the rules and guidelines for using our website.",
+            'twitter_image': default_og_image,
+        }
     }
     return render(request, 'terms_of_service.html', context)
 
