@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import views as sitemap_views
 from coupons.sitemaps import (
     CouponSitemap, StoreSitemap, CategorySitemap, StaticViewSitemap,
-    FeaturedCouponsSitemap, ExpiringCouponsSitemap, ImageSitemap
+    FeaturedCouponsSitemap, ExpiringCouponsSitemap
 )
 
 sitemaps = {
@@ -11,5 +11,4 @@ sitemaps = {
     'static': StaticViewSitemap,
     'featured': FeaturedCouponsSitemap,
     'expiring': ExpiringCouponsSitemap,
-    'images': ImageSitemap,
 }
