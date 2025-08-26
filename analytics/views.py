@@ -169,7 +169,7 @@ def coupon_analytics(request):
         try:
             analytics = CouponAnalytics.objects.get(coupon=coupon)
             stats = {
-                'id': coupon.id,
+                'id': coupon.slug,
                 'title': coupon.title,
                 'store': coupon.store.name,
                 'views': analytics.views,
@@ -188,7 +188,7 @@ def coupon_analytics(request):
             # If no analytics record exists, create one with default values
             analytics = CouponAnalytics.objects.create(coupon=coupon)
             stats = {
-                'id': coupon.id,
+                'id': coupon.slug,
                 'title': coupon.title,
                 'store': coupon.store.name,
                 'views': 0,
@@ -397,19 +397,19 @@ def track_event(request):
             
             # Update specific analytics based on event type
             if event_type == 'copy_code':
-                coupon_id = event_data.get('coupon_id')
+                slug = event_data.get('slug')
                 coupon_code = event_data.get('coupon_code')
                 
-                if coupon_id:
+                if slug:
                     try:
                         # Try to find coupon by ID
                         try:
                             import uuid
-                            uuid.UUID(coupon_id)
-                            coupon = Coupon.objects.get(id=coupon_id)
+                            uuid.UUID(slug)
+                            coupon = Coupon.objects.get(slug=slug)
                         except (ValueError, TypeError):
                             # If not a valid UUID, try to find by code
-                            coupon = Coupon.objects.get(code=coupon_id)
+                            coupon = Coupon.objects.get(code=slug)
                         
                         if coupon:
                             analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
@@ -419,17 +419,17 @@ def track_event(request):
             
             # Handle other event types
             elif event_type == 'save_coupon':
-                coupon_id = event_data.get('coupon_id')
-                if coupon_id:
+                slug = event_data.get('slug')
+                if slug:
                     try:
                         # Try to find coupon by ID
                         try:
                             import uuid
-                            uuid.UUID(coupon_id)
-                            coupon = Coupon.objects.get(id=coupon_id)
+                            uuid.UUID(slug)
+                            coupon = Coupon.objects.get(slug=slug)
                         except (ValueError, TypeError):
                             # If not a valid UUID, try to find by code
-                            coupon = Coupon.objects.get(code=coupon_id)
+                            coupon = Coupon.objects.get(code=slug)
                         
                         if coupon:
                             analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
@@ -438,17 +438,17 @@ def track_event(request):
                         print(f"Error updating coupon analytics: {e}")
             
             elif event_type == 'use_coupon':
-                coupon_id = event_data.get('coupon_id')
-                if coupon_id:
+                slug = event_data.get('slug')
+                if slug:
                     try:
                         # Try to find coupon by ID
                         try:
                             import uuid
-                            uuid.UUID(coupon_id)
-                            coupon = Coupon.objects.get(id=coupon_id)
+                            uuid.UUID(slug)
+                            coupon = Coupon.objects.get(slug=slug)
                         except (ValueError, TypeError):
                             # If not a valid UUID, try to find by code
-                            coupon = Coupon.objects.get(code=coupon_id)
+                            coupon = Coupon.objects.get(code=slug)
                         
                         if coupon:
                             analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)

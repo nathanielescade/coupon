@@ -57,7 +57,7 @@
                 {% for coupon in coupon_stats %}
                 <tr class="border-b border-blue-800 hover:bg-blue-900/20">
                     <td class="py-3 px-4">
-                        <a href="{% url 'coupon_detail' coupon.id %}" class="text-blue-300 hover:text-blue-200 transition">{{ coupon.title }}</a>
+                        <a href="{% url 'coupon_detail' coupon.slug %}" class="text-blue-300 hover:text-blue-200 transition">{{ coupon.title }}</a>
                     </td>
                     <td class="py-3 px-4">{{ coupon.store }}</td>
                     <td class="text-right py-3 px-4">{{ coupon.views }}</td>

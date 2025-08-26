@@ -25,16 +25,16 @@ urlpatterns = [
     
     # Coupon URLs - more specific patterns first
     path('coupon/new/', views.CouponCreateView.as_view(), name='coupon_create'),
-    path('coupon/<uuid:coupon_id>/', views.CouponDetailView.as_view(), name='coupon_detail'),
-    path('coupon/<uuid:coupon_id>/edit/', views.CouponUpdateView.as_view(), name='coupon_update'),
-    path('coupon/<uuid:coupon_id>/delete/', views.CouponDeleteView.as_view(), name='coupon_delete'),
+    path('coupon/<slug:slug>/', views.CouponDetailView.as_view(), name='coupon_detail'),
+    path('coupon/<slug:slug>/edit/', views.CouponUpdateView.as_view(), name='coupon_update'),
+    path('coupon/<slug:slug>/delete/', views.CouponDeleteView.as_view(), name='coupon_delete'),
     
     path('store/<slug:store_slug>/', views.StoreDetailView.as_view(), name='store_detail'),
     path('category/<slug:category_slug>/', views.CategoryDetailView.as_view(), name='category_detail'),
     path('search/', views.SearchView.as_view(), name='search'),
     path('my-coupons/', views.my_coupons, name='my_coupons'),
-    path('save/<uuid:coupon_id>/', views.save_coupon, name='save_coupon'),
-    path('use/<uuid:coupon_id>/', views.use_coupon, name='use_coupon'),
+    path('save/<slug:slug>/', views.save_coupon, name='save_coupon'),
+    path('use/<slug:slug>/', views.use_coupon, name='use_coupon'),
     
     # Authentication URLs
     path('signup/', views.signup_view, name='signup'),

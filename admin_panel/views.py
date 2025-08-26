@@ -118,7 +118,7 @@ def coupon_create(request):
             coupon.created_by = request.user
             coupon.save()
             messages.success(request, 'Coupon created successfully!')
-            return redirect('admin_panel:coupon_detail', coupon_id=coupon.id)
+            return redirect('admin_panel:coupon_detail', slug=coupon.slug)
     else:
         form = CouponForm()
     
@@ -131,15 +131,15 @@ def coupon_create(request):
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_edit(request, coupon_id):
-    coupon = get_object_or_404(Coupon, id=coupon_id)
+def coupon_edit(request, slug):
+    coupon = get_object_or_404(Coupon, slug=slug)
     
     if request.method == 'POST':
         form = CouponForm(request.POST, request.FILES, instance=coupon)
         if form.is_valid():
             form.save()
             messages.success(request, 'Coupon updated successfully!')
-            return redirect('admin_panel:coupon_detail', coupon_id=coupon.id)
+            return redirect('admin_panel:coupon_detail', slug=coupon.slug)
     else:
         form = CouponForm(instance=coupon)
     
@@ -153,8 +153,8 @@ def coupon_edit(request, coupon_id):
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_delete(request, coupon_id):
-    coupon = get_object_or_404(Coupon, id=coupon_id)
+def coupon_delete(request, slug):
+    coupon = get_object_or_404(Coupon, slug=slug)
     
     if request.method == 'POST':
         coupon.delete()
@@ -169,8 +169,8 @@ def coupon_delete(request, coupon_id):
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_detail(request, coupon_id):
-    coupon = get_object_or_404(Coupon, id=coupon_id)
+def coupon_detail(request, slug):
+    coupon = get_object_or_404(Coupon, slug=slug)
     
     # Get analytics data if available
     try:
@@ -657,8 +657,8 @@ def seo_edit(request, seo_id):
 
 @login_required
 @user_passes_test(is_staff_user)
-def seo_create_for_coupon(request, coupon_id):
-    coupon = get_object_or_404(Coupon, id=coupon_id)
+def seo_create_for_coupon(request, slug):
+    coupon = get_object_or_404(Coupon, slug=slug)
     
     # Check if SEO already exists
     if hasattr(coupon, 'seo') and coupon.seo:
@@ -670,7 +670,7 @@ def seo_create_for_coupon(request, coupon_id):
         if form.is_valid():
             seo = form.save(commit=False)
             seo.content_type = 'coupon'
-            seo.content_id = str(coupon.id)
+            seo.content_id = str(coupon.slug)
             seo.save()
             
             # Link to coupon
@@ -678,7 +678,7 @@ def seo_create_for_coupon(request, coupon_id):
             coupon.save()
             
             messages.success(request, 'SEO metadata created successfully!')
-            return redirect('admin_panel:coupon_detail', coupon_id=coupon.id)
+            return redirect('admin_panel:coupon_detail', slug=coupon.slug)
     else:
         form = SEOForm(initial={
             'meta_title': f"{coupon.title} - {coupon.discount_display} | {coupon.store.name} Coupon",

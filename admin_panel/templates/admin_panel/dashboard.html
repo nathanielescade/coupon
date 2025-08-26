@@ -86,7 +86,7 @@
                     {% for coupon in recent_coupons %}
                     <tr class="border-b border-blue-800">
                         <td class="py-2">
-                            <a href="{% url 'admin_panel:coupon_detail' coupon.id %}" class="text-blue-300 hover:text-blue-200">
+                            <a href="{% url 'admin_panel:coupon_detail' coupon.slug %}" class="text-blue-300 hover:text-blue-200">
                                 {{ coupon.title }}
                             </a>
                         </td>

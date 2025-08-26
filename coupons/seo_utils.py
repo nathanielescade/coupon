@@ -224,7 +224,7 @@ def get_open_graph_data(instance, request):
         return {
             'og_title': og_title,
             'og_description': og_description,
-            'og_url': f"{site_url}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}",
+            'og_url': f"{site_url}{reverse('coupon_detail', kwargs={'slug': instance.id})}",
             'og_image': og_image,
             'og_type': 'website',
             'og_site_name': 'CouPradise',
@@ -417,7 +417,7 @@ def get_structured_data(instance):
             "@type": "Offer",
             "name": instance.title,
             "description": strip_tags(instance.description),
-            "url": f"{settings.SITE_URL}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}",
+            "url": f"{settings.SITE_URL}{reverse('coupon_detail', kwargs={'slug': instance.id})}",
             "availability": "https://schema.org/InStock" if instance.is_active and not instance.is_expired else "https://schema.org/OutOfStock",
             "validFrom": instance.start_date.isoformat(),
             "validThrough": instance.expiry_date.isoformat() if instance.expiry_date else None,
@@ -473,7 +473,7 @@ def get_canonical_url(instance, request):
         site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://coupradise.com'
     
     if isinstance(instance, Coupon):
-        return f"{site_url}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}"
+        return f"{site_url}{reverse('coupon_detail', kwargs={'slug': instance.id})}"
     elif isinstance(instance, Store):
         return f"{site_url}{reverse('store_detail', kwargs={'store_slug': instance.slug})}"
     elif isinstance(instance, Category):

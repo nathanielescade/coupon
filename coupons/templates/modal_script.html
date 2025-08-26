@@ -20,16 +20,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Find the modal ID
             const modalId = event.target.id;
             if (modalId && modalId.startsWith('coupon-modal-')) {
-                const couponId = modalId.replace('coupon-modal-', '');
-                closeCouponModal(couponId);
+                const slug = modalId.replace('coupon-modal-', '');
+                closeCouponModal(slug);
             }
         }
     });
 });
 
-function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
+function copyCodeAndOpenStore(affiliateLink, code, slug, storeName) {
     // Get the button to disable it temporarily
-    const button = document.getElementById("get-code-btn-" + couponId);
+    const button = document.getElementById("get-code-btn-" + slug);
     if (button) {
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Copying...';
@@ -39,13 +39,13 @@ function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
             showCopyNotification();
-            scheduleStoreOpen(affiliateLink, code, couponId, storeName);
+            scheduleStoreOpen(affiliateLink, code, slug, storeName);
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
+            fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
         });
     } else {
-        fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
+        fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
     }
 }
 
@@ -67,11 +67,11 @@ function showCopyNotification() {
     }, 3000);
 }
 
-function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
+function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
     // Store coupon information in sessionStorage
     sessionStorage.setItem('pendingCoupon', JSON.stringify({
         code: code,
-        couponId: couponId,
+        slug: slug,
         storeName: storeName,
         affiliateLink: affiliateLink,
         timestamp: new Date().getTime(),
@@ -101,15 +101,15 @@ function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
         }
         
         // Update UI to show code and change button
-        revealCodeAndChangeButton(code, couponId);
+        revealCodeAndChangeButton(code, slug);
     }, 2000);
 }
 
-function revealCodeAndChangeButton(code, couponId) {
+function revealCodeAndChangeButton(code, slug) {
     // Update the original coupon card to show the code
-    const originalCodeElement = document.getElementById("code-" + couponId);
-    const originalPlaceholder = document.getElementById("code-placeholder-" + couponId);
-    const getButton = document.getElementById("get-code-btn-" + couponId);
+    const originalCodeElement = document.getElementById("code-" + slug);
+    const originalPlaceholder = document.getElementById("code-placeholder-" + slug);
+    const getButton = document.getElementById("get-code-btn-" + slug);
     
     if (originalCodeElement && originalPlaceholder && getButton) {
         originalCodeElement.style.display = "block";
@@ -119,7 +119,7 @@ function revealCodeAndChangeButton(code, couponId) {
         getButton.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy Code';
         getButton.disabled = false;
         getButton.onclick = function() {
-            copyCodeAgain(code, couponId);
+            copyCodeAgain(code, slug);
         };
     }
     
@@ -133,20 +133,20 @@ function revealCodeAndChangeButton(code, couponId) {
     }
 }
 
-function copyCodeAgain(code, couponId) {
+function copyCodeAgain(code, slug) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
             showCopyNotification();
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, couponId);
+            fallbackCopyTextToClipboard(code, slug);
         });
     } else {
-        fallbackCopyTextToClipboard(code, couponId);
+        fallbackCopyTextToClipboard(code, slug);
     }
 }
 
-function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
+function fallbackCopyTextToClipboard(text, slug, affiliateLink, storeName) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
     
@@ -164,13 +164,13 @@ function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
         if (successful) {
             showCopyNotification();
             if (affiliateLink && storeName) {
-                scheduleStoreOpen(affiliateLink, text, couponId, storeName);
+                scheduleStoreOpen(affiliateLink, text, slug, storeName);
             }
         } else {
             console.error('Unable to copy using fallback');
             alert('Copy failed. Please copy the code manually: ' + text);
             // Re-enable the button if copy failed
-            const button = document.getElementById("get-code-btn-" + couponId);
+            const button = document.getElementById("get-code-btn-" + slug);
             if (button) {
                 button.disabled = false;
                 button.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i> GET CODE';
@@ -180,7 +180,7 @@ function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
         console.error('Fallback error:', err);
         alert('Copy failed. Please copy the code manually: ' + text);
         // Re-enable the button if copy failed
-        const button = document.getElementById("get-code-btn-" + couponId);
+        const button = document.getElementById("get-code-btn-" + slug);
         if (button) {
             button.disabled = false;
             button.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i> GET CODE';
@@ -202,17 +202,17 @@ function checkForPendingCouponReveal() {
             if (couponData.timestamp > thirtyMinutesAgo) {
                 // If code was already copied, just show the modal
                 if (couponData.codeCopied) {
-                    showCouponModal(couponData.couponId, couponData.code);
+                    showCouponModal(couponData.slug, couponData.code);
                 } else {
                     // Otherwise, copy the code and show the modal
-                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.couponId, couponData.storeName);
+                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.slug, couponData.storeName);
                 }
                 
                 // Clear the pending coupon
                 sessionStorage.removeItem('pendingCoupon');
                 
                 // Track the reveal event
-                trackRevealEvent(couponData.couponId, couponData.code);
+                trackRevealEvent(couponData.slug, couponData.code);
             } else {
                 // Expired, remove it
                 sessionStorage.removeItem('pendingCoupon');
@@ -224,14 +224,14 @@ function checkForPendingCouponReveal() {
     }
 }
 
-function showCouponModal(couponId, code) {
-    const modal = document.getElementById('coupon-modal-' + couponId);
+function showCouponModal(slug, code) {
+    const modal = document.getElementById('coupon-modal-' + slug);
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; // Prevent scrolling
         
         // Auto-select the code for easier copying
-        const codeElement = document.getElementById('modal-code-' + couponId);
+        const codeElement = document.getElementById('modal-code-' + slug);
         if (codeElement) {
             // Create a range to select the text
             const range = document.createRange();
@@ -241,12 +241,12 @@ function showCouponModal(couponId, code) {
         }
         
         // Also update the original coupon card to show the code
-        revealCodeAndChangeButton(code, couponId);
+        revealCodeAndChangeButton(code, slug);
     }
 }
 
-function closeCouponModal(couponId) {
-    const modal = document.getElementById('coupon-modal-' + couponId);
+function closeCouponModal(slug) {
+    const modal = document.getElementById('coupon-modal-' + slug);
     if (modal) {
         modal.classList.add('hidden');
         document.body.style.overflow = ''; // Restore scrolling
@@ -280,11 +280,11 @@ function showCopyFeedback(couponId) {
     }
 }
 
-function trackRevealEvent(couponId, code) {
+function trackRevealEvent(slug, code) {
     // Track the reveal_code event with proper parameters
     if (typeof trackEvent === 'function') {
         trackEvent('reveal_code', window.location.pathname, 'reveal_button', {
-            coupon_id: couponId,
+            slug: slug,
             coupon_code: code
         });
     }

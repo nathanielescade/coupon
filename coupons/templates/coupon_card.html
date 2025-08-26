@@ -47,12 +47,12 @@
             <div class="flex justify-between items-center">
                 <div>
                     <div class="text-xs text-blue-400 mb-1">Coupon Code</div>
-                    <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.id }}" itemprop="couponCode" style="display:none;">{{ coupon.code }}</div>
-                    <div id="code-placeholder-{{ coupon.id }}" class="font-mono font-bold text-blue-400 flex items-center">
+                    <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.slug }}" itemprop="couponCode" style="display:none;">{{ coupon.code }}</div>
+                    <div id="code-placeholder-{{ coupon.slug }}" class="font-mono font-bold text-blue-400 flex items-center">
                         <i class="fas fa-cut mr-2"></i> Click to reveal
                     </div>
                 </div>
-                <button id="get-code-btn-{{ coupon.id }}" onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.id }}', '{{ coupon.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
+                <button id="get-code-btn-{{ coupon.slug }}" onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.slug }}', '{{ coupon.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
                     <i class="fas fa-ticket-alt mr-1"></i> GET CODE
                 </button>
             </div>
@@ -86,21 +86,21 @@
         {% if coupon.expiry_date %}
         <meta itemprop="validThrough" content="{{ coupon.expiry_date|date:'c' }}">
         {% endif %}
-        <link itemprop="url" href="{% url 'coupon_detail' coupon.id %}">
+        <link itemprop="url" href="{% url 'coupon_detail' coupon.slug %}">
         
         <div class="flex space-x-2">
             {% if coupon.affiliate_link %}
-            <button onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.id }}', '{{ coupon.store.name }}')" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
+            <button onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.slug }}', '{{ coupon.store.name }}')" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
                 <i class="fas fa-shopping-cart mr-1"></i> Shop at Store
             </button>
             {% else %}
-            <a href="{% url 'coupon_detail' coupon.id %}" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
+            <a href="{% url 'coupon_detail' coupon.slug %}" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
                 View Details
             </a>
             {% endif %}
             
             {% if user.is_authenticated %}
-            <a href="{% url 'save_coupon' coupon.id %}" class="w-10 h-8 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+            <a href="{% url 'save_coupon' coupon.slug %}" class="w-10 h-8 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
                 <i class="far fa-heart text-blue-300 {% if small_text %}text-sm{% endif %}"></i>
             </a>
             {% endif %}
@@ -108,11 +108,11 @@
     </div>
 </div>
 <!-- Coupon Code Modal -->
-<div id="coupon-modal-{{ coupon.id }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+<div id="coupon-modal-{{ coupon.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl font-bold text-white">Your Coupon Code</h3>
-            <button onclick="closeCouponModal('{{ coupon.id }}')" class="text-blue-300 hover:text-white">
+            <button onclick="closeCouponModal('{{ coupon.slug }}')" class="text-blue-300 hover:text-white">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -120,12 +120,12 @@
         <div class="mb-6">
             <p class="text-blue-200 mb-2">Use this code at checkout:</p>
             <div class="bg-black/30 p-4 rounded-lg border border-blue-600 flex justify-between items-center">
-                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ coupon.id }}">{{ coupon.code }}</span>
-                <button onclick="copyCodeFromModal('{{ coupon.code }}', '{{ coupon.id }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ coupon.slug }}">{{ coupon.code }}</span>
+                <button onclick="copyCodeFromModal('{{ coupon.code }}', '{{ coupon.slug }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
                     <i class="fas fa-copy mr-1"></i> Copy
                 </button>
             </div>
-            <div id="copy-feedback-{{ coupon.id }}" class="mt-2 text-green-400 text-sm hidden">
+            <div id="copy-feedback-{{ coupon.slug }}" class="mt-2 text-green-400 text-sm hidden">
                 <i class="fas fa-check-circle mr-1"></i> Code copied to clipboard!
             </div>
         </div>
@@ -145,7 +145,7 @@
             <button onclick="goToStore('{{ coupon.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
                 <i class="fas fa-shopping-cart mr-2"></i> Shop at {{ coupon.store.name }}
             </button>
-            <button onclick="closeCouponModal('{{ coupon.id }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+            <button onclick="closeCouponModal('{{ coupon.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
                 <i class="fas fa-times text-blue-300"></i>
             </button>
         </div>
@@ -166,9 +166,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
+function copyCodeAndOpenStore(affiliateLink, code, slug, storeName) {
     // Get the button to disable it temporarily
-    const button = document.getElementById("get-code-btn-" + couponId);
+    const button = document.getElementById("get-code-btn-" + slug);
     if (button) {
         button.disabled = true;
         button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Copying...';
@@ -178,13 +178,13 @@ function copyCodeAndOpenStore(affiliateLink, code, couponId, storeName) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
             showCopyNotification();
-            scheduleStoreOpen(affiliateLink, code, couponId, storeName);
+            scheduleStoreOpen(affiliateLink, code, slug, storeName);
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
+            fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
         });
     } else {
-        fallbackCopyTextToClipboard(code, couponId, affiliateLink, storeName);
+        fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
     }
 }
 
@@ -206,11 +206,11 @@ function showCopyNotification() {
     }, 3000);
 }
 
-function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
+function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
     // Store coupon information in sessionStorage
     sessionStorage.setItem('pendingCoupon', JSON.stringify({
         code: code,
-        couponId: couponId,
+        slug: slug,
         storeName: storeName,
         affiliateLink: affiliateLink,
         timestamp: new Date().getTime(),
@@ -240,15 +240,15 @@ function scheduleStoreOpen(affiliateLink, code, couponId, storeName) {
         }
         
         // Update UI to show code and change button
-        revealCodeAndChangeButton(code, couponId);
+        revealCodeAndChangeButton(code, slug);
     }, 1500);
 }
 
-function revealCodeAndChangeButton(code, couponId) {
+function revealCodeAndChangeButton(code, slug) {
     // Update the original coupon card to show the code
-    const originalCodeElement = document.getElementById("code-" + couponId);
-    const originalPlaceholder = document.getElementById("code-placeholder-" + couponId);
-    const getButton = document.getElementById("get-code-btn-" + couponId);
+    const originalCodeElement = document.getElementById("code-" + slug);
+    const originalPlaceholder = document.getElementById("code-placeholder-" + slug);
+    const getButton = document.getElementById("get-code-btn-" + slug);
     
     if (originalCodeElement && originalPlaceholder && getButton) {
         originalCodeElement.style.display = "block";
@@ -258,25 +258,25 @@ function revealCodeAndChangeButton(code, couponId) {
         getButton.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy Code';
         getButton.disabled = false;
         getButton.onclick = function() {
-            copyCodeAgain(code, couponId);
+            copyCodeAgain(code, slug);
         };
     }
 }
 
-function copyCodeAgain(code, couponId) {
+function copyCodeAgain(code, slug) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
             showCopyNotification();
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, couponId);
+            fallbackCopyTextToClipboard(code, slug);
         });
     } else {
-        fallbackCopyTextToClipboard(code, couponId);
+        fallbackCopyTextToClipboard(code, slug);
     }
 }
 
-function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
+function fallbackCopyTextToClipboard(text, slug, affiliateLink, storeName) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
     
@@ -294,13 +294,13 @@ function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
         if (successful) {
             showCopyNotification();
             if (affiliateLink && storeName) {
-                scheduleStoreOpen(affiliateLink, text, couponId, storeName);
+                scheduleStoreOpen(affiliateLink, text, slug, storeName);
             }
         } else {
             console.error('Unable to copy using fallback');
             alert('Copy failed. Please copy the code manually: ' + text);
             // Re-enable the button if copy failed
-            const button = document.getElementById("get-code-btn-" + couponId);
+            const button = document.getElementById("get-code-btn-" + slug);
             if (button) {
                 button.disabled = false;
                 button.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i> GET CODE';
@@ -310,7 +310,7 @@ function fallbackCopyTextToClipboard(text, couponId, affiliateLink, storeName) {
         console.error('Fallback error:', err);
         alert('Copy failed. Please copy the code manually: ' + text);
         // Re-enable the button if copy failed
-        const button = document.getElementById("get-code-btn-" + couponId);
+        const button = document.getElementById("get-code-btn-" + slug);
         if (button) {
             button.disabled = false;
             button.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i> GET CODE';
@@ -332,17 +332,17 @@ function checkForPendingCouponReveal() {
             if (couponData.timestamp > thirtyMinutesAgo) {
                 // If code was already copied, just show the modal
                 if (couponData.codeCopied) {
-                    showCouponModal(couponData.couponId, couponData.code);
+                    showCouponModal(couponData.slug, couponData.code);
                 } else {
                     // Otherwise, copy the code and show the modal
-                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.couponId, couponData.storeName);
+                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.slug, couponData.storeName);
                 }
                 
                 // Clear the pending coupon
                 sessionStorage.removeItem('pendingCoupon');
                 
                 // Track the reveal event
-                trackRevealEvent(couponData.couponId, couponData.code);
+                trackRevealEvent(couponData.slug, couponData.code);
             } else {
                 // Expired, remove it
                 sessionStorage.removeItem('pendingCoupon');
@@ -368,17 +368,17 @@ function setupModalCloseOnClickOutside(modalId) {
 }
 
 // Update the showCouponModal function to include the click outside functionality
-function showCouponModal(couponId, code) {
-    const modal = document.getElementById('coupon-modal-' + couponId);
+function showCouponModal(slug, code) {
+    const modal = document.getElementById('coupon-modal-' + slug);
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; // Prevent scrolling
         
         // Setup click outside to close functionality
-        setupModalCloseOnClickOutside(couponId);
+        setupModalCloseOnClickOutside(slug);
         
         // Auto-select the code for easier copying
-        const codeElement = document.getElementById('modal-code-' + couponId);
+        const codeElement = document.getElementById('modal-code-' + slug);
         if (codeElement) {
             // Create a range to select the text
             const range = document.createRange();
@@ -388,13 +388,13 @@ function showCouponModal(couponId, code) {
         }
         
         // Also update the original coupon card to show the code
-        revealCodeAndChangeButton(code, couponId);
+        revealCodeAndChangeButton(code, slug);
     }
 }
 
 
-function closeCouponModal(couponId) {
-    const modal = document.getElementById('coupon-modal-' + couponId);
+function closeCouponModal(slug) {
+    const modal = document.getElementById('coupon-modal-' + slug);
     if (modal) {
         modal.classList.add('hidden');
         document.body.style.overflow = ''; // Restore scrolling
@@ -405,21 +405,21 @@ function goToStore(affiliateLink) {
     window.open(affiliateLink, '_blank');
 }
 
-function copyCodeFromModal(code, couponId) {
+function copyCodeFromModal(code, slug) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
-            showCopyFeedback(couponId);
+            showCopyFeedback(slug);
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, couponId);
+            fallbackCopyTextToClipboard(code, slug);
         });
     } else {
-        fallbackCopyTextToClipboard(code, couponId);
+        fallbackCopyTextToClipboard(code, slug);
     }
 }
 
-function showCopyFeedback(couponId) {
-    const feedbackElement = document.getElementById('copy-feedback-' + couponId);
+function showCopyFeedback(slug) {
+    const feedbackElement = document.getElementById('copy-feedback-' + slug);
     if (feedbackElement) {
         feedbackElement.classList.remove('hidden');
         setTimeout(function() {
@@ -428,11 +428,11 @@ function showCopyFeedback(couponId) {
     }
 }
 
-function trackRevealEvent(couponId, code) {
+function trackRevealEvent(slug, code) {
     // Track the reveal_code event with proper parameters
     if (typeof trackEvent === 'function') {
         trackEvent('reveal_code', window.location.pathname, 'reveal_button', {
-            coupon_id: couponId,
+            slug: slug,
             coupon_code: code
         });
     }

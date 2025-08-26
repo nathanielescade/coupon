@@ -67,7 +67,7 @@ class CouponViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
     
     @action(detail=True, methods=['post'])
-    def save_coupon(self, request, pk=None):
+    def save_coupon(self, request, slug=None):
         coupon = self.get_object()
         user_coupon, created = UserCoupon.objects.get_or_create(
             user=request.user,
@@ -78,7 +78,7 @@ class CouponViewSet(viewsets.ModelViewSet):
         return Response({'status': 'coupon already saved'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
-    def use_coupon(self, request, pk=None):
+    def use_coupon(self, request, slug=None):
         coupon = self.get_object()
         
         # Check if coupon is expired
@@ -133,7 +133,7 @@ class CouponProviderViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAdminUser]
     
     @action(detail=True, methods=['post'])
-    def fetch_coupons(self, request, pk=None):
+    def fetch_coupons(self, request, slug=None):
         provider = self.get_object()
         
         try:
@@ -394,12 +394,12 @@ class CouponDetailView(DetailView):
     model = Coupon
     template_name = 'coupon_detail.html'
     context_object_name = 'coupon'
-    slug_field = 'id'
-    slug_url_kwarg = 'coupon_id'
+    slug_field = 'slug'   
+    slug_url_kwarg = 'slug'  
     
     def get_object(self, queryset=None):
         # Try to get from cache first
-        cache_key = f'coupon_detail_{self.kwargs["coupon_id"]}'
+        cache_key = f'coupon_detail_{self.kwargs["slug"]}'
         cached_object = cache.get(cache_key)
         
         if cached_object is not None:
@@ -458,21 +458,21 @@ class CouponDetailView(DetailView):
                 store=self.object.store,
                 is_active=True,
                 expiry_date__gte=timezone.now()
-            ).exclude(id=self.object.id)[:4]
+            ).exclude(slug=self.object.slug)[:4]
         else:
             # For expired coupons, get more related coupons (6 instead of 4)
             context['related_coupons'] = Coupon.objects.filter(
                 store=self.object.store,
                 is_active=True,
                 expiry_date__gte=timezone.now()
-            ).exclude(id=self.object.id)[:6]
+            ).exclude(slug=self.object.slug)[:6]
             
             # Also get similar coupons from the same category
             context['similar_coupons'] = Coupon.objects.filter(
                 category=self.object.category,
                 is_active=True,
                 expiry_date__gte=timezone.now()
-            ).exclude(id=self.object.id)[:4]
+            ).exclude(slug=self.object.slug)[:4]
         
         # Add SEO data
         context['meta_title'] = get_meta_title(self.object)
@@ -728,8 +728,8 @@ class SearchView(ListView):
         return context
 
 @login_required
-def save_coupon(request, coupon_id):
-    coupon = get_object_or_404(Coupon, id=coupon_id)
+def save_coupon(request, slug):
+    coupon = get_object_or_404(Coupon, slug=slug)
     user_coupon, created = UserCoupon.objects.get_or_create(
         user=request.user,
         coupon=coupon
@@ -748,21 +748,21 @@ def save_coupon(request, coupon_id):
     else:
         messages.info(request, f'"{coupon.title}" is already in your saved coupons.')
     
-    return redirect('coupon_detail', coupon_id=coupon.id)
+    return redirect('coupon_detail', slug=coupon.slug)
 
 @login_required
-def use_coupon(request, coupon_id):
-    coupon = get_object_or_404(Coupon, id=coupon_id)
+def use_coupon(request, slug):
+    coupon = get_object_or_404(Coupon, slug=slug)
     
     # Check if coupon is expired
     if coupon.is_expired:
         messages.error(request, 'This coupon has expired.')
-        return redirect('coupon_detail', coupon_id=coupon.id)
+        return redirect('coupon_detail', slug=coupon.slug)
     
     # Check if usage limit is reached
     if coupon.usage_limit and coupon.usage_count >= coupon.usage_limit:
         messages.error(request, 'This coupon has reached its usage limit.')
-        return redirect('coupon_detail', coupon_id=coupon.id)
+        return redirect('coupon_detail', slug=coupon.slug)
     
     # Record usage
     CouponUsage.objects.create(
@@ -779,7 +779,7 @@ def use_coupon(request, coupon_id):
     UserCoupon.objects.filter(user=request.user, coupon=coupon).update(is_used=True)
     
     messages.success(request, f'Coupon code: {coupon.code}')
-    return redirect('coupon_detail', coupon_id=coupon.id)
+    return redirect('coupon_detail', slug=coupon.slug)
 
 @login_required
 def my_coupons(request):
@@ -825,8 +825,8 @@ class CouponUpdateView(LoginRequiredMixin, UpdateView):
         'is_active', 'is_featured', 'is_verified', 'usage_limit',
         'terms_and_conditions', 'affiliate_link', 'store', 'category'
     ]
-    slug_field = 'id'
-    slug_url_kwarg = 'coupon_id'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
     success_url = reverse_lazy('home')
     
     def form_valid(self, form):
@@ -843,8 +843,8 @@ class CouponUpdateView(LoginRequiredMixin, UpdateView):
 class CouponDeleteView(LoginRequiredMixin, DeleteView):
     model = Coupon
     template_name = 'coupon_confirm_delete.html'
-    slug_field = 'id'
-    slug_url_kwarg = 'coupon_id'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
     success_url = reverse_lazy('home')
     
     def delete(self, request, *args, **kwargs):

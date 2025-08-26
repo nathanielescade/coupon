@@ -4,12 +4,11 @@ from coupons.models import CouponProvider, Coupon, Store, Category
 from django.contrib.auth.models import User
 import random
 import logging
-
 logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = 'Create sample data for the coupon app'
-
+    
     def handle(self, *args, **options):
         self.stdout.write('Creating sample data...')
         
@@ -284,9 +283,14 @@ class Command(BaseCommand):
                 }
             )
             
+            # Generate and save slug for the coupon
+            if not coupon.slug:
+                coupon.slug = coupon.generate_slug()
+                coupon.save()
+            
             if created:
-                self.stdout.write(self.style.SUCCESS(f'Created coupon: {coupon.title}'))
+                self.stdout.write(self.style.SUCCESS(f'Created coupon: {coupon.title} with slug: {coupon.slug}'))
             else:
-                self.stdout.write(self.style.WARNING(f'Coupon already exists: {coupon.title}'))
+                self.stdout.write(self.style.WARNING(f'Coupon already exists: {coupon.title} with slug: {coupon.slug}'))
         
         self.stdout.write(self.style.SUCCESS('Sample data created successfully!'))

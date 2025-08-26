@@ -102,7 +102,7 @@
             <div class="expiry">Expires: {{ coupon.expiry_date|date:"F d, Y" }}</div>
             {% endif %}
             
-            <a href="{% url 'coupon_detail' coupon.id %}" class="btn">Get Deal</a>
+            <a href="{% url 'coupon_detail' coupon.slug %}" class="btn">Get Deal</a>
         </div>
         {% endfor %}
         

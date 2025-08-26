@@ -21,7 +21,7 @@ class CouponSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('coupon_detail', kwargs={'coupon_id': obj.id})
+        return reverse('coupon_detail', kwargs={'slug': obj.slug})
     
     # Add images to sitemap
     def get_urls(self, page=1, site=None, protocol=None):
@@ -167,7 +167,7 @@ class FeaturedCouponsSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('coupon_detail', kwargs={'coupon_id': obj.id})
+        return reverse('coupon_detail', kwargs={'slug': obj.slug})
 
 class ExpiringCouponsSitemap(Sitemap):
     changefreq = "hourly"
@@ -198,7 +198,7 @@ class ExpiringCouponsSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('coupon_detail', kwargs={'coupon_id': obj.id})
+        return reverse('coupon_detail', kwargs={'slug': obj.slug})
 
 class ImageSitemap(Sitemap):
     changefreq = "weekly"
@@ -225,7 +225,7 @@ class ImageSitemap(Sitemap):
     
     def location(self, obj):
         if obj.coupon:
-            return reverse('coupon_detail', kwargs={'coupon_id': obj.coupon.id})
+            return reverse('coupon_detail', kwargs={'slug': obj.coupon.slug})
         elif obj.store:
             return reverse('store_detail', kwargs={'store_slug': obj.store.slug})
         elif obj.category:

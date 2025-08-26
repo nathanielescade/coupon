@@ -2,10 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.validators import URLValidator
+from django.utils.text import slugify
 import uuid
-
-
-
+from django.db import IntegrityError
 
 class SEO(models.Model):
     """Model for storing SEO metadata for different content types"""
@@ -67,6 +66,7 @@ class SEO(models.Model):
             return self.twitter_image_upload.url
         return self.twitter_image
 
+
 class HomePageSEO(models.Model):
     """Model for homepage-specific SEO settings"""
     meta_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
@@ -123,7 +123,7 @@ class HomePageSEO(models.Model):
         if self.twitter_image_upload:
             return self.twitter_image_upload.url
         return self.twitter_image
-    
+
 
 class CouponProvider(models.Model):
     name = models.CharField(max_length=100)
@@ -135,6 +135,7 @@ class CouponProvider(models.Model):
     
     def __str__(self):
         return self.name
+
 
 class Store(models.Model):
     name = models.CharField(max_length=100)
@@ -150,6 +151,7 @@ class Store(models.Model):
     def __str__(self):
         return self.name
 
+
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
@@ -161,6 +163,9 @@ class Category(models.Model):
     
     def __str__(self):
         return self.name
+
+
+
 
 class Coupon(models.Model):
     COUPON_TYPE_CHOICES = [
@@ -202,6 +207,10 @@ class Coupon(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Updated slug field with db_index for faster lookups
+    # slug = models.SlugField(max_length=255, unique=True, blank=True, db_index=True)
+    slug = models.SlugField(max_length=255, unique=True, blank=True, db_index=True)
+    
     def __str__(self):
         return self.title
     
@@ -222,6 +231,47 @@ class Coupon(models.Model):
         elif self.discount_type == 'FREE':
             return "Free Item"
         return ""
+    
+    def generate_slug(self):
+        """Generate a hybrid slug from title and UUID with improved formatting"""
+        # Create a URL-friendly version of the title, limited to 200 chars
+        title_slug = slugify(self.title)[:200]
+        
+        # Get the first 12 characters of the UUID using .hex for cleaner output
+        uuid_str = self.id.hex[:12]  # Increased to 12 chars for better uniqueness
+        
+        # Combine them with a hyphen
+        slug = f"{title_slug}-{uuid_str}"
+        
+        # Ensure uniqueness
+        original_slug = slug
+        counter = 1
+        while Coupon.objects.filter(slug=slug).exists():
+            slug = f"{original_slug}-{counter}"
+            counter += 1
+            
+        return slug
+    
+    def save(self, *args, **kwargs):
+        """Override save to generate slug if it doesn't exist, with retry mechanism"""
+        if not self.slug:
+            self.slug = self.generate_slug()
+            
+        # Try saving, and if we get a unique constraint error on slug, try again with a new slug
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                super().save(*args, **kwargs)
+                return
+            except IntegrityError as e:
+                if 'slug' in str(e) and 'UNIQUE constraint failed' in str(e) and attempt < max_retries - 1:
+                    # Generate a new slug by appending a counter
+                    base_slug = self.slug.rsplit('-', 1)[0]  # Remove the last part (UUID or counter)
+                    self.slug = f"{base_slug}-{attempt + 1}"
+                else:
+                    raise e
+                
+
 
 class UserCoupon(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_coupons')
@@ -235,6 +285,7 @@ class UserCoupon(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.coupon.title}"
 
+
 class CouponUsage(models.Model):
     coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='usages')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coupon_usages')
@@ -244,13 +295,6 @@ class CouponUsage(models.Model):
     def __str__(self):
         return f"{self.coupon.title} used by {self.user.username}"
 
-
-
-
-from django.db import models
-
-from django.db import models
-from django.utils import timezone
 
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
@@ -262,6 +306,7 @@ class NewsletterSubscriber(models.Model):
     
     def __str__(self):
         return self.email
+
 
 class Newsletter(models.Model):
     subject = models.CharField(max_length=255)
@@ -336,7 +381,3 @@ class Newsletter(models.Model):
         self.save()
         
         return True, f"Successfully sent to {success_count} subscribers, {error_count} failed"
-
-
-
-

@@ -87,12 +87,12 @@ class AnalyticsMiddleware:
         # Track coupon views
         if path.startswith('/coupon/') and len(path.split('/')) >= 3:
             try:
-                coupon_id = path.split('/')[2]
+                slug = path.split('/')[2]
                 # Check if the ID is a valid UUID before querying
                 try:
-                    uuid.UUID(coupon_id)
+                    uuid.UUID(slug)
                     # If it's a valid UUID, try to get the coupon
-                    coupon = Coupon.objects.get(id=coupon_id)
+                    coupon = Coupon.objects.get(slug=slug)
                     coupon_analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
                     coupon_analytics.increment_views()
                 except ValueError:

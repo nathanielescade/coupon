@@ -55,7 +55,7 @@
                 {% for coupon in coupons %}
                 <tr class="border-b border-blue-800 hover:bg-blue-900/20">
                     <td class="py-3 px-4">
-                        <a href="{% url 'admin_panel:coupon_detail' coupon.id %}" class="text-blue-300 hover:text-blue-200 transition">
+                        <a href="{% url 'admin_panel:coupon_detail' coupon.slug %}" class="text-blue-300 hover:text-blue-200 transition">
                             {{ coupon.title }}
                         </a>
                     </td>
@@ -84,15 +84,15 @@
                     </td>
                     <td class="py-3 px-4 text-right">
                         <div class="flex justify-end space-x-2">
-                            <a href="{% url 'admin_panel:coupon_detail' coupon.id %}" 
+                            <a href="{% url 'admin_panel:coupon_detail' coupon.slug %}" 
                                class="text-blue-400 hover:text-blue-300 transition" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'admin_panel:coupon_edit' coupon.id %}" 
+                            <a href="{% url 'admin_panel:coupon_edit' coupon.slug %}" 
                                class="text-green-400 hover:text-green-300 transition" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'admin_panel:coupon_delete' coupon.id %}" 
+                            <a href="{% url 'admin_panel:coupon_delete' coupon.slug %}" 
                                class="text-red-400 hover:text-red-300 transition" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </a>

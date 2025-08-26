@@ -10,11 +10,11 @@
             <p class="text-blue-400">{{ coupon.store.name }} - {{ coupon.category.name }}</p>
         </div>
         <div class="flex space-x-2 mt-4 md:mt-0">
-            <a href="{% url 'admin_panel:coupon_edit' coupon.id %}" 
+            <a href="{% url 'admin_panel:coupon_edit' coupon.slug %}" 
                class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
                 <i class="fas fa-edit mr-2"></i> Edit
             </a>
-            <a href="{% url 'admin_panel:coupon_delete' coupon.id %}" 
+            <a href="{% url 'admin_panel:coupon_delete' coupon.slug %}" 
                class="bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
                 <i class="fas fa-trash mr-2"></i> Delete
             </a>
@@ -179,7 +179,7 @@
                         </div>
                     {% else %}
                         <p class="text-blue-100 mb-4">No SEO metadata has been set for this coupon.</p>
-                        <a href="{% url 'admin_panel:seo_create_for_coupon' coupon.id %}" 
+                        <a href="{% url 'admin_panel:seo_create_for_coupon' coupon.slug %}" 
                            class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
                             <i class="fas fa-plus mr-2"></i> Add SEO
                         </a>
