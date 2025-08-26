@@ -1,31 +1,25 @@
 {% load static %}
 <!-- SEO Meta Tags -->
-<title>{% block meta_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}</title>
-<meta name='impact-site-verification' value='667edcd8-f909-4a17-9446-e4f8a31579d0' /><meta name="impact-site-verification" content="667edcd8-f909-4a17-9446-e4f8a31579d0" />
-
-<meta name="description" content="{% block meta_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
-<meta name="keywords" content="{% block meta_keywords %}coupons, promo codes, deals, discounts, savings, coupon codes{% endblock %}">
-<link rel="canonical" href="{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}">
-
+<title>{% block meta_title %}{% if meta_title %}{{ meta_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}</title>
+<meta name='impact-site-verification' value='667edcd8-f909-4a17-9446-e4f8a31579d0' />
+<meta name="description" content="{% block meta_description %}{% if meta_description %}{{ meta_description }}{% else %}{% endif %}{% endblock %}">
+<meta name="keywords" content="{% block meta_keywords %}{% if meta_keywords %}{{ meta_keywords }}{% else %}{% endif %}{% endblock %}">
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
 <!-- Open Graph / Facebook -->
- 
-<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:type" content="website">
 <meta property="og:url" content="{{ request.build_absolute_uri }}">
-<meta property="og:title" content="{% block og_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
-<meta property="og:description" content="{% block og_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
-<meta property="og:image" content="{% block og_image %}{% static APP_LOGO %}{% endblock %}">
+<meta property="og:title" content="{% block og_title %}{% if open_graph_data and open_graph_data.og_title %}{{ open_graph_data.og_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}">
+<meta property="og:description" content="{% block og_description %}{% if open_graph_data and open_graph_data.og_description %}{{ open_graph_data.og_description }}{% else %}{% endif %}{% endblock %}">
+<meta property="og:image" content="{% block og_image %}{% if open_graph_data and open_graph_data.og_image %}{{ open_graph_data.og_image }}{% else %}{% static 'img/default-og.png' %}{% endif %}{% endblock %}">
 <meta property="og:site_name" content="{{ APP_NAME }}">
-
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="{{ request.build_absolute_uri }}">
-<meta property="twitter:title" content="{% block twitter_title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}">
-<meta property="twitter:description" content="{% block twitter_description %}Discover the best coupons, promo codes and deals from your favorite stores. {{ APP_TAGLINE }}{% endblock %}">
-<meta property="twitter:image" content="{% block twitter_image %}{% static APP_LOGO %}{% endblock %}">
-
+<meta property="twitter:title" content="{% block twitter_title %}{% if open_graph_data and open_graph_data.twitter_title %}{{ open_graph_data.twitter_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}">
+<meta property="twitter:description" content="{% block twitter_description %}{% if open_graph_data and open_graph_data.twitter_description %}{{ open_graph_data.twitter_description }}{% else %}{% endif %}{% endblock %}">
+<meta property="twitter:image" content="{% block twitter_image %}{% if open_graph_data and open_graph_data.twitter_image %}{{ open_graph_data.twitter_image }}{% else %}{% static 'img/default-og.png' %}{% endif %}{% endblock %}">
 <!-- Structured Data -->
 {% block structured_data %}{% endblock %}
-
 <!-- Favicon and Logo -->
 <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
 <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">

@@ -1,20 +1,22 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load coupon_extras %}
-{% block meta_title %}{{ meta_title }}{% endblock %}
-{% block meta_description %}{{ meta_description }}{% endblock %}
-{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
-{% block og_title %}{{ open_graph_data.og_title }}{% endblock %}
-{% block og_description %}{{ open_graph_data.og_description }}{% endblock %}
-{% block og_image %}{{ open_graph_data.og_image }}{% endblock %}
-{% block twitter_title %}{{ open_graph_data.twitter_title }}{% endblock %}
-{% block twitter_description %}{{ open_graph_data.twitter_description }}{% endblock %}
-{% block twitter_image %}{{ open_graph_data.twitter_image }}{% endblock %}
+{# coupon_detail.html #}
+{% block meta_title %}{% if meta_title %}{{ meta_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}
+{% block meta_description %}{% if meta_description %}{{ meta_description }}{% endif %}{% endblock %}
+{% block meta_keywords %}{% if meta_keywords %}{{ meta_keywords }}{% endif %}{% endblock %}
+{% block og_title %}{% if open_graph_data and open_graph_data.og_title %}{{ open_graph_data.og_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}
+{% block og_description %}{% if open_graph_data and open_graph_data.og_description %}{{ open_graph_data.og_description }}{% endif %}{% endblock %}
+{% block og_image %}{% if open_graph_data and open_graph_data.og_image %}{{ open_graph_data.og_image }}{% else %}{% static 'img/default-og.png' %}{% endif %}{% endblock %}
+{% block twitter_title %}{% if open_graph_data and open_graph_data.twitter_title %}{{ open_graph_data.twitter_title }}{% else %}{{ APP_NAME }}{% endif %}{% endblock %}
+{% block twitter_description %}{% if open_graph_data and open_graph_data.twitter_description %}{{ open_graph_data.twitter_description }}{% endif %}{% endblock %}
+{% block twitter_image %}{% if open_graph_data and open_graph_data.twitter_image %}{{ open_graph_data.twitter_image }}{% else %}{% static 'img/default-og.png' %}{% endif %}{% endblock %}
 {% block structured_data %}
-<script type="application/ld+json">
-{{ structured_data|json_script:"structured-data" }}
-</script>
+    <script type="application/ld+json">
+        {{ structured_data|default:"{}"|safe }}
+    </script>
 {% endblock %}
+
 {% block breadcrumb %}
 <nav class="container mx-auto px-4 py-2 text-sm">
     <div class="flex items-center text-blue-300">
