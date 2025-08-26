@@ -384,18 +384,16 @@ class CouponDetailView(DetailView):
             expiry_date__gte=timezone.now()
         ).exclude(id=self.object.id)[:4]
         
-        # Add SEO data
+        # Add SEO data - Fixed to use get_meta_keywords properly
         context['meta_title'] = get_meta_title(self.object)
         context['meta_description'] = get_meta_description(self.object)
-        context['meta_keywords'] = f"{self.object.store.name}, {self.object.category.name}, {self.object.title}, coupon, promo code, discount"
+        context['meta_keywords'] = get_meta_keywords(self.object)  # Fixed this line
         context['structured_data'] = get_structured_data(self.object)
         context['open_graph_data'] = get_open_graph_data(self.object, self.request)
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
-
-
-       
+        
 
 # views.py - StoreDetailView
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes

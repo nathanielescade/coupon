@@ -11,10 +11,14 @@
 {% block twitter_description %}{{ open_graph_data.twitter_description }}{% endblock %}
 {% block twitter_image %}{{ open_graph_data.twitter_image }}{% endblock %}
 {% block structured_data %}
-<script type="application/ld+json">
+<!-- <script type="application/ld+json">
 {{ structured_data|json_script:"structured-data" }}
 </script>
-{% endblock %}
+{% endblock %} -->
+
+
+
+
 {% block breadcrumb %}
 <nav class="container mx-auto px-4 py-2 text-sm">
     <div class="flex items-center text-blue-300">
