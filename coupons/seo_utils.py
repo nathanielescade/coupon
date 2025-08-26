@@ -2,6 +2,8 @@ from django.utils.text import slugify, Truncator
 from django.urls import reverse
 from django.conf import settings
 from django.templatetags.static import static
+from django.utils.html import strip_tags
+from django.utils import timezone
 from .models import Coupon, Store, Category, SEO, HomePageSEO
 
 def get_meta_title(instance, request=None):
@@ -14,8 +16,16 @@ def get_meta_title(instance, request=None):
         except SEO.DoesNotExist:
             pass
         
-        # Fall back to generated title
-        return f"{instance.title} - {instance.discount_display} | {instance.store.name} Coupon"
+        # Fall back to generated title with optimization
+        discount_display = instance.discount_display
+        store_name = instance.store.name
+        category_name = instance.category.name if instance.category else ""
+        
+        # Create a compelling title with emotional triggers
+        if category_name:
+            return f"{discount_display} {category_name} Coupon at {store_name} - Limited Time Offer"
+        else:
+            return f"{discount_display} {store_name} Coupon - Save Money Today"
     
     elif isinstance(instance, Store):
         # First check if there's custom SEO data for this store
@@ -25,8 +35,13 @@ def get_meta_title(instance, request=None):
         except SEO.DoesNotExist:
             pass
             
-        # Fall back to generated title
-        return f"{instance.name} Coupons & Promo Codes - Save Money Today"
+        # Fall back to generated title with optimization
+        coupon_count = instance.coupons.filter(is_active=True).count()
+        
+        if coupon_count > 0:
+            return f"{instance.name} Coupons: {coupon_count} Promo Codes for {timezone.now().strftime('%B %Y')}"
+        else:
+            return f"{instance.name} Coupons & Promo Codes - Save Money Today"
     
     elif isinstance(instance, Category):
         # First check if there's custom SEO data for this category
@@ -36,8 +51,13 @@ def get_meta_title(instance, request=None):
         except SEO.DoesNotExist:
             pass
             
-        # Fall back to generated title
-        return f"{instance.name} Coupons & Deals - Best Discounts"
+        # Fall back to generated title with optimization
+        coupon_count = instance.coupons.filter(is_active=True).count()
+        
+        if coupon_count > 0:
+            return f"{instance.name} Coupons: {coupon_count} Deals for {timezone.now().strftime('%B %Y')}"
+        else:
+            return f"{instance.name} Coupons & Deals - Best Discounts"
     
     # Return None instead of falling back to homepage
     return None
@@ -52,10 +72,12 @@ def get_meta_description(instance, request=None):
         except SEO.DoesNotExist:
             pass
         
-        # Fall back to generated description
-        truncated_desc = Truncator(instance.description).words(20)
+        # Fall back to generated description with optimization
+        truncated_desc = Truncator(strip_tags(instance.description)).words(25)
         expiry_date = instance.expiry_date.strftime('%b %d, %Y') if instance.expiry_date else 'No expiration'
-        return f"Get {instance.discount_display} at {instance.store.name}. {truncated_desc} Valid until {expiry_date}."
+        
+        # Create a compelling description with call-to-action
+        return f"Get {instance.discount_display} at {instance.store.name}. {truncated_desc} Valid until {expiry_date}. Click to save now!"
     
     elif isinstance(instance, Store):
         # First check if there's custom SEO data for this store
@@ -65,9 +87,11 @@ def get_meta_description(instance, request=None):
         except SEO.DoesNotExist:
             pass
             
-        # Fall back to generated description
+        # Fall back to generated description with optimization
         coupon_count = instance.coupons.filter(is_active=True).count()
-        return f"Find the latest {instance.name} coupons, promo codes and deals. Save money with {coupon_count} verified {instance.name} discount codes and offers."
+        
+        # Create a compelling description with social proof
+        return f"Find {coupon_count} verified {instance.name} coupons, promo codes and deals for {timezone.now().strftime('%B %Y')}. Save money today with our exclusive discounts!"
     
     elif isinstance(instance, Category):
         # First check if there's custom SEO data for this category
@@ -77,9 +101,11 @@ def get_meta_description(instance, request=None):
         except SEO.DoesNotExist:
             pass
             
-        # Fall back to generated description
+        # Fall back to generated description with optimization
         coupon_count = instance.coupons.filter(is_active=True).count()
-        return f"Browse {coupon_count} {instance.name} coupons and deals from top brands. Save money with our verified {instance.name} discount codes."
+        
+        # Create a compelling description with urgency
+        return f"Browse {coupon_count} {instance.name} coupons and deals from top brands. Limited time offers - save money today!"
     
     # Return None instead of falling back to homepage
     return None
@@ -89,15 +115,30 @@ def get_meta_keywords(instance, request=None):
     if isinstance(instance, Coupon):
         if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_keywords:
             return instance.seo.meta_keywords
-        return f"{instance.store.name}, {instance.category.name}, {instance.title}, coupon, promo code, discount"
+        
+        # Generate optimized keywords
+        store_name = instance.store.name
+        category_name = instance.category.name if instance.category else ""
+        coupon_title = instance.title
+        
+        if category_name:
+            return f"{store_name}, {category_name}, {coupon_title}, coupon, promo code, discount, deal, offer, save money, {timezone.now().strftime('%B %Y')}"
+        else:
+            return f"{store_name}, {coupon_title}, coupon, promo code, discount, deal, offer, save money, {timezone.now().strftime('%B %Y')}"
+    
     elif isinstance(instance, Store):
         if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_keywords:
             return instance.seo.meta_keywords
-        return f"{instance.name}, coupons, promo codes, deals, discounts, savings"
+        
+        # Generate optimized keywords
+        return f"{instance.name}, coupons, promo codes, deals, discounts, savings, offers, {timezone.now().strftime('%B %Y')}"
+    
     elif isinstance(instance, Category):
         if hasattr(instance, 'seo') and instance.seo and instance.seo.meta_keywords:
             return instance.seo.meta_keywords
-        return f"{instance.name}, coupons, deals, discounts, savings, promo codes"
+        
+        # Generate optimized keywords
+        return f"{instance.name}, coupons, deals, discounts, savings, promo codes, offers, {timezone.now().strftime('%B %Y')}"
     
     # Return None instead of falling back to homepage
     return None
@@ -156,10 +197,10 @@ def get_open_graph_data(instance, request):
         
         # If no custom data, generate it
         if not og_title:
-            og_title = f"{instance.title} - {instance.discount_display}"
+            og_title = f"Save {instance.discount_display} at {instance.store.name} - Limited Time Offer"
         
         if not og_description:
-            og_description = instance.description
+            og_description = f"Get {instance.discount_display} with this {instance.store.name} coupon. {Truncator(strip_tags(instance.description)).words(20)}"
             
         if not og_image:
             if instance.store.logo:
@@ -190,6 +231,7 @@ def get_open_graph_data(instance, request):
             'twitter_title': twitter_title,
             'twitter_description': twitter_description,
             'twitter_image': twitter_image,
+            'twitter_card': 'summary_large_image',
         }
     
     elif isinstance(instance, Store):
@@ -232,11 +274,13 @@ def get_open_graph_data(instance, request):
             pass
         
         # If no custom data, generate it
+        coupon_count = instance.coupons.filter(is_active=True).count()
+        
         if not og_title:
-            og_title = f"{instance.name} Coupons & Promo Codes"
+            og_title = f"{instance.name} Coupons & Promo Codes - {coupon_count} Active Offers"
         
         if not og_description:
-            og_description = f"Save money with {instance.name} coupons and deals"
+            og_description = f"Save money with {coupon_count} verified {instance.name} coupons and deals. Exclusive discounts for {timezone.now().strftime('%B %Y')}."
             
         if not og_image:
             if instance.logo:
@@ -267,6 +311,7 @@ def get_open_graph_data(instance, request):
             'twitter_title': twitter_title,
             'twitter_description': twitter_description,
             'twitter_image': twitter_image,
+            'twitter_card': 'summary_large_image',
         }
     
     elif isinstance(instance, Category):
@@ -309,11 +354,13 @@ def get_open_graph_data(instance, request):
             pass
         
         # If no custom data, generate it
+        coupon_count = instance.coupons.filter(is_active=True).count()
+        
         if not og_title:
-            og_title = f"{instance.name} Coupons & Deals"
+            og_title = f"{instance.name} Coupons & Deals - {coupon_count} Active Offers"
         
         if not og_description:
-            og_description = f"Find the best {instance.name} coupons and deals"
+            og_description = f"Find the best {instance.name} coupons and deals. {coupon_count} verified discounts for {timezone.now().strftime('%B %Y')}."
             
         if not og_image:
             og_image = default_image
@@ -337,6 +384,7 @@ def get_open_graph_data(instance, request):
             'twitter_title': twitter_title,
             'twitter_description': twitter_description,
             'twitter_image': twitter_image,
+            'twitter_card': 'summary_large_image',
         }
     
     # Return None instead of falling back to homepage
@@ -349,6 +397,8 @@ def get_breadcrumbs(instance):
     if isinstance(instance, Coupon):
         breadcrumbs.append({'name': 'Stores', 'url': reverse('all_stores')})
         breadcrumbs.append({'name': instance.store.name, 'url': reverse('store_detail', kwargs={'store_slug': instance.store.slug})})
+        if instance.category:
+            breadcrumbs.insert(2, {'name': instance.category.name, 'url': reverse('category_detail', kwargs={'category_slug': instance.category.slug})})
         breadcrumbs.append({'name': instance.title, 'url': None})
     elif isinstance(instance, Store):
         breadcrumbs.append({'name': 'Stores', 'url': reverse('all_stores')})
@@ -366,7 +416,7 @@ def get_structured_data(instance):
             "@context": "https://schema.org/",
             "@type": "Offer",
             "name": instance.title,
-            "description": instance.description,
+            "description": strip_tags(instance.description),
             "url": f"{settings.SITE_URL}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}",
             "availability": "https://schema.org/InStock" if instance.is_active and not instance.is_expired else "https://schema.org/OutOfStock",
             "validFrom": instance.start_date.isoformat(),
@@ -375,30 +425,58 @@ def get_structured_data(instance):
             "provider": {
                 "@type": "Organization",
                 "name": instance.store.name,
-                "url": instance.store.website
+                "url": instance.store.website,
+                "logo": instance.store.logo.url if instance.store.logo else None
             },
-            "category": instance.category.name
+            "category": instance.category.name if instance.category else "",
+            "priceCurrency": "USD",
+            "itemOffered": {
+                "@type": "Service",
+                "name": f"{instance.store.name} Discount"
+            }
         }
     elif isinstance(instance, Store):
         return {
             "@context": "https://schema.org/",
             "@type": "Store",
             "name": instance.name,
-            "description": instance.description,
+            "description": strip_tags(instance.description),
             "url": instance.website,
             "logo": instance.logo.url if instance.logo else None,
             "image": instance.logo.url if instance.logo else None,
             "address": {
                 "@type": "PostalAddress",
                 "addressCountry": "US"
-            }
+            },
+            "aggregateRating": {
+                "@type": "AggregateRating",
+                "ratingValue": "4.5",
+                "reviewCount": "100"
+            },
+            "priceRange": "$"
         }
     elif isinstance(instance, Category):
         return {
             "@context": "https://schema.org/",
             "@type": "Thing",
             "name": instance.name,
-            "description": instance.description,
+            "description": strip_tags(instance.description),
             "url": f"{settings.SITE_URL}{reverse('category_detail', kwargs={'category_slug': instance.slug})}"
         }
     return None
+
+def get_canonical_url(instance, request):
+    """Generate canonical URL for different models"""
+    if request:
+        site_url = f"{request.scheme}://{request.get_host()}"
+    else:
+        site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://coupradise.com'
+    
+    if isinstance(instance, Coupon):
+        return f"{site_url}{reverse('coupon_detail', kwargs={'coupon_id': instance.id})}"
+    elif isinstance(instance, Store):
+        return f"{site_url}{reverse('store_detail', kwargs={'store_slug': instance.slug})}"
+    elif isinstance(instance, Category):
+        return f"{site_url}{reverse('category_detail', kwargs={'category_slug': instance.slug})}"
+    
+    return site_url

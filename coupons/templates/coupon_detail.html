@@ -1,6 +1,8 @@
+<!-- coupon/templates/coupon_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
 {% load coupon_extras %}
+
 {% block meta_title %}{{ meta_title }}{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block meta_keywords %}{{ meta_keywords }}{% endblock %}
@@ -15,6 +17,7 @@
 {{ structured_data|json_script:"structured-data" }}
 </script>
 {% endblock %}
+
 {% block content %}
 {% block breadcrumb %}
 <nav class="container mx-auto px-4 py-2 text-sm">
@@ -30,304 +33,407 @@
     </div>
 </nav>
 {% endblock %}
-<div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
-    <div class="p-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-            <div class="flex items-center mb-4 md:mb-0">
-                {% if coupon.store.logo %}
-                <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }} logo" class="w-16 h-16 object-contain mr-4">
-                {% else %}
-                <div class="w-16 h-16 bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
-                    <i class="fas fa-store text-blue-400 text-2xl"></i>
-                </div>
-                {% endif %}
-                <div>
-                    <h1 class="text-2xl font-bold text-blue-100">{{ coupon.title }}</h1>
-                    <p class="text-blue-300">{{ coupon.store.name }} • {{ coupon.category.name }}</p>
+
+<!-- Expired Coupon Notice -->
+{% if is_expired %}
+<div class="container mx-auto px-4 py-6">
+    <div class="bg-red-900/30 border border-red-700 rounded-xl p-6 mb-8">
+        <div class="flex flex-col md:flex-row items-center">
+            <div class="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                <div class="bg-red-800/50 w-16 h-16 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exclamation-triangle text-red-300 text-2xl"></i>
                 </div>
             </div>
-            
-            <div class="flex space-x-2">
-                {% if coupon.is_verified %}
-                <span class="bg-green-900/50 text-green-300 px-3 py-1 rounded-full text-sm">Verified</span>
-                {% endif %}
-                {% if coupon.is_featured %}
-                <span class="bg-yellow-900/50 text-yellow-300 px-3 py-1 rounded-full text-sm">Featured</span>
-                {% endif %}
-                {% if coupon.is_expired %}
-                <span class="bg-red-900/50 text-red-300 px-3 py-1 rounded-full text-sm">Expired</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Coupon Code Section (Prominent) -->
-        <div class="mb-8">
-            <div class="card-bg rounded-xl p-6 border border-blue-700">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-4">
-                    <div>
-                        <div class="text-3xl font-bold text-gradient mb-2">{{ coupon.discount_display }}</div>
-                        <div class="text-blue-200">{{ coupon.store.name }}</div>
-                    </div>
-                    
-                    {% if coupon.code %}
-                    <div class="mt-4 md:mt-0">
-                        <div class="text-sm text-blue-300 mb-2">Coupon Code</div>
-                        <div class="flex items-center">
-                            <div class="font-mono font-bold text-xl text-blue-100 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700" id="main-coupon-code" style="display:none;">
-                                {{ coupon.code }}
-                            </div>
-                            <div id="main-coupon-placeholder" class="font-mono font-bold text-xl text-blue-400 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700">
-                                <i class="fas fa-cut mr-2"></i> Click to reveal
-                            </div>
-                            <button id="get-code-btn-{{ coupon.id }}" onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.id }}', '{{ coupon.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium transition flex items-center">
-                                <i class="fas fa-ticket-alt mr-2"></i> GET CODE
-                            </button>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="mt-4 md:mt-0">
-                        <div class="text-sm text-blue-300 mb-2">No Code Needed</div>
-                        <div class="bg-black/30 px-4 py-2 rounded-lg border border-blue-700 text-blue-100 font-medium">
-                            This deal is automatically applied at checkout
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-                
-                <div class="flex flex-wrap gap-3 mt-6">
-                    {% if not coupon.is_expired %}
-                    {% if user.is_authenticated %}
-                    {% if is_saved %}
-                    <a href="#" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
-                        <i class="fas fa-heart mr-2"></i> Saved
+            <div class="text-center md:text-left">
+                <h2 class="text-xl font-bold text-red-300 mb-2">This Coupon Has Expired</h2>
+                <p class="text-red-200 mb-4">
+                    This coupon expired on {{ coupon.expiry_date|date:"F d, Y" }} and is no longer valid.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center md:justify-start gap-3">
+                    <a href="{% url 'featured_coupons' %}" class="bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center justify-center">
+                        <i class="fas fa-star mr-2"></i> View Featured Coupons
                     </a>
-                    {% else %}
-                    <a href="{% url 'save_coupon' coupon.id %}" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
-                        <i class="far fa-heart mr-2"></i> Save Coupon
+                    <a href="{% url 'expiring_coupons' %}" class="bg-orange-700 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition flex items-center justify-center">
+                        <i class="fas fa-clock mr-2"></i> View Expiring Soon
                     </a>
-                    {% endif %}
-                    {% else %}
-                    <a href="{% url 'login' %}" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
-                        <i class="far fa-user mr-2"></i> Login to Save
-                    </a>
-                    {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2">
-                <!-- Mobile Order: Related Coupons First -->
-                <div class="lg:hidden mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for related_coupon in related_coupons %}
-                        <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
-                                {% if related_coupon.is_verified %}
-                                <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
-                                {% endif %}
-                            </div>
-                            <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
-                            <div class="flex justify-between items-center">
-                                <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
-                                <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <div class="col-span-full text-center py-4">
-                            <p class="text-blue-400">No related coupons found.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Mobile Order: Details Second -->
-                <div class="lg:hidden mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Discount Type</p>
-                            <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Coupon Type</p>
-                            <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Start Date</p>
-                            <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Expiry Date</p>
-                            <p class="font-medium text-blue-100">
-                                {% if coupon.expiry_date %}
-                                    {% if coupon.is_expired %}
-                                        <span class="text-red-400">Expired</span>
-                                    {% elif coupon.expiry_date|countdown_from_3_days %}
-                                        Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
-                                    {% else %}
-                                        {{ coupon.expiry_date|date:"M d, Y" }}
-                                    {% endif %}
-                                {% else %}
-                                    No expiration
-                                {% endif %}
-                            </p>
-                        </div>
-                        {% if coupon.minimum_purchase %}
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Minimum Purchase</p>
-                            <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
-                        </div>
-                        {% endif %}
-                        {% if coupon.usage_limit %}
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Usage Limit</p>
-                            <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Desktop Order: Description First -->
-                <div class="hidden lg:block mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
-                    <p class="text-blue-300">{{ coupon.description }}</p>
-                </div>
-                
-                {% if coupon.terms_and_conditions %}
-                <div class="hidden lg:block mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
-                    <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
-                </div>
-                {% endif %}
-                
-                <!-- Desktop Order: Details Second -->
-                <div class="hidden lg:block mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Discount Type</p>
-                            <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Coupon Type</p>
-                            <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Start Date</p>
-                            <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
-                        </div>
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Expiry Date</p>
-                            <p class="font-medium text-blue-100">
-                                {% if coupon.expiry_date %}
-                                    {% if coupon.is_expired %}
-                                        <span class="text-red-400">Expired</span>
-                                    {% elif coupon.expiry_date|countdown_from_3_days %}
-                                        Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
-                                    {% else %}
-                                        {{ coupon.expiry_date|date:"M d, Y" }}
-                                    {% endif %}
-                                {% else %}
-                                    No expiration
-                                {% endif %}
-                            </p>
-                        </div>
-                        {% if coupon.minimum_purchase %}
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Minimum Purchase</p>
-                            <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
-                        </div>
-                        {% endif %}
-                        {% if coupon.usage_limit %}
-                        <div class="card-bg p-4 rounded-lg border border-blue-700">
-                            <p class="text-sm text-blue-400">Usage Limit</p>
-                            <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <!-- Desktop Order: Related Coupons Third -->
-                <div class="hidden lg:block">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {% for related_coupon in related_coupons %}
-                        <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
-                            <div class="flex justify-between items-start mb-2">
-                                <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
-                                {% if related_coupon.is_verified %}
-                                <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
-                                {% endif %}
-                            </div>
-                            <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
-                            <div class="flex justify-between items-center">
-                                <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
-                                <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <div class="col-span-full text-center py-4">
-                            <p class="text-blue-400">No related coupons found.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                
-                <!-- Mobile Order: Description Third -->
-                <div class="lg:hidden mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
-                    <p class="text-blue-300">{{ coupon.description }}</p>
-                </div>
-                
-                {% if coupon.terms_and_conditions %}
-                <div class="lg:hidden mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
-                    <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
-                </div>
-                {% endif %}
-                
-                <div class="mb-6">
-                    <h2 class="text-lg font-semibold text-blue-200 mb-2">About {{ coupon.store.name }}</h2>
-                    <p class="text-blue-300">{{ coupon.store.description|default:"No description available." }}</p>
-                    <div class="mt-4">
-                        <a href="{{ coupon.store.website }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 font-medium flex items-center">
-                            Visit Store Website <i class="fas fa-external-link-alt ml-2 text-sm"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <div>
-                <div class="card-bg border border-blue-700 rounded-xl p-6">
-                    <h3 class="text-lg font-semibold text-blue-200 mb-4">How to Use This Coupon</h3>
-                    <ol class="space-y-3">
-                        <li class="flex items-start">
-                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</div>
-                            <p class="text-blue-300">Click on "GET CODE" button to copy the code</p>
-                        </li>
-                        <li class="flex items-start">
-                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</div>
-                            <p class="text-blue-300">The store will open in a new tab automatically</p>
-                        </li>
-                        <li class="flex items-start">
-                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</div>
-                            <p class="text-blue-300">Add items to your shopping cart</p>
-                        </li>
-                        <li class="flex items-start">
-                            <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">4</div>
-                            <p class="text-blue-300">Paste the coupon code at checkout to get your discount</p>
-                        </li>
-                    </ol>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endif %}
+
+<div class="container mx-auto px-4">
+    <div class="card-bg rounded-xl shadow-xl overflow-hidden mb-8 border border-blue-700">
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div class="flex items-center mb-4 md:mb-0">
+                    {% if coupon.store.logo %}
+                    <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }} logo" class="w-16 h-16 object-contain mr-4">
+                    {% else %}
+                    <div class="w-16 h-16 bg-blue-900/50 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-store text-blue-400 text-2xl"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="text-2xl font-bold text-blue-100">{{ coupon.title }}</h1>
+                        <p class="text-blue-300">{{ coupon.store.name }} • {{ coupon.category.name }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-2">
+                    {% if coupon.is_verified %}
+                    <span class="bg-green-900/50 text-green-300 px-3 py-1 rounded-full text-sm">Verified</span>
+                    {% endif %}
+                    {% if coupon.is_featured %}
+                    <span class="bg-yellow-900/50 text-yellow-300 px-3 py-1 rounded-full text-sm">Featured</span>
+                    {% endif %}
+                    {% if coupon.is_expired %}
+                    <span class="bg-red-900/50 text-red-300 px-3 py-1 rounded-full text-sm">Expired</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Coupon Code Section (Prominent) -->
+            <div class="mb-8">
+                <div class="card-bg rounded-xl p-6 border border-blue-700">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-4">
+                        <div>
+                            <div class="text-3xl font-bold text-gradient mb-2">{{ coupon.discount_display }}</div>
+                            <div class="text-blue-200">{{ coupon.store.name }}</div>
+                        </div>
+                        
+                        {% if not coupon.is_expired %}
+                        {% if coupon.code %}
+                        <div class="mt-4 md:mt-0">
+                            <div class="text-sm text-blue-300 mb-2">Coupon Code</div>
+                            <div class="flex items-center">
+                                <div class="font-mono font-bold text-xl text-blue-100 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700" id="main-coupon-code" style="display:none;">
+                                    {{ coupon.code }}
+                                </div>
+                                <div id="main-coupon-placeholder" class="font-mono font-bold text-xl text-blue-400 bg-black/30 px-4 py-2 rounded-l-lg border border-blue-700">
+                                    <i class="fas fa-cut mr-2"></i> Click to reveal
+                                </div>
+                                <button id="get-code-btn-{{ coupon.id }}" onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.id }}', '{{ coupon.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg font-medium transition flex items-center">
+                                    <i class="fas fa-ticket-alt mr-2"></i> GET CODE
+                                </button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="mt-4 md:mt-0">
+                            <div class="text-sm text-blue-300 mb-2">No Code Needed</div>
+                            <div class="bg-black/30 px-4 py-2 rounded-lg border border-blue-700 text-blue-100 font-medium">
+                                This deal is automatically applied at checkout
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% else %}
+                        <div class="mt-4 md:mt-0">
+                            <div class="text-sm text-blue-300 mb-2">Coupon Status</div>
+                            <div class="bg-black/30 px-4 py-2 rounded-lg border border-red-700 text-red-400 font-medium">
+                                <i class="fas fa-times-circle mr-2"></i> Expired on {{ coupon.expiry_date|date:"M d, Y" }}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-3 mt-6">
+                        {% if not coupon.is_expired %}
+                        {% if user.is_authenticated %}
+                        {% if is_saved %}
+                        <a href="#" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                            <i class="fas fa-heart mr-2"></i> Saved
+                        </a>
+                        {% else %}
+                        <a href="{% url 'save_coupon' coupon.id %}" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                            <i class="far fa-heart mr-2"></i> Save Coupon
+                        </a>
+                        {% endif %}
+                        {% else %}
+                        <a href="{% url 'login' %}" class="bg-blue-900/50 hover:bg-blue-800/50 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center">
+                            <i class="far fa-user mr-2"></i> Login to Save
+                        </a>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Expired Coupon Alternative Section -->
+            {% if is_expired %}
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-blue-100 mb-4">Try These Active Coupons Instead</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for related_coupon in related_coupons %}
+                    <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
+                            {% if related_coupon.is_verified %}
+                            <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
+                        <div class="flex justify-between items-center">
+                            <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
+                            <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full text-center py-4">
+                        <p class="text-blue-400">No related coupons found at this time.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-2">
+                    <!-- Mobile Order: Related Coupons First -->
+                    {% if not is_expired %}
+                    <div class="lg:hidden mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for related_coupon in related_coupons %}
+                            <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
+                                    {% if related_coupon.is_verified %}
+                                    <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
+                                <div class="flex justify-between items-center">
+                                    <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
+                                    <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-span-full text-center py-4">
+                                <p class="text-blue-400">No related coupons found.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Mobile Order: Details Second -->
+                    <div class="lg:hidden mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Discount Type</p>
+                                <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Coupon Type</p>
+                                <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Start Date</p>
+                                <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Expiry Date</p>
+                                <p class="font-medium text-blue-100">
+                                    {% if coupon.expiry_date %}
+                                        {% if coupon.is_expired %}
+                                            <span class="text-red-400">Expired</span>
+                                        {% elif coupon.expiry_date|countdown_from_3_days %}
+                                            Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
+                                        {% else %}
+                                            {{ coupon.expiry_date|date:"M d, Y" }}
+                                        {% endif %}
+                                    {% else %}
+                                        No expiration
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% if coupon.minimum_purchase %}
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Minimum Purchase</p>
+                                <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
+                            </div>
+                            {% endif %}
+                            {% if coupon.usage_limit %}
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Usage Limit</p>
+                                <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Desktop Order: Description First -->
+                    <div class="hidden lg:block mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
+                        <p class="text-blue-300">{{ coupon.description }}</p>
+                    </div>
+                    
+                    {% if coupon.terms_and_conditions %}
+                    <div class="hidden lg:block mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
+                        <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Desktop Order: Details Second -->
+                    <div class="hidden lg:block mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">Details</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Discount Type</p>
+                                <p class="font-medium text-blue-100">{{ coupon.get_discount_type_display }}</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Coupon Type</p>
+                                <p class="font-medium text-blue-100">{{ coupon.get_coupon_type_display }}</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Start Date</p>
+                                <p class="font-medium text-blue-100">{{ coupon.start_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Expiry Date</p>
+                                <p class="font-medium text-blue-100">
+                                    {% if coupon.expiry_date %}
+                                        {% if coupon.is_expired %}
+                                            <span class="text-red-400">Expired</span>
+                                        {% elif coupon.expiry_date|countdown_from_3_days %}
+                                            Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
+                                        {% else %}
+                                            {{ coupon.expiry_date|date:"M d, Y" }}
+                                        {% endif %}
+                                    {% else %}
+                                        No expiration
+                                    {% endif %}
+                                </p>
+                            </div>
+                            {% if coupon.minimum_purchase %}
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Minimum Purchase</p>
+                                <p class="font-medium text-blue-100">${{ coupon.minimum_purchase }}</p>
+                            </div>
+                            {% endif %}
+                            {% if coupon.usage_limit %}
+                            <div class="card-bg p-4 rounded-lg border border-blue-700">
+                                <p class="text-sm text-blue-400">Usage Limit</p>
+                                <p class="font-medium text-blue-100">{{ coupon.usage_count }}/{{ coupon.usage_limit }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Desktop Order: Related Coupons Third -->
+                    {% if not is_expired %}
+                    <div class="hidden lg:block">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-4">Related Coupons</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for related_coupon in related_coupons %}
+                            <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h3 class="font-bold text-blue-100">{{ related_coupon.title }}</h3>
+                                    {% if related_coupon.is_verified %}
+                                    <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                                    {% endif %}
+                                </div>
+                                <p class="text-blue-300 text-sm mb-3">{{ related_coupon.description|truncatewords:15 }}</p>
+                                <div class="flex justify-between items-center">
+                                    <div class="text-lg font-bold text-gradient">{{ related_coupon.discount_display }}</div>
+                                    <a href="{% url 'coupon_detail' related_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-span-full text-center py-4">
+                                <p class="text-blue-400">No related coupons found.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Mobile Order: Description Third -->
+                    <div class="lg:hidden mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">Description</h2>
+                        <p class="text-blue-300">{{ coupon.description }}</p>
+                    </div>
+                    
+                    {% if coupon.terms_and_conditions %}
+                    <div class="lg:hidden mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">Terms & Conditions</h2>
+                        <p class="text-blue-300">{{ coupon.terms_and_conditions }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold text-blue-200 mb-2">About {{ coupon.store.name }}</h2>
+                        <p class="text-blue-300">{{ coupon.store.description|default:"No description available." }}</p>
+                        <div class="mt-4">
+                            <a href="{{ coupon.store.website }}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 font-medium flex items-center">
+                                Visit Store Website <i class="fas fa-external-link-alt ml-2 text-sm"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card-bg border border-blue-700 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold text-blue-200 mb-4">How to Use This Coupon</h3>
+                        <ol class="space-y-3">
+                            <li class="flex items-start">
+                                <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">1</div>
+                                <p class="text-blue-300">Click on "GET CODE" button to copy the code</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">2</div>
+                                <p class="text-blue-300">The store will open in a new tab automatically</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">3</div>
+                                <p class="text-blue-300">Add items to your shopping cart</p>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-blue-900/50 text-blue-200 rounded-full w-6 h-6 flex items-center justify-center mr-3 flex-shrink-0">4</div>
+                                <p class="text-blue-300">Paste the coupon code at checkout to get your discount</p>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Similar Coupons Section for Expired Coupons -->
+{% if is_expired and similar_coupons %}
+<div class="container mx-auto px-4 mb-8">
+    <h2 class="text-xl font-bold text-blue-100 mb-4">Similar {{ coupon.category.name }} Coupons</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for similar_coupon in similar_coupons %}
+        <div class="card-bg border border-blue-700 rounded-lg p-4 hover:shadow-lg transition">
+            <div class="flex justify-between items-start mb-2">
+                <h3 class="font-bold text-blue-100">{{ similar_coupon.title }}</h3>
+                {% if similar_coupon.is_verified %}
+                <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                {% endif %}
+            </div>
+            <p class="text-blue-300 text-sm mb-3">{{ similar_coupon.description|truncatewords:15 }}</p>
+            <div class="flex justify-between items-center">
+                <div class="text-lg font-bold text-gradient">{{ similar_coupon.discount_display }}</div>
+                <a href="{% url 'coupon_detail' similar_coupon.id %}" class="text-blue-400 hover:text-blue-300 text-sm font-medium">View Deal</a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-4">
+            <p class="text-blue-400">No similar coupons found at this time.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
 <!-- Coupon Code Modal -->
+{% if not is_expired %}
 <div id="coupon-modal-{{ coupon.id }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
         <div class="flex justify-between items-center mb-4">
@@ -375,6 +481,8 @@
         </div>
     </div>
 </div>
+{% endif %}
+
 <script>
 // Check if user is returning from a store visit
 document.addEventListener('DOMContentLoaded', function() {

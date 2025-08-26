@@ -387,6 +387,8 @@ class HomeView(ListView):
 
 
 
+# coupon/views.py
+# coupon/views.py
 @method_decorator(cache_page(60 * 15), name='dispatch')  # Cache for 15 minutes
 class CouponDetailView(DetailView):
     model = Coupon
@@ -401,12 +403,19 @@ class CouponDetailView(DetailView):
         cached_object = cache.get(cache_key)
         
         if cached_object is not None:
-            return cached_object
+            # Check if cached object is expired
+            if cached_object.is_expired:
+                # Clear cache for expired coupons
+                cache.delete(cache_key)
+                cached_object = None
+            else:
+                return cached_object
             
         obj = super().get_object(queryset)
         
-        # Cache the object
-        cache.set(cache_key, obj, 60 * 10)  # Cache for 10 minutes
+        # Only cache non-expired coupons
+        if not obj.is_expired:
+            cache.set(cache_key, obj, 60 * 10)  # Cache for 10 minutes
         
         # Track coupon view
         try:
@@ -417,18 +426,53 @@ class CouponDetailView(DetailView):
         
         return obj
     
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        
+        # Handle expired coupons
+        if self.object.is_expired:
+            # Return 410 Gone status for expired coupons
+            context = self.get_context_data(object=self.object)
+            response = self.render_to_response(context)
+            response.status_code = 410  # 410 Gone tells search engines the page is permanently removed
+            return response
+        
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Set is_expired flag
+        context['is_expired'] = self.object.is_expired
+        
         if self.request.user.is_authenticated:
             context['is_saved'] = UserCoupon.objects.filter(
                 user=self.request.user,
                 coupon=self.object
             ).exists()
-        context['related_coupons'] = Coupon.objects.filter(
-            store=self.object.store,
-            is_active=True,
-            expiry_date__gte=timezone.now()
-        ).exclude(id=self.object.id)[:4]
+        
+        # Only show related coupons if the current coupon is not expired
+        if not self.object.is_expired:
+            context['related_coupons'] = Coupon.objects.filter(
+                store=self.object.store,
+                is_active=True,
+                expiry_date__gte=timezone.now()
+            ).exclude(id=self.object.id)[:4]
+        else:
+            # For expired coupons, get more related coupons (6 instead of 4)
+            context['related_coupons'] = Coupon.objects.filter(
+                store=self.object.store,
+                is_active=True,
+                expiry_date__gte=timezone.now()
+            ).exclude(id=self.object.id)[:6]
+            
+            # Also get similar coupons from the same category
+            context['similar_coupons'] = Coupon.objects.filter(
+                category=self.object.category,
+                is_active=True,
+                expiry_date__gte=timezone.now()
+            ).exclude(id=self.object.id)[:4]
         
         # Add SEO data
         context['meta_title'] = get_meta_title(self.object)
@@ -453,6 +497,8 @@ class CouponDetailView(DetailView):
         context['breadcrumbs'] = get_breadcrumbs(self.object)
         
         return context
+    
+  
   
   
   
@@ -1073,6 +1119,8 @@ class ExpiringCouponsView(ListView):
         }
         
         return context
+
+
 
 @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class LatestCouponsView(ListView):

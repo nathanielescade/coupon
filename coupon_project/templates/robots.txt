@@ -1,0 +1,99 @@
+# project/templates/robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap Index
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /admin-panel/
+Disallow: /analytics/
+
+# Disallow API endpoints
+Disallow: /api/
+Disallow: /api/v1/
+
+# Disallow user-specific pages
+Disallow: /profile/
+Disallow: /my-coupons/
+Disallow: /accounts/
+Disallow: /accounts/login/
+Disallow: /accounts/signup/
+Disallow: /accounts/password/
+
+# Disallow form submissions
+Disallow: /newsletter/subscribe
+Disallow: /contact/submit
+Disallow: /unsubscribe
+
+# Disallow filter URLs with parameters
+Disallow: /*?sort=*
+Disallow: /*?page=*
+Disallow: /*?q=*
+Disallow: /*?category=*
+Disallow: /*?store=*
+
+# Disallow tracking parameters
+Disallow: /*?utm_*
+Disallow: /*?fbclid=*
+Disallow: /*?gclid=*
+Disallow: /*?ref=*
+
+# NEW: Disallow expired coupons pattern
+Disallow: /coupon/expired/
+Disallow: /expired-coupon/
+
+# Crawl delay to prevent server overload
+Crawl-delay: 1
+
+# Specific rules for common bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# Block aggressive bots
+User-agent: SemrushBot
+Crawl-delay: 10
+
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: MJ12bot
+Crawl-delay: 10
+
+User-agent: DotBot
+Crawl-delay: 10
+
+# Block unwanted bots
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: CopyRightCheck
+Disallow: /
+
+User-agent: WebsiteExtractor
+Disallow: /
+
+User-agent: GrabNet
+Disallow: /
+
+User-agent: WWW-Collector-E
+Disallow: /
+
+User-agent: Xaldon WebSpider
+Disallow: /
