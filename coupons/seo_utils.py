@@ -1,6 +1,7 @@
 from django.utils.text import slugify, Truncator
 from django.urls import reverse
 from django.conf import settings
+from django.templatetags.static import static
 from .models import Coupon, Store, Category, SEO, HomePageSEO
 
 def get_meta_title(instance, request=None):
@@ -104,7 +105,12 @@ def get_meta_keywords(instance, request=None):
 def get_open_graph_data(instance, request):
     """Generate Open Graph data for social sharing, using manual SEO data if available"""
     site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://coupradise.com'
-    default_image = f"{site_url}/static/img/og-image.jpg"
+    
+    # FIXED: Use the correct path for the app-specific static file
+    try:
+        default_image = f"{site_url}{static('img/og-image.png')}"
+    except:
+        default_image = f"{site_url}/static/img/og-image.png"
     
     if isinstance(instance, Coupon):
         # Initialize with default values
@@ -120,10 +126,27 @@ def get_open_graph_data(instance, request):
             if instance.seo:
                 og_title = instance.seo.og_title
                 og_description = instance.seo.og_description
-                og_image = instance.seo.get_og_image_url  # Fixed: Removed parentheses
+                
+                # FIXED: Handle both methods and fields for image URLs
+                if hasattr(instance.seo, 'get_og_image_url'):
+                    if callable(instance.seo.get_og_image_url):
+                        og_image = instance.seo.get_og_image_url()
+                    else:
+                        og_image = instance.seo.get_og_image_url
+                elif hasattr(instance.seo, 'og_image'):
+                    og_image = instance.seo.og_image
+                
                 twitter_title = instance.seo.twitter_title
                 twitter_description = instance.seo.twitter_description
-                twitter_image = instance.seo.get_twitter_image_url  # Fixed: Removed parentheses
+                
+                # FIXED: Handle both methods and fields for image URLs
+                if hasattr(instance.seo, 'get_twitter_image_url'):
+                    if callable(instance.seo.get_twitter_image_url):
+                        twitter_image = instance.seo.get_twitter_image_url()
+                    else:
+                        twitter_image = instance.seo.get_twitter_image_url
+                elif hasattr(instance.seo, 'twitter_image'):
+                    twitter_image = instance.seo.twitter_image
         except SEO.DoesNotExist:
             pass
         
@@ -173,10 +196,27 @@ def get_open_graph_data(instance, request):
             if instance.seo:
                 og_title = instance.seo.og_title
                 og_description = instance.seo.og_description
-                og_image = instance.seo.get_og_image_url  # Fixed: Removed parentheses
+                
+                # FIXED: Handle both methods and fields for image URLs
+                if hasattr(instance.seo, 'get_og_image_url'):
+                    if callable(instance.seo.get_og_image_url):
+                        og_image = instance.seo.get_og_image_url()
+                    else:
+                        og_image = instance.seo.get_og_image_url
+                elif hasattr(instance.seo, 'og_image'):
+                    og_image = instance.seo.og_image
+                
                 twitter_title = instance.seo.twitter_title
                 twitter_description = instance.seo.twitter_description
-                twitter_image = instance.seo.get_twitter_image_url  # Fixed: Removed parentheses
+                
+                # FIXED: Handle both methods and fields for image URLs
+                if hasattr(instance.seo, 'get_twitter_image_url'):
+                    if callable(instance.seo.get_twitter_image_url):
+                        twitter_image = instance.seo.get_twitter_image_url()
+                    else:
+                        twitter_image = instance.seo.get_twitter_image_url
+                elif hasattr(instance.seo, 'twitter_image'):
+                    twitter_image = instance.seo.twitter_image
         except SEO.DoesNotExist:
             pass
         
@@ -226,10 +266,27 @@ def get_open_graph_data(instance, request):
             if instance.seo:
                 og_title = instance.seo.og_title
                 og_description = instance.seo.og_description
-                og_image = instance.seo.get_og_image_url  # Fixed: Removed parentheses
+                
+                # FIXED: Handle both methods and fields for image URLs
+                if hasattr(instance.seo, 'get_og_image_url'):
+                    if callable(instance.seo.get_og_image_url):
+                        og_image = instance.seo.get_og_image_url()
+                    else:
+                        og_image = instance.seo.get_og_image_url
+                elif hasattr(instance.seo, 'og_image'):
+                    og_image = instance.seo.og_image
+                
                 twitter_title = instance.seo.twitter_title
                 twitter_description = instance.seo.twitter_description
-                twitter_image = instance.seo.get_twitter_image_url  # Fixed: Removed parentheses
+                
+                # FIXED: Handle both methods and fields for image URLs
+                if hasattr(instance.seo, 'get_twitter_image_url'):
+                    if callable(instance.seo.get_twitter_image_url):
+                        twitter_image = instance.seo.get_twitter_image_url()
+                    else:
+                        twitter_image = instance.seo.get_twitter_image_url
+                elif hasattr(instance.seo, 'twitter_image'):
+                    twitter_image = instance.seo.twitter_image
         except SEO.DoesNotExist:
             pass
         

@@ -6,6 +6,7 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.contrib import messages
 from django.db.models import Count, Q
+from django.templatetags.static import static
 from django.http import JsonResponse
 # Add this import at the top of views.py
 from analytics.models import CouponAnalytics
@@ -212,7 +213,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
 
 
 # @method_decorator(cache_page(60 * 10), name='dispatch')
-# views.py - HomeView
 class HomeView(ListView):
     model = Coupon
     template_name = 'home.html'
@@ -253,7 +253,6 @@ class HomeView(ListView):
             
         return coupons
     
-    # views.py - HomeView
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -304,14 +303,58 @@ class HomeView(ListView):
             context['hero_title'] = homepage_seo.hero_title
             context['hero_description'] = homepage_seo.hero_description
             
-            # Add Open Graph data - Fix: Remove parentheses from property access
+            # FIXED: Handle image URLs properly - they are string fields, not methods
+            og_image = None
+            twitter_image = None
+            
+            # Get og_image - check if attribute exists and is not empty
+            if hasattr(homepage_seo, 'og_image') and homepage_seo.og_image:
+                og_image = homepage_seo.og_image
+            elif hasattr(homepage_seo, 'get_og_image_url') and homepage_seo.get_og_image_url:
+                # Check if it's a method or a field
+                if callable(homepage_seo.get_og_image_url):
+                    og_image = homepage_seo.get_og_image_url()
+                else:
+                    og_image = homepage_seo.get_og_image_url
+            
+            # Get twitter_image - check if attribute exists and is not empty
+            if hasattr(homepage_seo, 'twitter_image') and homepage_seo.twitter_image:
+                twitter_image = homepage_seo.twitter_image
+            elif hasattr(homepage_seo, 'get_twitter_image_url') and homepage_seo.get_twitter_image_url:
+                # Check if it's a method or a field
+                if callable(homepage_seo.get_twitter_image_url):
+                    twitter_image = homepage_seo.get_twitter_image_url()
+                else:
+                    twitter_image = homepage_seo.get_twitter_image_url
+            
+            # Ensure absolute URLs for social sharing
+            if og_image and not og_image.startswith(('http://', 'https://')):
+                og_image = self.request.build_absolute_uri(og_image)
+            elif not og_image:
+                # FIXED: Use the correct path for the app-specific static file
+                try:
+                    og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+                except:
+                    # Fallback to a hardcoded URL if static() fails
+                    og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+                
+            if twitter_image and not twitter_image.startswith(('http://', 'https://')):
+                twitter_image = self.request.build_absolute_uri(twitter_image)
+            elif not twitter_image:
+                # FIXED: Use the correct path for the app-specific static file
+                try:
+                    twitter_image = self.request.build_absolute_uri(static('img/og-image.png'))
+                except:
+                    # Fallback to a hardcoded URL if static() fails
+                    twitter_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+            
             context['open_graph_data'] = {
                 'og_title': homepage_seo.og_title,
                 'og_description': homepage_seo.og_description,
-                'og_image': homepage_seo.get_og_image_url,  # Remove parentheses
+                'og_image': og_image,
                 'twitter_title': homepage_seo.twitter_title,
                 'twitter_description': homepage_seo.twitter_description,
-                'twitter_image': homepage_seo.get_twitter_image_url,  # Remove parentheses
+                'twitter_image': twitter_image,
             }
         except HomePageSEO.DoesNotExist:
             # Default values if no homepage SEO is set
@@ -321,19 +364,23 @@ class HomeView(ListView):
             context['hero_title'] = "Save Money with Exclusive Coupons"
             context['hero_description'] = "Discover the best deals and discounts from your favorite stores."
             
-            # Default Open Graph data
+            # Default Open Graph data with absolute URLs
+            try:
+                default_og_image = self.request.build_absolute_uri(static('img/og-image.png'))
+            except:
+                # Fallback to a hardcoded URL if static() fails
+                default_og_image = f"{self.request.scheme}://{self.request.get_host()}/static/img/og-image.png"
+                
             context['open_graph_data'] = {
                 'og_title': "CouPradise - Save Money with Exclusive Coupons",
                 'og_description': "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.",
-                'og_image': "/static/img/default-og-image.jpg",
+                'og_image': default_og_image,
                 'twitter_title': "CouPradise - Save Money with Exclusive Coupons",
                 'twitter_description': "Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.",
-                'twitter_image': "/static/img/default-og-image.jpg",
+                'twitter_image': default_og_image,
             }
         
         return context
-
-
 
 
 
