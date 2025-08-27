@@ -1,0 +1,642 @@
+{% extends 'base.html' %}
+{% block meta_title %}{{ meta_title }}{% endblock %}
+{% block meta_description %}{{ meta_description }}{% endblock %}
+{% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+{% load coupon_extras %}
+{% block content %}
+<!-- Offer Header -->
+<section class="card-bg rounded-xl shadow-xl overflow-hidden mb-10 border border-blue-700">
+    <div class="p-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+            <div>
+                <div class="flex items-center mb-2">
+                    {% if offer.store.logo %}
+                    <img src="{{ offer.store.logo.url }}" alt="{{ offer.store.name }} logo" class="w-12 h-12 object-contain mr-3">
+                    {% else %}
+                    <div class="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-store text-blue-400 text-xl"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h1 class="text-3xl font-bold text-blue-100">{{ offer.title }}</h1>
+                        <p class="text-blue-300">{{ offer.store.name }} • {{ offer.category.name }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-2 mt-4 md:mt-0">
+                <!-- Deal Type Badge -->
+                {% if offer.section == 'special' %}
+                    <span class="bg-purple-600 text-white text-sm px-3 py-1 rounded-full flex items-center">
+                        <i class="fas fa-star mr-1"></i> Special
+                    </span>
+                {% elif offer.section == 'amazon' %}
+                    <span class="bg-yellow-600 text-white text-sm px-3 py-1 rounded-full flex items-center">
+                        <i class="fab fa-amazon mr-1"></i> Amazon
+                    </span>
+                {% elif offer.section == 'deals' %}
+                    <span class="bg-red-600 text-white text-sm px-3 py-1 rounded-full flex items-center">
+                        <i class="fas fa-fire mr-1"></i> Hot Deal
+                    </span>
+                {% elif offer.section == 'coupons' %}
+                    <span class="bg-green-600 text-white text-sm px-3 py-1 rounded-full flex items-center">
+                        <i class="fas fa-ticket-alt mr-1"></i> Coupon
+                    </span>
+                {% endif %}
+                
+                <!-- Expiry Status -->
+                {% if show_expiry and offer.is_expired %}
+                    <span class="bg-red-900/50 text-red-300 text-sm px-3 py-1 rounded-full">Expired</span>
+                {% elif offer.expiry_date|is_expiring_soon %}
+                    <span class="bg-orange-900/50 text-orange-300 text-sm px-3 py-1 rounded-full">Expiring Soon</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2">
+                <p class="text-blue-200 mb-6">{{ offer.description }}</p>
+
+            </div>
+            
+            <div>
+                <div class="bg-black/30 rounded-lg p-6 mb-6">
+                    <div class="text-3xl font-bold text-blue-100 mb-4">{{ offer.discount_display }}</div>
+                    
+                    {% if offer.code %}
+                    <div class="mb-4">
+                        <div class="text-xs text-blue-400 mb-2">Offer Code</div>
+                        <div class="font-mono font-bold text-blue-100" id="code-{{ offer.slug }}" style="display:none;">{{ offer.code }}</div>
+
+                    </div>
+                    {% endif %}
+                    
+                    {% if offer.minimum_purchase %}
+                    <div class="mb-4">
+                        <div class="text-xs text-blue-400 mb-1">Minimum Purchase</div>
+                        <div class="text-blue-100">${{ offer.minimum_purchase }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if offer.expiry_date %}
+                    <div class="mb-4">
+                        <div class="text-xs text-blue-400 mb-1">Expires</div>
+                        <div class="text-blue-100">{{ offer.expiry_date|date:"F d, Y" }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="flex space-x-3 mt-6">
+                        {% if offer.affiliate_link %}
+                            {% if offer.code %}
+                                <button id="get-code-btn-{{ offer.slug }}" onclick="copyCodeAndOpenStore('{{ offer.affiliate_link }}', '{{ offer.code }}', '{{ offer.slug }}', '{{ offer.store.name }}')" class="flex-1 btn-gradient text-white text-center py-3 rounded-lg font-medium transition hover:opacity-90">
+                                    <i class="fas fa-ticket-alt mr-2"></i> GET CODE
+                                </button>
+                            {% else %}
+                                <button onclick="goToStore('{{ offer.affiliate_link }}', '{{ offer.slug }}', '{{ offer.store.name }}')" class="flex-1 btn-gradient text-white text-center py-3 rounded-lg font-medium transition hover:opacity-90">
+                                    <i class="fas fa-shopping-cart mr-2"></i> GET DEAL
+                                </button>
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'save_offer' offer.slug %}" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+                            <i class="far fa-heart text-blue-300"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="bg-blue-900/30 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">Share this offer</h3>
+                    <div class="flex space-x-2">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" class="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 rounded-lg transition">
+                            <i class="fab fa-facebook-f text-white"></i>
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ offer.title|urlencode }}" target="_blank" class="w-10 h-10 flex items-center justify-center bg-blue-400 hover:bg-blue-300 rounded-lg transition">
+                            <i class="fab fa-twitter text-white"></i>
+                        </a>
+                        <a href="https://pinterest.com/pin/create/button/?url={{ request.build_absolute_uri }}&description={{ offer.description|urlencode }}" target="_blank" class="w-10 h-10 flex items-center justify-center bg-red-600 hover:bg-red-500 rounded-lg transition">
+                            <i class="fab fa-pinterest-p text-white"></i>
+                        </a>
+                        <a href="mailto:?subject={{ offer.title|urlencode }}&body={{ request.build_absolute_uri }}" class="w-10 h-10 flex items-center justify-center bg-gray-600 hover:bg-gray-500 rounded-lg transition">
+                            <i class="fas fa-envelope text-white"></i>
+                        </a>
+                    </div>
+                </div>
+                                
+                {% if offer.terms_and_conditions %}
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-2">Terms and Conditions</h3>
+                    <div class="bg-black/30 p-4 rounded-lg">
+                        <p class="text-blue-100">{{ offer.terms_and_conditions }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Related Offers -->
+{% if related_offers %}
+<section class="mb-12">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-blue-300">Related Offers</h2>
+        <a href="{% url 'store_detail' offer.store.slug %}" class="text-blue-400 hover:text-blue-300 font-medium transition">
+            View all {{ offer.store.name }} offers
+        </a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for related_offer in related_offers %}
+        {% include 'offer_card.html' with offer=related_offer small_text=True %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+<!-- Store Information -->
+<section class="mb-12">
+    <div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
+        <div class="p-6">
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/3 mb-6 md:mb-0 md:pr-6">
+                    {% if offer.store.logo %}
+                    <img src="{{ offer.store.logo.url }}" alt="{{ offer.store.name }} logo" class="w-full h-auto object-contain">
+                    {% else %}
+                    <div class="w-full h-32 bg-blue-900/50 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-store text-blue-400 text-4xl"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="md:w-2/3">
+                    <h2 class="text-2xl font-bold text-blue-300 mb-4">{{ offer.store.name }}</h2>
+                    <p class="text-blue-200 mb-6">{{ offer.store.description }}</p>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <a href="{{ offer.store.website }}" target="_blank" class="px-4 py-2 bg-blue-700 hover:bg-blue-600 text-white rounded-lg transition">
+                            <i class="fas fa-external-link-alt mr-2"></i> Visit Store
+                        </a>
+                        <a href="{% url 'store_detail' offer.store.slug %}" class="px-4 py-2 border border-blue-600 text-blue-300 hover:bg-blue-900/50 rounded-lg transition">
+                            <i class="fas fa-info-circle mr-2"></i> Store Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Offer Code Modal (only for offers with codes) -->
+{% if offer.code %}
+<div id="offer-modal-{{ offer.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Your Offer Code</h3>
+            <button onclick="closeOfferModal('{{ offer.slug }}')" class="text-blue-300 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-blue-200 mb-2">Use this code at checkout:</p>
+            <div class="bg-black/30 p-4 rounded-lg border border-blue-600 flex justify-between items-center">
+                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ offer.slug }}">{{ offer.code }}</span>
+                <button onclick="copyCodeFromModal('{{ offer.code }}', '{{ offer.slug }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                    <i class="fas fa-copy mr-1"></i> Copy
+                </button>
+            </div>
+            <div id="copy-feedback-{{ offer.slug }}" class="mt-2 text-green-400 text-sm hidden">
+                <i class="fas fa-check-circle mr-1"></i> Code copied to clipboard!
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-blue-200 text-sm mb-2">This code is valid until:</p>
+            <p class="text-white font-medium">
+                {% if offer.expiry_date %}
+                {{ offer.expiry_date|date:"F d, Y" }}
+                {% else %}
+                No expiration date
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button onclick="goToStore('{{ offer.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
+                <i class="fas fa-shopping-cart mr-2"></i> Shop at {{ offer.store.name }}
+            </button>
+            <button onclick="closeOfferModal('{{ offer.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+                <i class="fas fa-times text-blue-300"></i>
+            </button>
+        </div>
+        
+        <div class="mt-4 text-xs text-blue-400 text-center">
+            <p>By using this offer, you may be supporting our site through affiliate links</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- Deal Confirmation Modal (for deals without codes) -->
+{% if not offer.code and offer.affiliate_link %}
+<div id="deal-modal-{{ offer.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Redirecting to Store</h3>
+            <button onclick="closeDealModal('{{ offer.slug }}')" class="text-blue-300 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <div class="bg-black/30 p-4 rounded-lg border border-blue-600 mb-4">
+                <div class="flex items-center mb-2">
+                    {% if offer.store.logo %}
+                    <img src="{{ offer.store.logo.url }}" alt="{{ offer.store.name }}" class="w-12 h-12 object-contain mr-3">
+                    {% else %}
+                    <div class="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-store text-blue-400"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h4 class="font-bold text-white">{{ offer.store.name }}</h4>
+                        <p class="text-blue-300 text-sm">{{ offer.title }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="text-blue-200 mb-4">You've been redirected to {{ offer.store.name }}. Check out their latest deals and promotions!</p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button onclick="goToStore('{{ offer.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
+                <i class="fas fa-shopping-cart mr-2"></i> Continue Shopping
+            </button>
+            <button onclick="closeDealModal('{{ offer.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+                <i class="fas fa-times text-blue-300"></i>
+            </button>
+        </div>
+        
+        <div class="mt-4 text-xs text-blue-400 text-center">
+            <p>This deal may contain affiliate links that support our site at no extra cost to you</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+<script>
+
+
+
+function showCopyNotification() {
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Offer code copied to clipboard!';
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(function() {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        setTimeout(function() {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+function fallbackCopyTextToClipboard(text) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Make the textarea out of viewport
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        // Execute copy command
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showCopyNotification();
+        } else {
+            console.error('Unable to copy using fallback');
+            alert('Copy failed. Please copy the code manually: ' + text);
+        }
+    } catch (err) {
+        console.error('Fallback error:', err);
+        alert('Copy failed. Please copy the code manually: ' + text);
+    }
+    
+    document.body.removeChild(textArea);
+}
+function copyCodeAndOpenStore(affiliateLink, code, slug, storeName) {
+    // Get the button to disable it temporarily
+    const button = document.getElementById("get-code-btn-" + slug);
+    if (button) {
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Copying...';
+    }
+    
+    // First copy the code to clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(function() {
+            showCopyNotification();
+            scheduleStoreOpen(affiliateLink, code, slug, storeName);
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
+        });
+    } else {
+        fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
+    }
+}
+function goToStore(affiliateLink, slug, storeName) {
+    // For deals without codes, store information in sessionStorage and open store
+    sessionStorage.setItem('pendingDeal', JSON.stringify({
+        slug: slug,
+        storeName: storeName,
+        affiliateLink: affiliateLink,
+        timestamp: new Date().getTime()
+    }));
+    
+    // Open store in new tab
+    window.open(affiliateLink, '_blank');
+    
+    // Show a notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    notification.innerHTML = '<i class="fas fa-external-link-alt mr-2"></i> Opening store in a new tab...';
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(function() {
+        notification.style.opacity = '0';
+        notification.style.transition = 'opacity 0.5s';
+        setTimeout(function() {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 500);
+    }, 3000);
+}
+function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
+    // Store offer information in sessionStorage
+    sessionStorage.setItem('pendingOffer', JSON.stringify({
+        code: code,
+        slug: slug,
+        storeName: storeName,
+        affiliateLink: affiliateLink,
+        timestamp: new Date().getTime(),
+        codeCopied: true
+    }));
+    
+    // Show a secondary notification that we're opening the store
+    const redirectNotification = document.createElement('div');
+    redirectNotification.className = 'fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+    redirectNotification.innerHTML = '<i class="fas fa-external-link-alt mr-2"></i> Opening store in a new tab...';
+    document.body.appendChild(redirectNotification);
+    
+    // Delay opening the store for 1.5 seconds to let user see the copy notification
+    setTimeout(function() {
+        // Open store in new tab
+        window.open(affiliateLink, '_blank');
+        
+        // Remove the redirect notification
+        if (document.body.contains(redirectNotification)) {
+            redirectNotification.style.opacity = '0';
+            redirectNotification.style.transition = 'opacity 0.5s';
+            setTimeout(function() {
+                if (document.body.contains(redirectNotification)) {
+                    document.body.removeChild(redirectNotification);
+                }
+            }, 500);
+        }
+        
+        // Update UI to show code and change button
+        revealCodeAndChangeButton(code, slug);
+    }, 1500);
+}
+function revealCodeAndChangeButton(code, slug) {
+    // Update the original offer card to show the code
+    const originalCodeElement = document.getElementById("code-" + slug);
+    const originalPlaceholder = document.getElementById("code-placeholder-" + slug);
+    const getButton = document.getElementById("get-code-btn-" + slug);
+    
+    if (originalCodeElement && originalPlaceholder && getButton) {
+        originalCodeElement.style.display = "block";
+        originalPlaceholder.style.display = "none";
+        
+        // Change button to "Copy Code"
+        getButton.innerHTML = '<i class="fas fa-copy mr-1"></i> Copy Code';
+        getButton.disabled = false;
+        getButton.onclick = function() {
+            copyCodeAgain(code, slug);
+        };
+    }
+}
+function copyCodeAgain(code, slug) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(function() {
+            showCopyNotification();
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyTextToClipboard(code, slug);
+        });
+    } else {
+        fallbackCopyTextToClipboard(code, slug);
+    }
+}
+function fallbackCopyTextToClipboard(text, slug, affiliateLink, storeName) {
+    var textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Make the textarea out of viewport
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        // Execute copy command
+        var successful = document.execCommand('copy');
+        if (successful) {
+            showCopyNotification();
+            if (affiliateLink && storeName) {
+                scheduleStoreOpen(affiliateLink, text, slug, storeName);
+            }
+        } else {
+            console.error('Unable to copy using fallback');
+            alert('Copy failed. Please copy the code manually: ' + text);
+            // Re-enable the button if copy failed
+            const button = document.getElementById("get-code-btn-" + slug);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i> GET CODE';
+            }
+        }
+    } catch (err) {
+        console.error('Fallback error:', err);
+        alert('Copy failed. Please copy the code manually: ' + text);
+        // Re-enable the button if copy failed
+        const button = document.getElementById("get-code-btn-" + slug);
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-ticket-alt mr-1"></i> GET CODE';
+        }
+    }
+    
+    document.body.removeChild(textArea);
+}
+function showOfferModal(slug, code) {
+    const modal = document.getElementById('offer-modal-' + slug);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        
+        // Setup click outside to close functionality
+        setupModalCloseOnClickOutside(slug, 'offer');
+        
+        // Auto-select the code for easier copying
+        const codeElement = document.getElementById('modal-code-' + slug);
+        if (codeElement) {
+            // Create a range to select the text
+            const range = document.createRange();
+            range.selectNode(codeElement);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+        }
+        
+        // Also update the original offer card to show the code
+        revealCodeAndChangeButton(code, slug);
+    }
+}
+function closeOfferModal(slug) {
+    const modal = document.getElementById('offer-modal-' + slug);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+}
+function showDealModal(slug) {
+    const modal = document.getElementById('deal-modal-' + slug);
+    if (modal) {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+        
+        // Setup click outside to close functionality
+        setupModalCloseOnClickOutside(slug, 'deal');
+    }
+}
+function closeDealModal(slug) {
+    const modal = document.getElementById('deal-modal-' + slug);
+    if (modal) {
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+}
+function copyCodeFromModal(code, slug) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(function() {
+            showCopyFeedback(slug);
+        }).catch(function(err) {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyTextToClipboard(code, slug);
+        });
+    } else {
+        fallbackCopyTextToClipboard(code, slug);
+    }
+}
+function showCopyFeedback(slug) {
+    const feedbackElement = document.getElementById('copy-feedback-' + slug);
+    if (feedbackElement) {
+        feedbackElement.classList.remove('hidden');
+        setTimeout(function() {
+            feedbackElement.classList.add('hidden');
+        }, 3000);
+    }
+}
+function setupModalCloseOnClickOutside(modalId, modalType) {
+    const modal = document.getElementById(`${modalType}-modal-${modalId}`);
+    if (!modal) return;
+    
+    // Add click event listener to the modal overlay
+    modal.addEventListener('click', function(event) {
+        // Check if the clicked element is the modal overlay (the background)
+        if (event.target === modal) {
+            if (modalType === 'offer') {
+                closeOfferModal(modalId);
+            } else if (modalType === 'deal') {
+                closeDealModal(modalId);
+            }
+        }
+    });
+}
+// Check if user is returning from a store visit
+document.addEventListener('DOMContentLoaded', function() {
+    checkForPendingOfferReveal();
+    checkForPendingDealConfirmation();
+    
+    // Listen for window focus event to detect when user returns from store
+    window.addEventListener('focus', function() {
+        checkForPendingOfferReveal();
+        checkForPendingDealConfirmation();
+    });
+});
+function checkForPendingOfferReveal() {
+    const pendingOffer = sessionStorage.getItem('pendingOffer');
+    
+    if (pendingOffer) {
+        try {
+            const offerData = JSON.parse(pendingOffer);
+            
+            // Check if the reveal happened within the last 30 minutes
+            const thirtyMinutesAgo = new Date().getTime() - (30 * 60 * 1000);
+            if (offerData.timestamp > thirtyMinutesAgo) {
+                // If code was already copied, just show the modal
+                if (offerData.codeCopied) {
+                    showOfferModal(offerData.slug, offerData.code);
+                } else {
+                    // Otherwise, copy the code and show the modal
+                    copyCodeAndOpenStore(offerData.affiliateLink, offerData.code, offerData.slug, offerData.storeName);
+                }
+                
+                // Clear the pending offer
+                sessionStorage.removeItem('pendingOffer');
+            } else {
+                // Expired, remove it
+                sessionStorage.removeItem('pendingOffer');
+            }
+        } catch (e) {
+            console.error('Error parsing pending offer data', e);
+            sessionStorage.removeItem('pendingOffer');
+        }
+    }
+}
+function checkForPendingDealConfirmation() {
+    const pendingDeal = sessionStorage.getItem('pendingDeal');
+    
+    if (pendingDeal) {
+        try {
+            const dealData = JSON.parse(pendingDeal);
+            
+            // Check if the deal was clicked within the last 30 minutes
+            const thirtyMinutesAgo = new Date().getTime() - (30 * 60 * 1000);
+            if (dealData.timestamp > thirtyMinutesAgo) {
+                // Show the deal confirmation modal
+                showDealModal(dealData.slug);
+                
+                // Clear the pending deal
+                sessionStorage.removeItem('pendingDeal');
+            } else {
+                // Expired, remove it
+                sessionStorage.removeItem('pendingDeal');
+            }
+        } catch (e) {
+            console.error('Error parsing pending deal data', e);
+            sessionStorage.removeItem('pendingDeal');
+        }
+    }
+}
+</script>
+{% endblock %}

@@ -1,12 +1,12 @@
-<!-- templates/coupons/_modal_script.html -->
+<!-- templates/offers/_offer_modal_script.html -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Check if user is returning from a store visit
-    checkForPendingCouponReveal();
+    checkForPendingOfferReveal();
     
     // Listen for window focus event to detect when user returns from store
     window.addEventListener('focus', function() {
-        checkForPendingCouponReveal();
+        checkForPendingOfferReveal();
     });
     
     // Add event listeners for closing modals when clicking outside
@@ -19,9 +19,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Find the modal ID
             const modalId = event.target.id;
-            if (modalId && modalId.startsWith('coupon-modal-')) {
-                const slug = modalId.replace('coupon-modal-', '');
-                closeCouponModal(slug);
+            if (modalId && modalId.startsWith('offer-modal-')) {
+                const slug = modalId.replace('offer-modal-', '');
+                closeOfferModal(slug);
             }
         }
     });
@@ -52,7 +52,7 @@ function copyCodeAndOpenStore(affiliateLink, code, slug, storeName) {
 function showCopyNotification() {
     const notification = document.createElement('div');
     notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Coupon code copied to clipboard!';
+    notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Offer code copied to clipboard!';
     document.body.appendChild(notification);
     
     // Remove notification after 3 seconds
@@ -68,8 +68,8 @@ function showCopyNotification() {
 }
 
 function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
-    // Store coupon information in sessionStorage
-    sessionStorage.setItem('pendingCoupon', JSON.stringify({
+    // Store offer information in sessionStorage
+    sessionStorage.setItem('pendingOffer', JSON.stringify({
         code: code,
         slug: slug,
         storeName: storeName,
@@ -106,7 +106,7 @@ function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
 }
 
 function revealCodeAndChangeButton(code, slug) {
-    // Update the original coupon card to show the code
+    // Update the original offer card to show the code
     const originalCodeElement = document.getElementById("code-" + slug);
     const originalPlaceholder = document.getElementById("code-placeholder-" + slug);
     const getButton = document.getElementById("get-code-btn-" + slug);
@@ -123,9 +123,9 @@ function revealCodeAndChangeButton(code, slug) {
         };
     }
     
-    // For coupon detail page
-    const mainCodeElement = document.getElementById("main-coupon-code");
-    const mainPlaceholder = document.getElementById("main-coupon-placeholder");
+    // For offer detail page
+    const mainCodeElement = document.getElementById("main-offer-code");
+    const mainPlaceholder = document.getElementById("main-offer-placeholder");
     
     if (mainCodeElement && mainPlaceholder && getButton) {
         mainCodeElement.style.display = "block";
@@ -190,42 +190,42 @@ function fallbackCopyTextToClipboard(text, slug, affiliateLink, storeName) {
     document.body.removeChild(textArea);
 }
 
-function checkForPendingCouponReveal() {
-    const pendingCoupon = sessionStorage.getItem('pendingCoupon');
+function checkForPendingOfferReveal() {
+    const pendingOffer = sessionStorage.getItem('pendingOffer');
     
-    if (pendingCoupon) {
+    if (pendingOffer) {
         try {
-            const couponData = JSON.parse(pendingCoupon);
+            const offerData = JSON.parse(pendingOffer);
             
             // Check if the reveal happened within the last 30 minutes
             const thirtyMinutesAgo = new Date().getTime() - (30 * 60 * 1000);
-            if (couponData.timestamp > thirtyMinutesAgo) {
+            if (offerData.timestamp > thirtyMinutesAgo) {
                 // If code was already copied, just show the modal
-                if (couponData.codeCopied) {
-                    showCouponModal(couponData.slug, couponData.code);
+                if (offerData.codeCopied) {
+                    showOfferModal(offerData.slug, offerData.code);
                 } else {
                     // Otherwise, copy the code and show the modal
-                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.slug, couponData.storeName);
+                    copyCodeAndOpenStore(offerData.affiliateLink, offerData.code, offerData.slug, offerData.storeName);
                 }
                 
-                // Clear the pending coupon
-                sessionStorage.removeItem('pendingCoupon');
+                // Clear the pending offer
+                sessionStorage.removeItem('pendingOffer');
                 
                 // Track the reveal event
-                trackRevealEvent(couponData.slug, couponData.code);
+                trackRevealEvent(offerData.slug, offerData.code);
             } else {
                 // Expired, remove it
-                sessionStorage.removeItem('pendingCoupon');
+                sessionStorage.removeItem('pendingOffer');
             }
         } catch (e) {
-            console.error('Error parsing pending coupon data', e);
-            sessionStorage.removeItem('pendingCoupon');
+            console.error('Error parsing pending offer data', e);
+            sessionStorage.removeItem('pendingOffer');
         }
     }
 }
 
-function showCouponModal(slug, code) {
-    const modal = document.getElementById('coupon-modal-' + slug);
+function showOfferModal(slug, code) {
+    const modal = document.getElementById('offer-modal-' + slug);
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; // Prevent scrolling
@@ -240,13 +240,13 @@ function showCouponModal(slug, code) {
             window.getSelection().addRange(range);
         }
         
-        // Also update the original coupon card to show the code
+        // Also update the original offer card to show the code
         revealCodeAndChangeButton(code, slug);
     }
 }
 
-function closeCouponModal(slug) {
-    const modal = document.getElementById('coupon-modal-' + slug);
+function closeOfferModal(slug) {
+    const modal = document.getElementById('offer-modal-' + slug);
     if (modal) {
         modal.classList.add('hidden');
         document.body.style.overflow = ''; // Restore scrolling
@@ -257,21 +257,21 @@ function goToStore(affiliateLink) {
     window.open(affiliateLink, '_blank');
 }
 
-function copyCodeFromModal(code, couponId) {
+function copyCodeFromModal(code, offerId) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
-            showCopyFeedback(couponId);
+            showCopyFeedback(offerId);
         }).catch(function(err) {
             console.error('Clipboard API failed:', err);
-            fallbackCopyTextToClipboard(code, couponId);
+            fallbackCopyTextToClipboard(code, offerId);
         });
     } else {
-        fallbackCopyTextToClipboard(code, couponId);
+        fallbackCopyTextToClipboard(code, offerId);
     }
 }
 
-function showCopyFeedback(couponId) {
-    const feedbackElement = document.getElementById('copy-feedback-' + couponId);
+function showCopyFeedback(offerId) {
+    const feedbackElement = document.getElementById('copy-feedback-' + offerId);
     if (feedbackElement) {
         feedbackElement.classList.remove('hidden');
         setTimeout(function() {
@@ -285,7 +285,7 @@ function trackRevealEvent(slug, code) {
     if (typeof trackEvent === 'function') {
         trackEvent('reveal_code', window.location.pathname, 'reveal_button', {
             slug: slug,
-            coupon_code: code
+            offer_code: code
         });
     }
 }

@@ -6,8 +6,8 @@ def app_settings(request):
     """
     return {
         'APP_NAME': getattr(settings, 'APP_NAME', 'CouPradise'),
-        'APP_TAGLINE': getattr(settings, 'APP_TAGLINE', 'Save Money with Exclusive Coupons'),
-        'APP_ICON': getattr(settings, 'APP_ICON', 'fas fa-ticket-alt'),
+        'APP_TAGLINE': getattr(settings, 'APP_TAGLINE', 'Discover Amazing Deals, Save Big Every Day'),
+        'APP_ICON': getattr(settings, 'APP_ICON', 'fas fa-tags'),
         'APP_FAVICON': getattr(settings, 'APP_FAVICON', 'img/favicon.ico'),
         'APP_LOGO': getattr(settings, 'APP_LOGO', 'img/logo.jpg'),
         'SOCIAL_LINKS': getattr(settings, 'SOCIAL_LINKS', {}),

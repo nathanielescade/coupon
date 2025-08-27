@@ -1,8 +1,0 @@
-{% load coupon_extras %}
-{% for coupon in coupons %}
-{% include 'coupon_card.html' with coupon=coupon small_text=small_text show_expiry=show_expiry %}
-{% empty %}
-<div class="col-span-full text-center py-10">
-    <p class="text-blue-400">No coupons available.</p>
-</div>
-{% endfor %}

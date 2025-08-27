@@ -1,14 +1,14 @@
+<!-- admin_panel/offer_list.html (updated) -->
 {% extends 'admin_panel/base.html' %}
-{% block title %}Coupons - Admin Panel{% endblock %}
-{% block page_title %}Manage Coupons{% endblock %}
-
+{% block title %}Offers - Admin Panel{% endblock %}
+{% block page_title %}Manage Offers{% endblock %}
 {% block content %}
 <div class="admin-card rounded-xl p-6 shadow-lg mb-6">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-        <h2 class="text-xl font-bold text-blue-300 mb-4 md:mb-0">Coupons</h2>
+        <h2 class="text-xl font-bold text-blue-300 mb-4 md:mb-0">Offers</h2>
         <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
             <form method="get" class="flex">
-                <input type="text" name="search" placeholder="Search coupons..." 
+                <input type="text" name="search" placeholder="Search offers..." 
                        value="{{ search_query }}" 
                        class="px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full md:w-auto">
                 <button type="submit" class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-r-lg transition">
@@ -17,23 +17,43 @@
             </form>
             
             <div class="flex space-x-2">
-                <a href="{% url 'admin_panel:coupon_list' %}?active=true" 
+                <a href="{% url 'admin_panel:offer_list' %}?active=true" 
                    class="px-3 py-1 rounded-lg {% if active_filter == 'true' %}bg-green-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
                     Active Only
                 </a>
-                <a href="{% url 'admin_panel:coupon_list' %}?active=false" 
+                <a href="{% url 'admin_panel:offer_list' %}?active=false" 
                    class="px-3 py-1 rounded-lg {% if active_filter == 'false' %}bg-red-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
                     Inactive Only
                 </a>
-                <a href="{% url 'admin_panel:coupon_list' %}" 
+                <a href="{% url 'admin_panel:offer_list' %}" 
                    class="px-3 py-1 rounded-lg {% if not active_filter %}bg-blue-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
                     All
                 </a>
             </div>
             
-            <a href="{% url 'admin_panel:coupon_create' %}" 
+            <!-- Section Filters -->
+            <div class="flex space-x-2">
+                <a href="{% url 'admin_panel:offer_list' %}?section=special" 
+                   class="px-3 py-1 rounded-lg {% if section_filter == 'special' %}bg-red-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    Special
+                </a>
+                <a href="{% url 'admin_panel:offer_list' %}?section=amazon" 
+                   class="px-3 py-1 rounded-lg {% if section_filter == 'amazon' %}bg-orange-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    Amazon
+                </a>
+                <a href="{% url 'admin_panel:offer_list' %}?section=deals" 
+                   class="px-3 py-1 rounded-lg {% if section_filter == 'deals' %}bg-yellow-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    Hot Deals
+                </a>
+                <a href="{% url 'admin_panel:offer_list' %}?section=coupons" 
+                   class="px-3 py-1 rounded-lg {% if section_filter == 'coupons' %}bg-green-700{% else %}bg-blue-900/50 hover:bg-blue-900/70{% endif %} text-blue-200 transition">
+                    Coupon Codes
+                </a>
+            </div>
+            
+            <a href="{% url 'admin_panel:offer_create' %}" 
                class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
-                <i class="fas fa-plus mr-2"></i> Add Coupon
+                <i class="fas fa-plus mr-2"></i> Add Offer
             </a>
         </div>
     </div>
@@ -43,7 +63,7 @@
             <thead>
                 <tr class="border-b border-blue-700">
                     <th class="text-left py-3 px-4">Title</th>
-                    <th class="text-left py-3 px-4">Code</th>
+                    <th class="text-left py-3 px-4">Type</th>
                     <th class="text-left py-3 px-4">Store</th>
                     <th class="text-left py-3 px-4">Discount</th>
                     <th class="text-left py-3 px-4">Status</th>
@@ -52,47 +72,51 @@
                 </tr>
             </thead>
             <tbody>
-                {% for coupon in coupons %}
+                {% for offer in offers %}
                 <tr class="border-b border-blue-800 hover:bg-blue-900/20">
                     <td class="py-3 px-4">
-                        <a href="{% url 'admin_panel:coupon_detail' coupon.slug %}" class="text-blue-300 hover:text-blue-200 transition">
-                            {{ coupon.title }}
+                        <a href="{% url 'admin_panel:offer_detail' offer.slug %}" class="text-blue-300 hover:text-blue-200 transition">
+                            {{ offer.title }}
                         </a>
                     </td>
                     <td class="py-3 px-4">
-                        {% if coupon.code %}
-                        <span class="font-mono bg-blue-900/50 px-2 py-1 rounded">{{ coupon.code }}</span>
-                        {% else %}
-                        <span class="text-blue-400">No code</span>
+                        {% if offer.section == 'special' %}
+                            <span class="px-2 py-1 bg-red-900/50 text-red-300 rounded-full text-xs">Special</span>
+                        {% elif offer.section == 'amazon' %}
+                            <span class="px-2 py-1 bg-orange-900/50 text-orange-300 rounded-full text-xs">Amazon</span>
+                        {% elif offer.section == 'deals' %}
+                            <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 rounded-full text-xs">Hot Deal</span>
+                        {% elif offer.section == 'coupons' %}
+                            <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded-full text-xs">Coupon</span>
                         {% endif %}
                     </td>
-                    <td class="py-3 px-4">{{ coupon.store.name }}</td>
-                    <td class="py-3 px-4">{{ coupon.discount_display }}</td>
+                    <td class="py-3 px-4">{{ offer.store.name }}</td>
+                    <td class="py-3 px-4">{{ offer.discount_display }}</td>
                     <td class="py-3 px-4">
-                        {% if coupon.is_active %}
+                        {% if offer.is_active %}
                         <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded-full text-xs">Active</span>
                         {% else %}
                         <span class="px-2 py-1 bg-red-900/50 text-red-300 rounded-full text-xs">Inactive</span>
                         {% endif %}
                     </td>
                     <td class="py-3 px-4">
-                        {% if coupon.expiry_date %}
-                        {{ coupon.expiry_date|date:"M d, Y" }}
+                        {% if offer.expiry_date %}
+                        {{ offer.expiry_date|date:"M d, Y" }}
                         {% else %}
                         <span class="text-blue-400">No expiry</span>
                         {% endif %}
                     </td>
                     <td class="py-3 px-4 text-right">
                         <div class="flex justify-end space-x-2">
-                            <a href="{% url 'admin_panel:coupon_detail' coupon.slug %}" 
+                            <a href="{% url 'admin_panel:offer_detail' offer.slug %}" 
                                class="text-blue-400 hover:text-blue-300 transition" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <a href="{% url 'admin_panel:coupon_edit' coupon.slug %}" 
+                            <a href="{% url 'admin_panel:offer_edit' offer.slug %}" 
                                class="text-green-400 hover:text-green-300 transition" title="Edit">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <a href="{% url 'admin_panel:coupon_delete' coupon.slug %}" 
+                            <a href="{% url 'admin_panel:offer_delete' offer.slug %}" 
                                class="text-red-400 hover:text-red-300 transition" title="Delete">
                                 <i class="fas fa-trash"></i>
                             </a>
@@ -103,11 +127,11 @@
                 <tr>
                     <td colspan="7" class="py-8 text-center text-blue-400">
                         <div class="mb-2">
-                            <i class="fas fa-ticket-alt text-blue-400/50 text-3xl"></i>
+                            <i class="fas fa-tags text-blue-400/50 text-3xl"></i>
                         </div>
-                        <p>No coupons found</p>
-                        <a href="{% url 'admin_panel:coupon_create' %}" class="text-blue-300 hover:text-blue-200 mt-2 inline-block">
-                            Create your first coupon
+                        <p>No offers found</p>
+                        <a href="{% url 'admin_panel:offer_create' %}" class="text-blue-300 hover:text-blue-200 mt-2 inline-block">
+                            Create your first offer
                         </a>
                     </td>
                 </tr>

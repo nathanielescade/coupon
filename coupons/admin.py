@@ -1,8 +1,14 @@
 from django.contrib import admin
 from .models import (
-    Coupon, CouponProvider, Store, Category, UserCoupon, CouponUsage, 
-    NewsletterSubscriber, Newsletter, SEO, HomePageSEO
+    Coupon, CouponProvider, Store, Category, UserOffer, OfferUsage, 
+    NewsletterSubscriber, Newsletter, SEO, HomePageSEO, Tag
 )
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    search_fields = ('name',)
+    prepopulated_fields = {'slug': ('name',)}
 
 @admin.register(CouponProvider)
 class CouponProviderAdmin(admin.ModelAdmin):
@@ -29,14 +35,18 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):
-    list_display = ('title', 'store', 'category', 'discount_type', 'discount_value', 'expiry_date', 'is_active', 'is_featured', 'is_verified', 'created_at')
-    list_filter = ('store', 'category', 'discount_type', 'coupon_type', 'is_active', 'is_featured', 'is_verified', 'created_at')
-    search_fields = ('title', 'description', 'code')
-    readonly_fields = ('id', 'usage_count', 'created_at', 'updated_at')
+    list_display = ('title', 'store', 'category', 'discount_type', 'discount_value', 
+                   'expiry_date', 'is_active', 'is_featured', 'is_verified', 'source', 'created_at')
+    list_filter = ('store', 'category', 'discount_type', 'coupon_type', 'source', 
+                  'is_active', 'is_featured', 'is_verified', 'is_special', 'is_popular', 'created_at')
+    search_fields = ('title', 'description', 'code', 'slug')
+    readonly_fields = ('id', 'usage_count', 'created_at', 'updated_at', 'slug')
     date_hierarchy = 'created_at'
+    filter_horizontal = ('tags',)
+    
     fieldsets = (
         (None, {
-            'fields': ('title', 'description', 'store', 'category', 'provider')
+            'fields': ('title', 'slug', 'description', 'store', 'category', 'provider', 'tags')
         }),
         ('Coupon Details', {
             'fields': ('code', 'coupon_type', 'discount_type', 'discount_value', 'minimum_purchase')
@@ -45,31 +55,31 @@ class CouponAdmin(admin.ModelAdmin):
             'fields': ('start_date', 'expiry_date')
         }),
         ('Status', {
-            'fields': ('is_active', 'is_featured', 'is_verified')
+            'fields': ('is_active', 'is_featured', 'is_verified', 'is_special', 'is_popular')
         }),
         ('Usage', {
             'fields': ('usage_limit', 'usage_count', 'terms_and_conditions')
         }),
         ('Affiliate', {
-            'fields': ('affiliate_link',)
+            'fields': ('source', 'affiliate_link',)
         }),
         ('SEO', {
             'fields': ('seo',)
         }),
     )
 
-@admin.register(UserCoupon)
-class UserCouponAdmin(admin.ModelAdmin):
-    list_display = ('user', 'coupon', 'saved_at', 'is_used')
+@admin.register(UserOffer)
+class UserOfferAdmin(admin.ModelAdmin):
+    list_display = ('user', 'offer', 'saved_at', 'is_used')
     list_filter = ('is_used', 'saved_at')
-    search_fields = ('user__username', 'coupon__title')
+    search_fields = ('user__username', 'offer__title')
     readonly_fields = ('saved_at',)
 
-@admin.register(CouponUsage)
-class CouponUsageAdmin(admin.ModelAdmin):
-    list_display = ('coupon', 'user', 'used_at', 'ip_address')
+@admin.register(OfferUsage)
+class OfferUsageAdmin(admin.ModelAdmin):
+    list_display = ('offer', 'user', 'used_at', 'ip_address')
     list_filter = ('used_at',)
-    search_fields = ('coupon__title', 'user__username', 'ip_address')
+    search_fields = ('offer__title', 'user__username', 'ip_address')
     readonly_fields = ('used_at',)
 
 @admin.register(NewsletterSubscriber)
@@ -116,6 +126,7 @@ class SEOAdmin(admin.ModelAdmin):
     list_filter = ('content_type', 'created_at', 'no_index', 'no_follow')
     search_fields = ('meta_title', 'meta_description', 'meta_keywords', 'content_id')
     readonly_fields = ('created_at', 'updated_at')
+    
     fieldsets = (
         (None, {
             'fields': ('content_type', 'content_id')

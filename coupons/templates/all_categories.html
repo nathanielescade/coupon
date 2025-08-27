@@ -11,7 +11,7 @@
 {% block content %}
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-blue-300 mb-2">{{ page_title }}</h1>
-    <p class="text-blue-400">Browse coupons by category</p>
+    <p class="text-blue-400">Browse offers by category</p>
 </div>
 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
     {% for category in categories %}
@@ -24,7 +24,7 @@
         </div>
         <p class="text-blue-400 text-sm">{{ category.description|truncatewords:15 }}</p>
         <div class="mt-4 text-blue-300 text-sm">
-            {{ category.coupon_set.count }} coupons available
+            {{ category.offers.count }} offers available
         </div>
     </a>
     {% empty %}

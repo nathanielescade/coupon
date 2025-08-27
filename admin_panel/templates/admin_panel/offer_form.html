@@ -1,0 +1,328 @@
+<!-- admin_panel/offer_form.html (updated) -->
+{% extends 'admin_panel/base.html' %}
+{% block title %}{{ title }} - Admin Panel{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="admin-card rounded-xl shadow-xl overflow-hidden">
+    <div class="bg-gradient-to-r from-blue-800 to-blue-900 p-6 border-b border-blue-700">
+        <h2 class="text-2xl font-bold text-white">{{ title }}</h2>
+        <p class="text-blue-200 mt-1">{% if form.instance.id %}Update offer details{% else %}Create a new offer{% endif %}</p>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" class="p-6">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Left Column -->
+            <div class="space-y-6">
+                <!-- Basic Information Section -->
+                <div class="bg-blue-900/20 rounded-lg p-5 border border-blue-800/50">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                        <i class="fas fa-info-circle mr-2"></i> Basic Information
+                    </h3>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Title *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ form.title.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Description *</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ form.description.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Offer Details Section -->
+                <div class="bg-blue-900/20 rounded-lg p-5 border border-blue-800/50">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                        <i class="fas fa-tag mr-2"></i> Offer Details
+                    </h3>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.code.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Offer Code</label>
+                        {{ form.code }}
+                        {% if form.code.errors %}
+                        <div class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ form.code.errors }}
+                        </div>
+                        {% endif %}
+                        <p class="text-blue-400 text-xs mt-1 italic">Leave empty if this is a deal without a code</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="{{ form.coupon_type.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Offer Type</label>
+                            {{ form.coupon_type }}
+                            {% if form.coupon_type.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.coupon_type.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.discount_type.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Discount Type</label>
+                            {{ form.discount_type }}
+                            {% if form.discount_type.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.discount_type.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="{{ form.discount_value.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Discount Value</label>
+                            {{ form.discount_value }}
+                            {% if form.discount_value.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.discount_value.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.minimum_purchase.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Minimum Purchase</label>
+                            {{ form.minimum_purchase }}
+                            {% if form.minimum_purchase.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.minimum_purchase.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.usage_limit.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Usage Limit</label>
+                            {{ form.usage_limit }}
+                            {% if form.usage_limit.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.usage_limit.errors }}
+                            </div>
+                            {% endif %}
+                            <p class="text-blue-400 text-xs mt-1 italic">Leave empty for unlimited usage</p>
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.source.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Source</label>
+                            {{ form.source }}
+                            {% if form.source.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.source.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Dates & Classification Section -->
+                <div class="bg-blue-900/20 rounded-lg p-5 border border-blue-800/50">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                        <i class="fas fa-calendar-alt mr-2"></i> Dates & Classification
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label for="{{ form.start_date.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Start Date</label>
+                            {{ form.start_date }}
+                            {% if form.start_date.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.start_date.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.expiry_date.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Expiry Date</label>
+                            {{ form.expiry_date }}
+                            {% if form.expiry_date.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.expiry_date.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.store.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Store *</label>
+                            {{ form.store }}
+                            {% if form.store.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.store.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <label for="{{ form.category.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Category *</label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <div class="text-red-400 text-sm mt-1 flex items-center">
+                                <i class="fas fa-exclamation-circle mr-1"></i> {{ form.category.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Options Section -->
+                <div class="bg-blue-900/20 rounded-lg p-5 border border-blue-800/50">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                        <i class="fas fa-toggle-on mr-2"></i> Status Options
+                    </h3>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex items-center p-3 bg-blue-900/30 rounded-lg">
+                            {{ form.is_active }}
+                            <label for="{{ form.is_active.id_for_label }}" class="ml-3 text-blue-300 font-medium">Active</label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-blue-900/30 rounded-lg">
+                            {{ form.is_featured }}
+                            <label for="{{ form.is_featured.id_for_label }}" class="ml-3 text-blue-300 font-medium">Featured</label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-blue-900/30 rounded-lg">
+                            {{ form.is_verified }}
+                            <label for="{{ form.is_verified.id_for_label }}" class="ml-3 text-blue-300 font-medium">Verified</label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-blue-900/30 rounded-lg">
+                            {{ form.is_special }}
+                            <label for="{{ form.is_special.id_for_label }}" class="ml-3 text-blue-300 font-medium">Special Offer</label>
+                        </div>
+                        
+                        <div class="flex items-center p-3 bg-blue-900/30 rounded-lg col-span-2">
+                            {{ form.is_popular }}
+                            <label for="{{ form.is_popular.id_for_label }}" class="ml-3 text-blue-300 font-medium">Popular</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Additional Information Section -->
+                <div class="bg-blue-900/20 rounded-lg p-5 border border-blue-800/50">
+                    <h3 class="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                        <i class="fas fa-link mr-2"></i> Additional Information
+                    </h3>
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.affiliate_link.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Affiliate Link</label>
+                        {{ form.affiliate_link }}
+                        {% if form.affiliate_link.errors %}
+                        <div class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ form.affiliate_link.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div>
+                        <label for="{{ form.tags.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Tags</label>
+                        {{ form.tags }}
+                        {% if form.tags.errors %}
+                        <div class="text-red-400 text-sm mt-1 flex items-center">
+                            <i class="fas fa-exclamation-circle mr-1"></i> {{ form.tags.errors }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Terms and Conditions Section -->
+        <div class="mt-8 bg-blue-900/20 rounded-lg p-5 border border-blue-800/50">
+            <h3 class="text-lg font-semibold text-blue-300 mb-4 flex items-center">
+                <i class="fas fa-file-contract mr-2"></i> Terms and Conditions
+            </h3>
+            
+            <div>
+                <label for="{{ form.terms_and_conditions.id_for_label }}" class="block text-blue-300 mb-2 font-medium">Terms & Conditions</label>
+                {{ form.terms_and_conditions }}
+                {% if form.terms_and_conditions.errors %}
+                <div class="text-red-400 text-sm mt-1 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-1"></i> {{ form.terms_and_conditions.errors }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="mt-8 flex justify-end space-x-4">
+            <a href="{% url 'admin_panel:offer_list' %}" class="px-6 py-3 border border-blue-600 text-blue-300 rounded-lg hover:bg-blue-900/50 transition flex items-center">
+                <i class="fas fa-times mr-2"></i> Cancel
+            </a>
+            <button type="submit" class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white px-6 py-3 rounded-lg transition flex items-center shadow-lg">
+                <i class="fas fa-save mr-2"></i> {% if form.instance.id %}Update Offer{% else %}Create Offer{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Form Input Styling */
+    select, textarea, input[type="text"], input[type="url"], input[type="number"], input[type="date"], input[type="email"] {
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid #3b82f6;
+        color: #e0e7ff;
+        transition: all 0.3s ease;
+    }
+    
+    select:focus, textarea:focus, input[type="text"]:focus, input[type="url"]:focus, 
+    input[type="number"]:focus, input[type="date"]:focus, input[type="email"]:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+        border-color: #60a5fa;
+    }
+    
+    /* Checkbox Styling */
+    input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 0.375rem;
+        background-color: rgba(0, 0, 0, 0.3);
+        border: 1px solid #3b82f6;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    input[type="checkbox"]:checked {
+        background-color: #3b82f6;
+        border-color: #3b82f6;
+    }
+    
+    /* Select Multiple Styling */
+    select[multiple] {
+        min-height: 120px;
+    }
+    
+    /* Error Message Styling */
+    .errorlist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .errorlist li {
+        color: #f87171;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}

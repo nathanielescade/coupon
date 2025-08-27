@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block title %}Analytics Dashboard - CouponHub{% endblock %}
-
 {% block extra_css %}
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,7 +20,6 @@
     }
 </style>
 {% endblock %}
-
 {% block content %}
 <div class="mb-8">
     <h1 class="text-3xl font-bold text-blue-300 mb-2">Analytics Dashboard</h1>
@@ -99,58 +97,57 @@
 
 <!-- Charts Row 1 -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-<!-- In your dashboard.html template -->
-<!-- Page Views Over Time -->
-<div class="analytics-card rounded-xl p-6 shadow-lg">
-    <h2 class="text-xl font-bold text-blue-300 mb-4">Page Views Over Time</h2>
-    <div class="chart-container">
-        <canvas id="pageViewsChart"></canvas>
+    <!-- Page Views Over Time -->
+    <div class="analytics-card rounded-xl p-6 shadow-lg">
+        <h2 class="text-xl font-bold text-blue-300 mb-4">Page Views Over Time</h2>
+        <div class="chart-container">
+            <canvas id="pageViewsChart"></canvas>
+        </div>
     </div>
-</div>
-
-<!-- Device Types -->
-<div class="analytics-card rounded-xl p-6 shadow-lg">
-    <h2 class="text-xl font-bold text-blue-300 mb-4">Device Types</h2>
-    <div class="chart-container">
-        <canvas id="deviceTypesChart"></canvas>
+    
+    <!-- Device Types -->
+    <div class="analytics-card rounded-xl p-6 shadow-lg">
+        <h2 class="text-xl font-bold text-blue-300 mb-4">Device Types</h2>
+        <div class="chart-container">
+            <canvas id="deviceTypesChart"></canvas>
+        </div>
     </div>
-</div>
-
-<!-- Browser Stats -->
-<div class="analytics-card rounded-xl p-6 shadow-lg">
-    <h2 class="text-xl font-bold text-blue-300 mb-4">Browser Statistics</h2>
-    <div class="chart-container">
-        <canvas id="browserStatsChart"></canvas>
+    
+    <!-- Browser Stats -->
+    <div class="analytics-card rounded-xl p-6 shadow-lg">
+        <h2 class="text-xl font-bold text-blue-300 mb-4">Browser Statistics</h2>
+        <div class="chart-container">
+            <canvas id="browserStatsChart"></canvas>
+        </div>
     </div>
-</div>
-
-<!-- Event Stats -->
-<div class="analytics-card rounded-xl p-6 shadow-lg">
-    <h2 class="text-xl font-bold text-blue-300 mb-4">Event Statistics</h2>
-    <div class="chart-container">
-        <canvas id="eventStatsChart"></canvas>
+    
+    <!-- Event Stats -->
+    <div class="analytics-card rounded-xl p-6 shadow-lg">
+        <h2 class="text-xl font-bold text-blue-300 mb-4">Event Statistics</h2>
+        <div class="chart-container">
+            <canvas id="eventStatsChart"></canvas>
+        </div>
     </div>
-</div>
 </div>
 
 <!-- Top Content Row -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Top Coupons -->
+    <!-- Top Offers (renamed from Top Coupons) -->
     <div class="analytics-card rounded-xl p-6 shadow-lg">
-        <h2 class="text-xl font-bold text-blue-300 mb-4">Top Coupons</h2>
+        <h2 class="text-xl font-bold text-blue-300 mb-4">Top Offers</h2>
         <div class="overflow-x-auto">
             <table class="w-full text-blue-200">
                 <thead>
                     <tr class="border-b border-blue-700">
-                        <th class="text-left py-2">Coupon</th>
+                        <th class="text-left py-2">Offer</th>
                         <th class="text-right py-2">Views</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for coupon in top_coupons %}
+                    {% for offer in top_offers %}  <!-- Changed from top_coupons -->
                     <tr class="border-b border-blue-800">
-                        <td class="py-2">{{ coupon.coupon_title }}</td>
-                        <td class="text-right py-2">{{ coupon.views }}</td>
+                        <td class="py-2">{{ offer.offer_title }}</td>  <!-- Changed from coupon_title -->
+                        <td class="text-right py-2">{{ offer.views }}</td>
                     </tr>
                     {% empty %}
                     <tr>
@@ -161,7 +158,8 @@
             </table>
         </div>
         <div class="mt-4 text-center">
-            <a href="{% url 'analytics:coupon_analytics' %}?days={{ days }}" class="text-blue-400 hover:text-blue-300 transition">View All →</a>
+            <!-- Changed from coupon_analytics to offer_analytics -->
+            <a href="{% url 'analytics:offer_analytics' %}?days={{ days }}" class="text-blue-400 hover:text-blue-300 transition">View All →</a>
         </div>
     </div>
     
@@ -285,11 +283,9 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
-// In your dashboard.html template
 <script>
     // Page Views Over Time Chart
     const pageViewsCtx = document.getElementById('pageViewsChart').getContext('2d');

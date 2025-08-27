@@ -1,6 +1,6 @@
 {% load static %}
 <!-- Navigation -->
-<nav class="bg-gradient-to-r from-black to-blue-900 shadow-lg sticky top-0 z-50 border-b border-blue-800">
+<nav class="bg-gradient-to-r from-black to-blue-900 shadow-lg border-b border-blue-800">
     <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
             <div class="logo flex items-center">
@@ -11,7 +11,7 @@
             
             <div class="hidden md:flex items-center space-x-6">
                 <a href="{% url 'home' %}" class="text-blue-300 hover:text-blue-400 font-medium transition whitespace-nowrap">Home</a>
-                <a href="{% url 'my_coupons' %}" class="text-blue-300 hover:text-blue-400 font-medium transition whitespace-nowrap">My Coupons</a>
+                <a href="{% url 'my_offers' %}" class="text-blue-300 hover:text-blue-400 font-medium transition whitespace-nowrap">My Offers</a>
                 
                 <!-- Stores Dropdown -->
                 <div class="relative group">
@@ -53,7 +53,7 @@
                 <div class="search-container hidden md:block">
                     <form action="{% url 'search' %}" method="GET" class="search-input">
                         <div class="relative">
-                            <input type="text" name="q" placeholder="Search coupons..." class="pl-10 pr-4 py-2 rounded-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
+                            <input type="text" name="q" placeholder="Search offers..." class="pl-10 pr-4 py-2 rounded-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 w-full">
                             <i class="fas fa-search absolute left-3 top-3 text-blue-400"></i>
                         </div>
                     </form>
@@ -73,8 +73,7 @@
                     <div class="absolute hidden group-hover:block card-bg rounded-lg mt-1 w-48 right-0 z-10 border border-blue-700 shadow-xl">
                         <div class="py-2">
                             <a href="{% url 'profile' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">My Profile</a>
-                            <a href="{% url 'my_coupons' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">My Coupons</a>
-                            <a href="{% url 'coupon_create' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Add Coupon</a>
+                            <a href="{% url 'my_offers' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">My Offers</a>
                             {% if user.is_staff %}
                             <a href="{% url 'admin_panel:dashboard' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Admin Panel</a>
                             <a href="{% url 'analytics:dashboard' %}" class="block px-4 py-2 text-blue-200 hover:bg-blue-900/50 transition">Analytics</a>
@@ -101,7 +100,7 @@
         <!-- Mobile Search -->
         <div id="mobile-search" class="hidden md:hidden mt-4">
             <form action="{% url 'search' %}" method="GET" class="flex">
-                <input type="text" name="q" placeholder="Search coupons..." class="flex-1 px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" name="q" placeholder="Search offers..." class="flex-1 px-4 py-2 rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button type="submit" class="btn-gradient text-white px-4 py-2 rounded-r-lg font-semibold hover:opacity-90 transition">Search</button>
             </form>
         </div>
@@ -110,7 +109,7 @@
         <div id="mobile-menu" class="hidden md:hidden mt-4 bg-black/30 rounded-lg border border-blue-700">
             <div class="px-4 py-3 space-y-3">
                 <a href="{% url 'home' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">Home</a>
-                <a href="{% url 'my_coupons' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">My Coupons</a>
+                <a href="{% url 'my_offers' %}" class="block py-2 text-blue-300 hover:text-blue-400 font-medium">My Offers</a>
                 
                 <!-- Stores dropdown -->
                 <div class="py-2">
@@ -151,4 +150,13 @@
             </div>
         </div>
     </div>
+    
+    <!-- Filter Controls -->
+    {% if request.resolver_match.url_name == 'home' or request.resolver_match.url_name == 'deal_section' or request.resolver_match.url_name == 'search' or request.resolver_match.url_name == 'all_offers' or request.resolver_match.url_name == 'featured_offers' or request.resolver_match.url_name == 'expiring_offers' or request.resolver_match.url_name == 'latest_offers' or request.resolver_match.url_name == 'all_stores' or request.resolver_match.url_name == 'all_categories' or request.resolver_match.url_name == 'store_detail' or request.resolver_match.url_name == 'category_detail' %}
+    <div class="filter-container bg-blue-900/90 backdrop-blur-sm border-b border-blue-700/50 py-1 px-4">
+        <div class="container mx-auto">
+            {% include 'filter_controls.html' %}
+        </div>
+    </div>
+    {% endif %}
 </nav>

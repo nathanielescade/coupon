@@ -61,10 +61,10 @@ class Event(models.Model):
         ('click', 'Click'),
         ('search', 'Search'),
         ('filter', 'Filter'),
-        ('save_coupon', 'Save Coupon'),
+        ('save_offer', 'Save Offer'),
         ('copy_code', 'Copy Code'),
-        ('view_coupon', 'View Coupon'),
-        ('use_coupon', 'Use Coupon'),
+        ('view_offer', 'View Offer'),
+        ('use_offer', 'Use Offer'),
         ('scroll', 'Scroll'),
         ('page_view', 'Page View'),
         ('form_submit', 'Form Submit'),
@@ -113,8 +113,9 @@ class Session(models.Model):
             self.duration = self.last_activity - self.start_time
             self.save(update_fields=['duration'])
 
-class CouponAnalytics(models.Model):
-    coupon = models.ForeignKey('coupons.Coupon', on_delete=models.CASCADE, related_name='analytics')
+# Renamed from CouponAnalytics to OfferAnalytics to match imports in views
+class OfferAnalytics(models.Model):
+    offer = models.ForeignKey('coupons.Coupon', on_delete=models.CASCADE, related_name='analytics')
     views = models.PositiveIntegerField(default=0)
     saves = models.PositiveIntegerField(default=0)
     code_copies = models.PositiveIntegerField(default=0)
@@ -122,10 +123,10 @@ class CouponAnalytics(models.Model):
     last_viewed = models.DateTimeField(null=True, blank=True)
     
     class Meta:
-        verbose_name_plural = "Coupon Analytics"
+        verbose_name_plural = "Offer Analytics"
     
     def __str__(self):
-        return f"Analytics for {self.coupon.title}"
+        return f"Analytics for {self.offer.title}"
     
     def increment_views(self):
         self.views += 1
@@ -147,7 +148,7 @@ class CouponAnalytics(models.Model):
 class StoreAnalytics(models.Model):
     store = models.ForeignKey('coupons.Store', on_delete=models.CASCADE, related_name='analytics')
     views = models.PositiveIntegerField(default=0)
-    coupon_clicks = models.PositiveIntegerField(default=0)
+    offer_clicks = models.PositiveIntegerField(default=0)  # Renamed from coupon_clicks
     last_viewed = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -161,14 +162,14 @@ class StoreAnalytics(models.Model):
         self.last_viewed = timezone.now()
         self.save(update_fields=['views', 'last_viewed'])
     
-    def increment_coupon_clicks(self):
-        self.coupon_clicks += 1
-        self.save(update_fields=['coupon_clicks'])
+    def increment_offer_clicks(self):  # Renamed from increment_coupon_clicks
+        self.offer_clicks += 1
+        self.save(update_fields=['offer_clicks'])
 
 class CategoryAnalytics(models.Model):
     category = models.ForeignKey('coupons.Category', on_delete=models.CASCADE, related_name='analytics')
     views = models.PositiveIntegerField(default=0)
-    coupon_clicks = models.PositiveIntegerField(default=0)
+    offer_clicks = models.PositiveIntegerField(default=0)  # Renamed from coupon_clicks
     last_viewed = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -182,9 +183,9 @@ class CategoryAnalytics(models.Model):
         self.last_viewed = timezone.now()
         self.save(update_fields=['views', 'last_viewed'])
     
-    def increment_coupon_clicks(self):
-        self.coupon_clicks += 1
-        self.save(update_fields=['coupon_clicks'])
+    def increment_offer_clicks(self):  # Renamed from increment_coupon_clicks
+        self.offer_clicks += 1
+        self.save(update_fields=['offer_clicks'])
 
 class UserActivity(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activity')

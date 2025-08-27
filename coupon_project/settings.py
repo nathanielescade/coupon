@@ -196,8 +196,8 @@ CACHE_TIMEOUT = {
 
 # App Settings
 APP_NAME = "CouPradise"
-APP_TAGLINE = "Save Money with Exclusive Coupons"
-APP_ICON = "fas fa-ticket-alt"
+APP_TAGLINE = "Discover Amazing Deals, Save Big Every Day"
+APP_ICON = "fas fa-tags"  # Changed from ticket-alt to tags to represent deals
 APP_FAVICON = "img/favicon.ico"
 APP_LOGO = "img/logo.jpg"
 

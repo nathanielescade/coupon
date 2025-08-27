@@ -77,24 +77,27 @@ class AnalyticsMiddleware:
             ip = request.META.get('REMOTE_ADDR')
         return ip
     
-    # analytics/middleware.py
     def update_analytics_records(self, request, page_view):
         from coupons.models import Coupon, Store, Category
-        from .models import CouponAnalytics, StoreAnalytics, CategoryAnalytics
+        # Changed from CouponAnalytics to OfferAnalytics
+        from .models import OfferAnalytics, StoreAnalytics, CategoryAnalytics
         
         path = request.path
         
-        # Track coupon views
-        if path.startswith('/coupon/') and len(path.split('/')) >= 3:
+        # Track offer views (updated from coupon views)
+        # Updated URL pattern from /coupon/ to /deals/ with section
+        if path.startswith('/deals/') and len(path.split('/')) >= 4:
             try:
-                slug = path.split('/')[2]
+                section = path.split('/')[2]
+                slug = path.split('/')[3]
                 # Check if the ID is a valid UUID before querying
                 try:
                     uuid.UUID(slug)
-                    # If it's a valid UUID, try to get the coupon
-                    coupon = Coupon.objects.get(slug=slug)
-                    coupon_analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
-                    coupon_analytics.increment_views()
+                    # If it's a valid UUID, try to get the offer
+                    offer = Coupon.objects.get(slug=slug)
+                    # Changed from CouponAnalytics to OfferAnalytics and coupon to offer
+                    offer_analytics, created = OfferAnalytics.objects.get_or_create(offer=offer)
+                    offer_analytics.increment_views()
                 except ValueError:
                     # Not a valid UUID, skip analytics tracking
                     pass

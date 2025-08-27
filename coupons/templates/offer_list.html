@@ -1,0 +1,8 @@
+{% load coupon_extras %}
+{% for offer in offers %}
+{% include 'offer_card.html' with offer=offer small_text=small_text show_expiry=show_expiry %}
+{% empty %}
+<div class="col-span-full text-center py-10">
+    <p class="text-blue-400">No offers available.</p>
+</div>
+{% endfor %}

@@ -6,15 +6,24 @@ from datetime import timedelta
 from django.db.models import Count, Sum, Avg, Q
 from django.urls import reverse
 from django.contrib import messages
-from coupons.models import Coupon, Store, Category, UserCoupon, CouponUsage
-from analytics.models import PageView, Event, CouponAnalytics, StoreAnalytics, CategoryAnalytics
-from .forms import CouponForm, StoreForm, CategoryForm, UserForm
+from django.http import HttpResponse, JsonResponse
+from django.template.loader import render_to_string
+from django.core.paginator import Paginator
+from coupons.models import (
+    Coupon, Store, Category, UserOffer, OfferUsage, Newsletter, NewsletterSubscriber, 
+    SEO, HomePageSEO, Tag, DealHighlight, DealSection
+)
+from analytics.models import PageView, Event, OfferAnalytics, StoreAnalytics, CategoryAnalytics
+from .forms import (
+    OfferForm, StoreForm, CategoryForm, UserForm, NewsletterForm, 
+    TagForm, SEOForm, HomePageSEOForm, DealSectionForm, DealHighlightForm
+)
 import json
 
 def is_staff_user(user):
     return user.is_authenticated and user.is_staff
 
-# Keep all your existing views here...
+# admin_panel/views.py (updated sections)
 
 @login_required
 @user_passes_test(is_staff_user)
@@ -24,14 +33,19 @@ def dashboard(request):
     end_date = timezone.now()
     start_date = end_date - timedelta(days=days)
     
-    # Basic stats
-    total_coupons = Coupon.objects.count()
-    active_coupons = Coupon.objects.filter(is_active=True).count()
+    # Basic stats - updated to use offers terminology
+    total_offers = Coupon.objects.count()
+    active_offers = Coupon.objects.filter(is_active=True).count()
     total_stores = Store.objects.count()
     total_users = User.objects.count()
     
+    # Deal section stats
+    special_offers = Coupon.objects.filter(is_special=True, is_active=True).count()
+    amazon_deals = Coupon.objects.filter(source='AMAZON', is_active=True).count()
+    hot_deals = Coupon.objects.filter(coupon_type='DEAL', is_active=True, is_special=False).count()
+    coupon_codes = Coupon.objects.filter(coupon_type__in=['CODE', 'PRINTABLE', 'FREE_SHIPPING'], is_active=True).count()
+    
     # Newsletter stats
-    from coupons.models import NewsletterSubscriber
     total_subscribers = NewsletterSubscriber.objects.count()
     active_subscribers = NewsletterSubscriber.objects.filter(is_active=True).count()
     recent_subscribers = NewsletterSubscriber.objects.order_by('-subscribed_at')[:5]
@@ -40,11 +54,11 @@ def dashboard(request):
     ).count()
     
     # Recent activity
-    recent_coupons = Coupon.objects.order_by('-created_at')[:5]
+    recent_offers = Coupon.objects.order_by('-created_at')[:5]
     recent_users = User.objects.order_by('-date_joined')[:5]
     
     # Quick stats
-    new_coupons_last_7_days = Coupon.objects.filter(
+    new_offers_last_7_days = Coupon.objects.filter(
         created_at__gte=timezone.now() - timedelta(days=7)
     ).count()
     
@@ -52,139 +66,300 @@ def dashboard(request):
         date_joined__gte=timezone.now() - timedelta(days=7)
     ).count()
     
-    coupon_usage_last_7_days = CouponUsage.objects.filter(
+    offer_usage_last_7_days = OfferUsage.objects.filter(
         used_at__gte=timezone.now() - timedelta(days=7)
     ).count()
     
     context = {
         'days': days,
-        'total_coupons': total_coupons,
-        'active_coupons': active_coupons,
+        'total_offers': total_offers,
+        'active_offers': active_offers,
         'total_stores': total_stores,
         'total_users': total_users,
+        'special_offers': special_offers,
+        'amazon_deals': amazon_deals,
+        'hot_deals': hot_deals,
+        'coupon_codes': coupon_codes,
         'total_subscribers': total_subscribers,
         'active_subscribers': active_subscribers,
         'recent_subscribers': recent_subscribers,
         'recent_subscribers_count': recent_subscribers_count,
-        'recent_coupons': recent_coupons,
+        'recent_offers': recent_offers,
         'recent_users': recent_users,
-        'new_coupons_last_7_days': new_coupons_last_7_days,
+        'new_offers_last_7_days': new_offers_last_7_days,
         'new_users_last_7_days': new_users_last_7_days,
-        'coupon_usage_last_7_days': coupon_usage_last_7_days,
+        'offer_usage_last_7_days': offer_usage_last_7_days,
     }
     
     return render(request, 'admin_panel/dashboard.html', context)
 
-
-
-
+# Add new views for deal sections
+@login_required
+@user_passes_test(is_staff_user)
+def deal_section_list(request):
+    sections = DealSection.objects.all()
+    
+    context = {
+        'sections': sections,
+    }
+    
+    return render(request, 'admin_panel/deal_section_list.html', context)
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_list(request):
-    coupons = Coupon.objects.all().order_by('-created_at')
+def deal_section_create(request):
+    if request.method == 'POST':
+        form = DealSectionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Deal section created successfully!')
+            return redirect('admin_panel:deal_section_list')
+    else:
+        form = DealSectionForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Deal Section',
+    }
+    
+    return render(request, 'admin_panel/deal_section_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def deal_highlight_list(request):
+    highlights = DealHighlight.objects.all().order_by('section', 'display_order')
+    
+    context = {
+        'highlights': highlights,
+    }
+    
+    return render(request, 'admin_panel/deal_highlight_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def deal_highlight_create(request):
+    if request.method == 'POST':
+        form = DealHighlightForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Deal highlight created successfully!')
+            return redirect('admin_panel:deal_highlight_list')
+    else:
+        form = DealHighlightForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Deal Highlight',
+    }
+    
+    return render(request, 'admin_panel/deal_highlight_form.html', context)
+
+
+
+
+# admin_panel/views.py (add these views)
+
+# Deal Section Management Views
+@login_required
+@user_passes_test(is_staff_user)
+def deal_section_edit(request, section_id):
+    section = get_object_or_404(DealSection, id=section_id)
+    
+    if request.method == 'POST':
+        form = DealSectionForm(request.POST, instance=section)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Deal section updated successfully!')
+            return redirect('admin_panel:deal_section_list')
+    else:
+        form = DealSectionForm(instance=section)
+    
+    context = {
+        'form': form,
+        'section': section,
+        'title': 'Edit Deal Section',
+    }
+    
+    return render(request, 'admin_panel/deal_section_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def deal_section_delete(request, section_id):
+    section = get_object_or_404(DealSection, id=section_id)
+    
+    if request.method == 'POST':
+        section.delete()
+        messages.success(request, 'Deal section deleted successfully!')
+        return redirect('admin_panel:deal_section_list')
+    
+    context = {
+        'section': section,
+    }
+    
+    return render(request, 'admin_panel/deal_section_delete.html', context)
+
+# Deal Highlight Management Views
+@login_required
+@user_passes_test(is_staff_user)
+def deal_highlight_edit(request, highlight_id):
+    highlight = get_object_or_404(DealHighlight, id=highlight_id)
+    
+    if request.method == 'POST':
+        form = DealHighlightForm(request.POST, instance=highlight)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Deal highlight updated successfully!')
+            return redirect('admin_panel:deal_highlight_list')
+    else:
+        form = DealHighlightForm(instance=highlight)
+    
+    context = {
+        'form': form,
+        'highlight': highlight,
+        'title': 'Edit Deal Highlight',
+    }
+    
+    return render(request, 'admin_panel/deal_highlight_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def deal_highlight_delete(request, highlight_id):
+    highlight = get_object_or_404(DealHighlight, id=highlight_id)
+    
+    if request.method == 'POST':
+        highlight.delete()
+        messages.success(request, 'Deal highlight deleted successfully!')
+        return redirect('admin_panel:deal_highlight_list')
+    
+    context = {
+        'highlight': highlight,
+    }
+    
+    return render(request, 'admin_panel/deal_highlight_delete.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def offer_list(request):
+    offers = Coupon.objects.all().order_by('-created_at')
     
     # Filter by active status
     active_filter = request.GET.get('active')
     if active_filter == 'true':
-        coupons = coupons.filter(is_active=True)
+        offers = offers.filter(is_active=True)
     elif active_filter == 'false':
-        coupons = coupons.filter(is_active=False)
+        offers = offers.filter(is_active=False)
+    
+    # Filter by source
+    source_filter = request.GET.get('source')
+    if source_filter:
+        offers = offers.filter(source=source_filter)
+    
+    # Filter by section
+    section_filter = request.GET.get('section')
+    if section_filter == 'special':
+        offers = offers.filter(is_special=True)
+    elif section_filter == 'amazon':
+        offers = offers.filter(source='AMAZON')
+    elif section_filter == 'coupons':
+        offers = offers.filter(coupon_type__in=['CODE', 'PRINTABLE', 'FREE_SHIPPING'])
+    elif section_filter == 'deals':
+        offers = offers.filter(coupon_type='DEAL', is_special=False)
     
     # Search
     search_query = request.GET.get('search', '')
     if search_query:
-        coupons = coupons.filter(
+        offers = offers.filter(
             Q(title__icontains=search_query) | 
             Q(code__icontains=search_query) |
             Q(store__name__icontains=search_query)
         )
     
     context = {
-        'coupons': coupons,
+        'offers': offers,
         'active_filter': active_filter,
+        'source_filter': source_filter,
+        'section_filter': section_filter,
         'search_query': search_query,
     }
     
-    return render(request, 'admin_panel/coupon_list.html', context)
+    return render(request, 'admin_panel/offer_list.html', context)
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_create(request):
+def offer_create(request):
     if request.method == 'POST':
-        form = CouponForm(request.POST, request.FILES)
+        form = OfferForm(request.POST, request.FILES)
         if form.is_valid():
-            coupon = form.save(commit=False)
-            coupon.created_by = request.user
-            coupon.save()
-            messages.success(request, 'Coupon created successfully!')
-            return redirect('admin_panel:coupon_detail', slug=coupon.slug)
+            offer = form.save(commit=False)
+            offer.created_by = request.user
+            offer.save()
+            messages.success(request, 'Offer created successfully!')
+            return redirect('admin_panel:offer_detail', slug=offer.slug)
     else:
-        form = CouponForm()
+        form = OfferForm()
     
     context = {
         'form': form,
-        'title': 'Create Coupon',
+        'title': 'Create Offer',
     }
     
-    return render(request, 'admin_panel/coupon_form.html', context)
+    return render(request, 'admin_panel/offer_form.html', context)
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_edit(request, slug):
-    coupon = get_object_or_404(Coupon, slug=slug)
+def offer_edit(request, slug):
+    offer = get_object_or_404(Coupon, slug=slug)
     
     if request.method == 'POST':
-        form = CouponForm(request.POST, request.FILES, instance=coupon)
+        form = OfferForm(request.POST, request.FILES, instance=offer)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Coupon updated successfully!')
-            return redirect('admin_panel:coupon_detail', slug=coupon.slug)
+            messages.success(request, 'Offer updated successfully!')
+            return redirect('admin_panel:offer_detail', slug=offer.slug)
     else:
-        form = CouponForm(instance=coupon)
+        form = OfferForm(instance=offer)
     
     context = {
         'form': form,
-        'coupon': coupon,
-        'title': 'Edit Coupon',
+        'offer': offer,
+        'title': 'Edit Offer',
     }
     
-    return render(request, 'admin_panel/coupon_form.html', context)
+    return render(request, 'admin_panel/offer_form.html', context)
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_delete(request, slug):
-    coupon = get_object_or_404(Coupon, slug=slug)
+def offer_delete(request, slug):
+    offer = get_object_or_404(Coupon, slug=slug)
     
     if request.method == 'POST':
-        coupon.delete()
-        messages.success(request, 'Coupon deleted successfully!')
-        return redirect('admin_panel:coupon_list')
+        offer.delete()
+        messages.success(request, 'Offer deleted successfully!')
+        return redirect('admin_panel:offer_list')
     
     context = {
-        'coupon': coupon,
+        'offer': offer,
     }
     
-    return render(request, 'admin_panel/coupon_delete.html', context)
+    return render(request, 'admin_panel/offer_delete.html', context)
 
 @login_required
 @user_passes_test(is_staff_user)
-def coupon_detail(request, slug):
-    coupon = get_object_or_404(Coupon, slug=slug)
+def offer_detail(request, slug):
+    offer = get_object_or_404(Coupon, slug=slug)
     
     # Get analytics data if available
     try:
-        analytics = CouponAnalytics.objects.get(coupon=coupon)
-    except CouponAnalytics.DoesNotExist:
+        analytics = OfferAnalytics.objects.get(offer=offer)
+    except OfferAnalytics.DoesNotExist:
         analytics = None
     
     context = {
-        'coupon': coupon,
+        'offer': offer,
         'analytics': analytics,
     }
     
-    return render(request, 'admin_panel/coupon_detail.html', context)
-
+    return render(request, 'admin_panel/offer_detail.html', context)
 
 # Store management views
 @login_required
@@ -336,6 +511,81 @@ def category_delete(request, category_slug):
     
     return render(request, 'admin_panel/category_delete.html', context)
 
+# Tag management views
+@login_required
+@user_passes_test(is_staff_user)
+def tag_list(request):
+    tags = Tag.objects.all().order_by('name')
+    
+    # Search
+    search_query = request.GET.get('search', '')
+    if search_query:
+        tags = tags.filter(name__icontains=search_query)
+    
+    context = {
+        'tags': tags,
+        'search_query': search_query,
+    }
+    
+    return render(request, 'admin_panel/tag_list.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def tag_create(request):
+    if request.method == 'POST':
+        form = TagForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tag created successfully!')
+            return redirect('admin_panel:tag_list')
+    else:
+        form = TagForm()
+    
+    context = {
+        'form': form,
+        'title': 'Create Tag',
+    }
+    
+    return render(request, 'admin_panel/tag_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def tag_edit(request, tag_id):
+    tag = get_object_or_404(Tag, id=tag_id)
+    
+    if request.method == 'POST':
+        form = TagForm(request.POST, instance=tag)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tag updated successfully!')
+            return redirect('admin_panel:tag_list')
+    else:
+        form = TagForm(instance=tag)
+    
+    context = {
+        'form': form,
+        'tag': tag,
+        'title': 'Edit Tag',
+    }
+    
+    return render(request, 'admin_panel/tag_form.html', context)
+
+@login_required
+@user_passes_test(is_staff_user)
+def tag_delete(request, tag_id):
+    tag = get_object_or_404(Tag, id=tag_id)
+    
+    if request.method == 'POST':
+        tag.delete()
+        messages.success(request, 'Tag deleted successfully!')
+        return redirect('admin_panel:tag_list')
+    
+    context = {
+        'tag': tag,
+    }
+    
+    return render(request, 'admin_panel/tag_delete.html', context)
+
 # User management views
 @login_required
 @user_passes_test(is_staff_user)
@@ -395,40 +645,6 @@ def user_edit(request, user_id):
 def analytics_view(request):
     # Redirect to the existing analytics dashboard
     return redirect('analytics:dashboard')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Count, Sum, Avg, Q
-from django.urls import reverse
-from django.contrib import messages
-from django.http import HttpResponse
-from coupons.models import Coupon, Store, Category, UserCoupon, CouponUsage, Newsletter, NewsletterSubscriber
-from analytics.models import PageView, Event, CouponAnalytics, StoreAnalytics, CategoryAnalytics
-from .forms import CouponForm, StoreForm, CategoryForm, UserForm, NewsletterForm
-import json
-
-def is_staff_user(user):
-    return user.is_authenticated and user.is_staff
-
-# ... keep all your existing views ...
 
 # Newsletter management views
 @login_required
@@ -528,10 +744,10 @@ def newsletter_send(request, newsletter_id):
 def newsletter_preview(request, newsletter_id):
     newsletter = get_object_or_404(Newsletter, id=newsletter_id)
     
-    # Get latest coupons for the preview
+    # Get latest offers for the preview
     days_ago = 7
     start_date = timezone.now() - timedelta(days=days_ago)
-    coupons = Coupon.objects.filter(
+    offers = Coupon.objects.filter(
         is_active=True,
         created_at__gte=start_date
     ).order_by('-created_at')[:10]
@@ -539,7 +755,7 @@ def newsletter_preview(request, newsletter_id):
     context = {
         'subject': newsletter.subject,
         'content': newsletter.content,
-        'coupons': coupons,
+        'offers': offers,
         'email': 'subscriber@example.com'  # Example email for preview
     }
     
@@ -570,8 +786,6 @@ def subscriber_list(request):
     
     return render(request, 'admin_panel/subscriber_list.html', context)
 
-
-
 @login_required
 @user_passes_test(is_staff_user)
 def export_subscribers(request):
@@ -593,26 +807,6 @@ def export_subscribers(request):
         ])
     
     return response
-
-
-
-
-
-
-
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib import messages
-from django.http import Http404
-from coupons.models import SEO, HomePageSEO, Coupon, Store, Category
-from .forms import SEOForm, HomePageSEOForm
-
-def is_staff_user(user):
-    return user.is_authenticated and user.is_staff
-
-# Keep all your existing views here...
 
 # SEO Management Views
 @login_required
@@ -639,7 +833,8 @@ def seo_edit(request, seo_id):
     seo = get_object_or_404(SEO, id=seo_id)
     
     if request.method == 'POST':
-        form = SEOForm(request.POST, instance=seo)
+        # Add request.FILES to handle image uploads
+        form = SEOForm(request.POST, request.FILES, instance=seo)
         if form.is_valid():
             form.save()
             messages.success(request, 'SEO metadata updated successfully!')
@@ -655,44 +850,52 @@ def seo_edit(request, seo_id):
     
     return render(request, 'admin_panel/seo_form.html', context)
 
+
+
+
+
 @login_required
 @user_passes_test(is_staff_user)
-def seo_create_for_coupon(request, slug):
-    coupon = get_object_or_404(Coupon, slug=slug)
+def seo_create_for_offer(request, slug):
+    offer = get_object_or_404(Coupon, slug=slug)
     
     # Check if SEO already exists
-    if hasattr(coupon, 'seo') and coupon.seo:
-        messages.warning(request, 'SEO metadata already exists for this coupon.')
-        return redirect('admin_panel:seo_edit', seo_id=coupon.seo.id)
+    if hasattr(offer, 'seo') and offer.seo:
+        messages.warning(request, 'SEO metadata already exists for this offer.')
+        return redirect('admin_panel:seo_edit', seo_id=offer.seo.id)
     
     if request.method == 'POST':
-        form = SEOForm(request.POST)
+        # Add request.FILES to handle image uploads
+        form = SEOForm(request.POST, request.FILES)
         if form.is_valid():
             seo = form.save(commit=False)
-            seo.content_type = 'coupon'
-            seo.content_id = str(coupon.slug)
+            seo.content_type = 'offer'
+            seo.content_id = str(offer.slug)
             seo.save()
             
-            # Link to coupon
-            coupon.seo = seo
-            coupon.save()
+            # Link to offer
+            offer.seo = seo
+            offer.save()
             
             messages.success(request, 'SEO metadata created successfully!')
-            return redirect('admin_panel:coupon_detail', slug=coupon.slug)
+            return redirect('admin_panel:offer_detail', slug=offer.slug)
     else:
         form = SEOForm(initial={
-            'meta_title': f"{coupon.title} - {coupon.discount_display} | {coupon.store.name} Coupon",
-            'meta_description': f"Get {coupon.discount_display} at {coupon.store.name}. {coupon.description[:100]}...",
-            'meta_keywords': f"{coupon.store.name}, {coupon.category.name}, {coupon.title}, coupon, promo code, discount",
+            'meta_title': f"{offer.title} - {offer.discount_display} | {offer.store.name} Offer",
+            'meta_description': f"Get {offer.discount_display} at {offer.store.name}. {offer.description[:100]}...",
+            'meta_keywords': f"{offer.store.name}, {offer.category.name}, {offer.title}, offer, promo code, discount",
         })
     
     context = {
         'form': form,
-        'coupon': coupon,
-        'title': f'Create SEO for Coupon: {coupon.title}',
+        'offer': offer,
+        'title': f'Create SEO for Offer: {offer.title}',
     }
     
     return render(request, 'admin_panel/seo_form.html', context)
+
+
+
 
 @login_required
 @user_passes_test(is_staff_user)
@@ -705,7 +908,8 @@ def seo_create_for_store(request, store_slug):
         return redirect('admin_panel:seo_edit', seo_id=store.seo.id)
     
     if request.method == 'POST':
-        form = SEOForm(request.POST)
+        # Add request.FILES to handle image uploads
+        form = SEOForm(request.POST, request.FILES)
         if form.is_valid():
             seo = form.save(commit=False)
             seo.content_type = 'store'
@@ -720,9 +924,9 @@ def seo_create_for_store(request, store_slug):
             return redirect('admin_panel:store_list')
     else:
         form = SEOForm(initial={
-            'meta_title': f"{store.name} Coupons & Promo Codes - Save Money Today",
-            'meta_description': f"Find the latest {store.name} coupons, promo codes and deals. Save money with verified {store.name} discount codes and offers.",
-            'meta_keywords': f"{store.name}, coupons, promo codes, deals, discounts, savings",
+            'meta_title': f"{store.name} Offers & Promo Codes - Save Money Today",
+            'meta_description': f"Find the latest {store.name} offers, promo codes and deals. Save money with verified {store.name} discount codes and offers.",
+            'meta_keywords': f"{store.name}, offers, promo codes, deals, discounts, savings",
         })
     
     context = {
@@ -744,7 +948,8 @@ def seo_create_for_category(request, category_slug):
         return redirect('admin_panel:seo_edit', seo_id=category.seo.id)
     
     if request.method == 'POST':
-        form = SEOForm(request.POST)
+        # Add request.FILES to handle image uploads
+        form = SEOForm(request.POST, request.FILES)
         if form.is_valid():
             seo = form.save(commit=False)
             seo.content_type = 'category'
@@ -759,9 +964,9 @@ def seo_create_for_category(request, category_slug):
             return redirect('admin_panel:category_list')
     else:
         form = SEOForm(initial={
-            'meta_title': f"{category.name} Coupons & Deals - Best Discounts",
-            'meta_description': f"Browse {category.name} coupons and deals from top brands. Save money with verified {category.name} discount codes.",
-            'meta_keywords': f"{category.name}, coupons, deals, discounts, savings, promo codes",
+            'meta_title': f"{category.name} Offers & Deals - Best Discounts",
+            'meta_description': f"Browse {category.name} offers and deals from top brands. Save money with verified {category.name} discount codes.",
+            'meta_keywords': f"{category.name}, offers, deals, discounts, savings, promo codes",
         })
     
     context = {
@@ -772,6 +977,10 @@ def seo_create_for_category(request, category_slug):
     
     return render(request, 'admin_panel/seo_form.html', context)
 
+
+
+
+
 @login_required
 @user_passes_test(is_staff_user)
 def homepage_seo(request):
@@ -781,7 +990,8 @@ def homepage_seo(request):
         homepage_seo = HomePageSEO()
     
     if request.method == 'POST':
-        form = HomePageSEOForm(request.POST, instance=homepage_seo)
+        # Add request.FILES to handle image uploads
+        form = HomePageSEOForm(request.POST, request.FILES, instance=homepage_seo)
         if form.is_valid():
             form.save()
             messages.success(request, 'Homepage SEO settings updated successfully!')

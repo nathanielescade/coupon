@@ -10,7 +10,7 @@ class SEO(models.Model):
     """Model for storing SEO metadata for different content types"""
     CONTENT_TYPES = [
         ('home', 'Homepage'),
-        ('coupon', 'Coupon'),
+        ('offer', 'Offer'),
         ('store', 'Store'),
         ('category', 'Category'),
         ('page', 'Static Page'),
@@ -66,22 +66,21 @@ class SEO(models.Model):
             return self.twitter_image_upload.url
         return self.twitter_image
 
-
 class HomePageSEO(models.Model):
     """Model for homepage-specific SEO settings"""
-    meta_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
-    meta_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.")
-    meta_keywords = models.CharField(max_length=255, default="coupons, promo codes, deals, discounts, savings, coupon codes")
+    meta_title = models.CharField(max_length=255, default="CouPradise - Discover Amazing Deals, Save Big Every Day")
+    meta_description = models.TextField(default="Discover the best deals and exclusive offers from your favorite stores. Save money on your online shopping with CouPradise.")
+    meta_keywords = models.CharField(max_length=255, default="deals, offers, discounts, savings, promo codes, exclusive offers")
     
     # Open Graph fields
-    og_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
-    og_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.")
+    og_title = models.CharField(max_length=255, default="CouPradise - Discover Amazing Deals, Save Big Every Day")
+    og_description = models.TextField(default="Discover the best deals and exclusive offers from your favorite stores. Save money on your online shopping with CouPradise.")
     og_image = models.URLField(blank=True)
     og_image_upload = models.ImageField(upload_to='seo/og_images/', blank=True, null=True)
     
     # Twitter Card fields
-    twitter_title = models.CharField(max_length=255, default="CouPradise - Save Money with Exclusive Coupons")
-    twitter_description = models.TextField(default="Discover the best coupons, promo codes and deals from your favorite stores. Save money on your online shopping with CouPradise.")
+    twitter_title = models.CharField(max_length=255, default="CouPradise - Discover Amazing Deals, Save Big Every Day")
+    twitter_description = models.TextField(default="Discover the best deals and exclusive offers from your favorite stores. Save money on your online shopping with CouPradise.")
     twitter_image = models.URLField(blank=True)
     twitter_image_upload = models.ImageField(upload_to='seo/twitter_images/', blank=True, null=True)
     
@@ -91,8 +90,8 @@ class HomePageSEO(models.Model):
     no_follow = models.BooleanField(default=False)
     
     # Homepage-specific content
-    hero_title = models.CharField(max_length=255, default="Save Money with Exclusive Coupons")
-    hero_description = models.TextField(default="Discover the best deals and discounts from your favorite stores.")
+    hero_title = models.CharField(max_length=255, default="Discover Amazing Deals, Save Big Every Day")
+    hero_description = models.TextField(default="Find the best deals and exclusive offers from top brands. Save money on every purchase with CouPradise.")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -125,6 +124,9 @@ class HomePageSEO(models.Model):
         return self.twitter_image
 
 
+
+
+
 class CouponProvider(models.Model):
     name = models.CharField(max_length=100)
     api_url = models.URLField(validators=[URLValidator()])
@@ -135,7 +137,6 @@ class CouponProvider(models.Model):
     
     def __str__(self):
         return self.name
-
 
 class Store(models.Model):
     name = models.CharField(max_length=100)
@@ -151,7 +152,6 @@ class Store(models.Model):
     def __str__(self):
         return self.name
 
-
 class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True)
@@ -164,8 +164,20 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-
-
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    slug = models.SlugField(unique=True, blank=True)
+    
+    class Meta:
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
 class Coupon(models.Model):
     COUPON_TYPE_CHOICES = [
@@ -182,6 +194,13 @@ class Coupon(models.Model):
         ('FREE', 'Free Item'),
     ]
     
+    SOURCE_CHOICES = [
+        ('DIRECT', 'Direct Entry'),
+        ('AMAZON', 'Amazon'),
+        ('AFFILIATE', 'Affiliate Network'),
+        ('OTHER', 'Other Source'),
+    ]
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     description = models.TextField()
@@ -195,21 +214,37 @@ class Coupon(models.Model):
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    is_special = models.BooleanField(default=False)
+    is_popular = models.BooleanField(default=False)
     usage_limit = models.PositiveIntegerField(blank=True, null=True)
     usage_count = models.PositiveIntegerField(default=0)
     terms_and_conditions = models.TextField(blank=True)
     affiliate_link = models.URLField(blank=True, null=True, validators=[URLValidator()])
-    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='coupons')
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='coupons')
-    seo = models.OneToOneField(SEO, on_delete=models.SET_NULL, null=True, blank=True, related_name='coupon')
-    provider = models.ForeignKey(CouponProvider, on_delete=models.CASCADE, related_name='coupons', blank=True, null=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_coupons')
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='DIRECT')
+    store = models.ForeignKey(Store, on_delete=models.CASCADE, related_name='offers')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='offers')
+    tags = models.ManyToManyField(Tag, blank=True, related_name='offers')
+    seo = models.OneToOneField(SEO, on_delete=models.SET_NULL, null=True, blank=True, related_name='offer')
+    provider = models.ForeignKey(CouponProvider, on_delete=models.CASCADE, related_name='offers', blank=True, null=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_offers')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     # Updated slug field with db_index for faster lookups
-    # slug = models.SlugField(max_length=255, unique=True, blank=True, db_index=True)
     slug = models.SlugField(max_length=255, unique=True, blank=True, db_index=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['slug']),
+            models.Index(fields=['source']),
+            models.Index(fields=['coupon_type']),
+            models.Index(fields=['is_special']),
+            models.Index(fields=['is_popular']),
+            models.Index(fields=['is_featured']),
+            models.Index(fields=['is_verified']),
+            models.Index(fields=['start_date']),
+            models.Index(fields=['expiry_date']),
+        ]
     
     def __str__(self):
         return self.title
@@ -222,15 +257,38 @@ class Coupon(models.Model):
     
     @property
     def discount_display(self):
-        if self.discount_type == 'PERCENTAGE':
+        if self.discount_type == 'PERCENTAGE' and self.discount_value:
             return f"{self.discount_value}% OFF"
-        elif self.discount_type == 'FIXED':
+        elif self.discount_type == 'FIXED' and self.discount_value:
             return f"${self.discount_value} OFF"
         elif self.discount_type == 'BOGO':
             return "Buy One Get One Free"
         elif self.discount_type == 'FREE':
             return "Free Item"
-        return ""
+        
+        # Fallback to coupon_type if discount_type doesn't provide a display
+        if self.coupon_type == 'FREE_SHIPPING':
+            return "Free Shipping"
+        elif self.coupon_type == 'DEAL':
+            return "Special Deal"
+        elif self.coupon_type == 'PRINTABLE':
+            return "Printable Coupon"
+        
+        return "Discount"
+    
+    @property
+    def section(self):
+        """Determine the section based on precedence logic"""
+        if self.is_special:
+            return 'special'
+        elif self.source == 'AMAZON':
+            return 'amazon'
+        elif self.coupon_type in ['CODE', 'PRINTABLE', 'FREE_SHIPPING']:
+            return 'coupons'
+        elif self.coupon_type == 'DEAL' and not self.is_special and not self.is_expired:
+            return 'deals'
+        else:
+            return 'deals'  # Default fallback
     
     def generate_slug(self):
         """Generate a hybrid slug from title and UUID with improved formatting"""
@@ -238,7 +296,7 @@ class Coupon(models.Model):
         title_slug = slugify(self.title)[:200]
         
         # Get the first 12 characters of the UUID using .hex for cleaner output
-        uuid_str = self.id.hex[:12]  # Increased to 12 chars for better uniqueness
+        uuid_str = self.id.hex[:12]
         
         # Combine them with a hyphen
         slug = f"{title_slug}-{uuid_str}"
@@ -270,31 +328,37 @@ class Coupon(models.Model):
                     self.slug = f"{base_slug}-{attempt + 1}"
                 else:
                     raise e
-                
+    
+    def get_absolute_url(self):
+        """Return the canonical URL for this offer"""
+        return f"/deals/{self.section}/{self.slug}/"
 
-
-class UserCoupon(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_coupons')
-    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='saved_by')
+class UserOffer(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='saved_offers')
+    offer = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='saved_by')
     saved_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
     
     class Meta:
-        unique_together = ('user', 'coupon')
+        unique_together = ('user', 'offer')
+        verbose_name = "User Offer"
+        verbose_name_plural = "User Offers"
     
     def __str__(self):
-        return f"{self.user.username} - {self.coupon.title}"
+        return f"{self.user.username} - {self.offer.title}"
 
-
-class CouponUsage(models.Model):
-    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='usages')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='coupon_usages')
+class OfferUsage(models.Model):
+    offer = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='usages')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='offer_usages')
     used_at = models.DateTimeField(auto_now_add=True)
     ip_address = models.GenericIPAddressField()
     
+    class Meta:
+        verbose_name = "Offer Usage"
+        verbose_name_plural = "Offer Usages"
+    
     def __str__(self):
-        return f"{self.coupon.title} used by {self.user.username}"
-
+        return f"{self.offer.title} used by {self.user.username}"
 
 class NewsletterSubscriber(models.Model):
     email = models.EmailField(unique=True)
@@ -306,7 +370,6 @@ class NewsletterSubscriber(models.Model):
     
     def __str__(self):
         return self.email
-
 
 class Newsletter(models.Model):
     subject = models.CharField(max_length=255)
@@ -325,13 +388,13 @@ class Newsletter(models.Model):
         from django.core.mail import EmailMultiAlternatives
         from django.template.loader import render_to_string
         from django.conf import settings
-        from coupons.models import Coupon
+        from .models import Coupon
         import datetime
         
-        # Get latest coupons for the newsletter
+        # Get latest offers for the newsletter
         days_ago = 7
         start_date = timezone.now() - datetime.timedelta(days=days_ago)
-        coupons = Coupon.objects.filter(
+        offers = Coupon.objects.filter(
             is_active=True,
             created_at__gte=start_date
         ).order_by('-created_at')[:10]
@@ -353,14 +416,14 @@ class Newsletter(models.Model):
                 html_content = render_to_string('custom_newsletter_email.html', {
                     'subject': self.subject,
                     'content': self.content,
-                    'coupons': coupons,
+                    'offers': offers,
                     'email': subscriber.email
                 })
                 
                 # Create email message
                 email = EmailMultiAlternatives(
                     self.subject,
-                    f"{self.content}\n\nCheck out the latest deals and coupons on CouPradise!",
+                    f"{self.content}\n\nCheck out the latest deals and offers on CouPradise!",
                     from_email,
                     [subscriber.email]
                 )
@@ -381,3 +444,45 @@ class Newsletter(models.Model):
         self.save()
         
         return True, f"Successfully sent to {success_count} subscribers, {error_count} failed"
+
+
+
+
+# admin_panel/models.py (updated)
+from django.db import models
+from coupons.models import Coupon, Store, Category, Tag, SEO, HomePageSEO
+from django.contrib.auth.models import User
+
+class DealSection(models.Model):
+    """Model to manage different deal sections"""
+    name = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Deal Section"
+        verbose_name_plural = "Deal Sections"
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+class DealHighlight(models.Model):
+    """Model to manage highlighted deals for special sections"""
+    deal = models.ForeignKey(Coupon, on_delete=models.CASCADE, related_name='highlights')
+    section = models.ForeignKey(DealSection, on_delete=models.CASCADE, related_name='deals')
+    display_order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Deal Highlight"
+        verbose_name_plural = "Deal Highlights"
+        ordering = ['display_order']
+    
+    def __str__(self):
+        return f"{self.deal.title} in {self.section.name}"

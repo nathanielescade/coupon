@@ -19,41 +19,40 @@
                     <div class="flex flex-wrap justify-center md:justify-start gap-4 mb-6">
                         <div class="bg-black/30 rounded-lg p-3 text-center min-w-[120px]">
                             <p class="text-2xl font-bold text-blue-300">{{ total_saved }}</p>
-                            <p class="text-blue-400 text-sm">Saved Coupons</p>
+                            <p class="text-blue-400 text-sm">Saved Offers</p>
                         </div>
                         <div class="bg-black/30 rounded-lg p-3 text-center min-w-[120px]">
                             <p class="text-2xl font-bold text-blue-300">{{ total_used }}</p>
-                            <p class="text-blue-400 text-sm">Used Coupons</p>
+                            <p class="text-blue-400 text-sm">Used Offers</p>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
     
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <!-- Saved Coupons Section -->
+        <!-- Saved Offers Section -->
         <div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
             <div class="p-6 border-b border-blue-700">
-                <h2 class="text-xl font-bold text-blue-100">Saved Coupons</h2>
+                <h2 class="text-xl font-bold text-blue-100">Saved Offers</h2>
             </div>
             <div class="p-6">
-                {% if saved_coupons %}
+                {% if saved_offers %}
                     <div class="space-y-4">
-                        {% for user_coupon in saved_coupons %}
+                        {% for user_offer in saved_offers %}
                         <div class="bg-black/30 rounded-lg p-4 hover:bg-black/40 transition">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h3 class="font-bold text-blue-100">{{ user_coupon.coupon.title }}</h3>
-                                    <p class="text-sm text-blue-300 mt-1">{{ user_coupon.coupon.store.name }}</p>
-                                    <p class="text-xs text-blue-400 mt-2">Saved on {{ user_coupon.saved_at|date:"M d, Y" }}</p>
+                                    <h3 class="font-bold text-blue-100">{{ user_offer.offer.title }}</h3>
+                                    <p class="text-sm text-blue-300 mt-1">{{ user_offer.offer.store.name }}</p>
+                                    <p class="text-xs text-blue-400 mt-2">Saved on {{ user_offer.saved_at|date:"M d, Y" }}</p>
                                 </div>
                                 <div class="text-right">
                                     <span class="inline-block px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded">
-                                        {{ user_coupon.coupon.discount_display }}
+                                        {{ user_offer.offer.discount_display }}
                                     </span>
-                                    {% if user_coupon.coupon.is_expired %}
+                                    {% if user_offer.offer.is_expired %}
                                         <span class="inline-block mt-1 px-2 py-1 bg-red-900/50 text-red-300 text-xs rounded">
                                             Expired
                                         </span>
@@ -63,49 +62,49 @@
                         </div>
                         {% endfor %}
                     </div>
-                    {% if saved_coupons.count > 10 %}
+                    {% if saved_offers.count > 10 %}
                     <div class="mt-4 text-center">
-                        <a href="{% url 'my_coupons' %}" class="text-blue-400 hover:text-blue-300 transition">View all saved coupons</a>
+                        <a href="{% url 'my_offers' %}" class="text-blue-400 hover:text-blue-300 transition">View all saved offers</a>
                     </div>
                     {% endif %}
                 {% else %}
-                    <p class="text-blue-300 text-center py-4">No saved coupons yet.</p>
+                    <p class="text-blue-300 text-center py-4">No saved offers yet.</p>
                 {% endif %}
             </div>
         </div>
         
-        <!-- Used Coupons Section -->
+        <!-- Used Offers Section -->
         <div class="card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700">
             <div class="p-6 border-b border-blue-700">
-                <h2 class="text-xl font-bold text-blue-100">Used Coupons</h2>
+                <h2 class="text-xl font-bold text-blue-100">Used Offers</h2>
             </div>
             <div class="p-6">
-                {% if used_coupons %}
+                {% if used_offers %}
                     <div class="space-y-4">
-                        {% for usage in used_coupons %}
+                        {% for usage in used_offers %}
                         <div class="bg-black/30 rounded-lg p-4 hover:bg-black/40 transition">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h3 class="font-bold text-blue-100">{{ usage.coupon.title }}</h3>
-                                    <p class="text-sm text-blue-300 mt-1">{{ usage.coupon.store.name }}</p>
+                                    <h3 class="font-bold text-blue-100">{{ usage.offer.title }}</h3>
+                                    <p class="text-sm text-blue-300 mt-1">{{ usage.offer.store.name }}</p>
                                     <p class="text-xs text-blue-400 mt-2">Used on {{ usage.used_at|date:"M d, Y" }}</p>
                                 </div>
                                 <div class="text-right">
                                     <span class="inline-block px-2 py-1 bg-green-900/50 text-green-300 text-xs rounded">
-                                        {{ usage.coupon.discount_display }}
+                                        {{ usage.offer.discount_display }}
                                     </span>
                                 </div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
-                    {% if used_coupons.count > 10 %}
+                    {% if used_offers.count > 10 %}
                     <div class="mt-4 text-center">
-                        <a href="#" class="text-blue-400 hover:text-blue-300 transition">View all used coupons</a>
+                        <a href="#" class="text-blue-400 hover:text-blue-300 transition">View all used offers</a>
                     </div>
                     {% endif %}
                 {% else %}
-                    <p class="text-blue-300 text-center py-4">No coupon usage history yet.</p>
+                    <p class="text-blue-300 text-center py-4">No offer usage history yet.</p>
                 {% endif %}
             </div>
         </div>

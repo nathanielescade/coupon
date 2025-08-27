@@ -1,24 +1,33 @@
+<!-- admin_panel/offer_detail.html (updated) -->
 {% extends 'admin_panel/base.html' %}
-{% block title %}Coupon Detail - Admin Panel{% endblock %}
-{% block page_title %}Coupon Details{% endblock %}
-
+{% block title %}Offer Detail - Admin Panel{% endblock %}
+{% block page_title %}Offer Details{% endblock %}
 {% block content %}
 <div class="admin-card rounded-xl p-6 shadow-lg mb-6">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
         <div>
-            <h2 class="text-xl font-bold text-blue-300">{{ coupon.title }}</h2>
-            <p class="text-blue-400">{{ coupon.store.name }} - {{ coupon.category.name }}</p>
+            <h2 class="text-xl font-bold text-blue-300">{{ offer.title }}</h2>
+            <p class="text-blue-400">{{ offer.store.name }} - {{ offer.category.name }}</p>
+            {% if offer.section == 'special' %}
+                <span class="px-2 py-1 bg-red-900/50 text-red-300 rounded-full text-xs inline-block mt-2">Special Offer</span>
+            {% elif offer.section == 'amazon' %}
+                <span class="px-2 py-1 bg-orange-900/50 text-orange-300 rounded-full text-xs inline-block mt-2">Amazon Deal</span>
+            {% elif offer.section == 'deals' %}
+                <span class="px-2 py-1 bg-yellow-900/50 text-yellow-300 rounded-full text-xs inline-block mt-2">Hot Deal</span>
+            {% elif offer.section == 'coupons' %}
+                <span class="px-2 py-1 bg-green-900/50 text-green-300 rounded-full text-xs inline-block mt-2">Coupon Code</span>
+            {% endif %}
         </div>
         <div class="flex space-x-2 mt-4 md:mt-0">
-            <a href="{% url 'admin_panel:coupon_edit' coupon.slug %}" 
+            <a href="{% url 'admin_panel:offer_edit' offer.slug %}" 
                class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
                 <i class="fas fa-edit mr-2"></i> Edit
             </a>
-            <a href="{% url 'admin_panel:coupon_delete' coupon.slug %}" 
+            <a href="{% url 'admin_panel:offer_delete' offer.slug %}" 
                class="bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition">
                 <i class="fas fa-trash mr-2"></i> Delete
             </a>
-            <a href="{% url 'admin_panel:coupon_list' %}" 
+            <a href="{% url 'admin_panel:offer_list' %}" 
                class="border border-blue-600 text-blue-300 px-4 py-2 rounded-lg hover:bg-blue-900/50 transition">
                 <i class="fas fa-arrow-left mr-2"></i> Back to List
             </a>
@@ -27,46 +36,46 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-            <h3 class="text-lg font-semibold text-blue-300 mb-4">Coupon Information</h3>
+            <h3 class="text-lg font-semibold text-blue-300 mb-4">Offer Information</h3>
             <div class="space-y-3">
                 <div>
                     <p class="text-blue-400 text-sm">Description</p>
-                    <p class="text-blue-100">{{ coupon.description }}</p>
+                    <p class="text-blue-100">{{ offer.description }}</p>
                 </div>
                 
-                {% if coupon.code %}
+                {% if offer.code %}
                 <div>
-                    <p class="text-blue-400 text-sm">Coupon Code</p>
-                    <p class="font-mono bg-blue-900/50 px-3 py-2 rounded inline-block">{{ coupon.code }}</p>
+                    <p class="text-blue-400 text-sm">Offer Code</p>
+                    <p class="font-mono bg-blue-900/50 px-3 py-2 rounded inline-block">{{ offer.code }}</p>
                 </div>
                 {% endif %}
                 
                 <div>
                     <p class="text-blue-400 text-sm">Discount</p>
-                    <p class="text-blue-100">{{ coupon.discount_display }}</p>
+                    <p class="text-blue-100">{{ offer.discount_display }}</p>
                 </div>
                 
                 <div>
-                    <p class="text-blue-400 text-sm">Coupon Type</p>
-                    <p class="text-blue-100">{{ coupon.get_coupon_type_display }}</p>
+                    <p class="text-blue-400 text-sm">Offer Type</p>
+                    <p class="text-blue-100">{{ offer.get_coupon_type_display }}</p>
                 </div>
                 
                 <div>
                     <p class="text-blue-400 text-sm">Discount Type</p>
-                    <p class="text-blue-100">{{ coupon.get_discount_type_display }}</p>
+                    <p class="text-blue-100">{{ offer.get_discount_type_display }}</p>
                 </div>
                 
-                {% if coupon.minimum_purchase %}
+                {% if offer.minimum_purchase %}
                 <div>
                     <p class="text-blue-400 text-sm">Minimum Purchase</p>
-                    <p class="text-blue-100">${{ coupon.minimum_purchase }}</p>
+                    <p class="text-blue-100">${{ offer.minimum_purchase }}</p>
                 </div>
                 {% endif %}
                 
-                {% if coupon.usage_limit %}
+                {% if offer.usage_limit %}
                 <div>
                     <p class="text-blue-400 text-sm">Usage Limit</p>
-                    <p class="text-blue-100">{{ coupon.usage_count }} / {{ coupon.usage_limit }}</p>
+                    <p class="text-blue-100">{{ offer.usage_count }} / {{ offer.usage_limit }}</p>
                 </div>
                 {% endif %}
             </div>
@@ -77,25 +86,25 @@
             <div class="space-y-3">
                 <div>
                     <p class="text-blue-400 text-sm">Created</p>
-                    <p class="text-blue-100">{{ coupon.created_at|date:"F d, Y, g:i A" }}</p>
+                    <p class="text-blue-100">{{ offer.created_at|date:"F d, Y, g:i A" }}</p>
                 </div>
                 
                 <div>
                     <p class="text-blue-400 text-sm">Start Date</p>
-                    <p class="text-blue-100">{{ coupon.start_date|date:"F d, Y, g:i A" }}</p>
+                    <p class="text-blue-100">{{ offer.start_date|date:"F d, Y, g:i A" }}</p>
                 </div>
                 
-                {% if coupon.expiry_date %}
+                {% if offer.expiry_date %}
                 <div>
                     <p class="text-blue-400 text-sm">Expiry Date</p>
-                    <p class="text-blue-100">{{ coupon.expiry_date|date:"F d, Y, g:i A" }}</p>
+                    <p class="text-blue-100">{{ offer.expiry_date|date:"F d, Y, g:i A" }}</p>
                 </div>
                 {% endif %}
                 
                 <div>
                     <p class="text-blue-400 text-sm">Status</p>
                     <div class="flex items-center">
-                        {% if coupon.is_active %}
+                        {% if offer.is_active %}
                         <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
                         <span class="text-green-300">Active</span>
                         {% else %}
@@ -108,7 +117,7 @@
                 <div>
                     <p class="text-blue-400 text-sm">Featured</p>
                     <div class="flex items-center">
-                        {% if coupon.is_featured %}
+                        {% if offer.is_featured %}
                         <span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
                         <span class="text-yellow-300">Yes</span>
                         {% else %}
@@ -121,7 +130,7 @@
                 <div>
                     <p class="text-blue-400 text-sm">Verified</p>
                     <div class="flex items-center">
-                        {% if coupon.is_verified %}
+                        {% if offer.is_verified %}
                         <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
                         <span class="text-green-300">Yes</span>
                         {% else %}
@@ -134,83 +143,83 @@
         </div>
     </div>
     
-    {% if coupon.terms_and_conditions %}
+    {% if offer.terms_and_conditions %}
     <div class="mt-6">
         <h3 class="text-lg font-semibold text-blue-300 mb-2">Terms and Conditions</h3>
         <div class="bg-black/30 p-4 rounded-lg">
-            <p class="text-blue-100">{{ coupon.terms_and_conditions }}</p>
+            <p class="text-blue-100">{{ offer.terms_and_conditions }}</p>
         </div>
     </div>
     {% endif %}
     
-    {% if coupon.affiliate_link %}
+    {% if offer.affiliate_link %}
     <div class="mt-6">
         <h3 class="text-lg font-semibold text-blue-300 mb-2">Affiliate Link</h3>
         <div class="bg-black/30 p-4 rounded-lg break-all">
-            <a href="{{ coupon.affiliate_link }}" target="_blank" class="text-blue-300 hover:text-blue-200">
-                {{ coupon.affiliate_link }}
+            <a href="{{ offer.affiliate_link }}" target="_blank" class="text-blue-300 hover:text-blue-200">
+                {{ offer.affiliate_link }}
             </a>
         </div>
     </div>
     {% endif %}
-
-    <div>
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold text-blue-300 mb-2">SEO Settings</h3>
-                <div class="bg-blue-900/30 p-4 rounded-lg">
-                    {% if coupon.seo %}
-                        <div class="mb-2">
-                            <span class="text-blue-400">Meta Title:</span>
-                            <span class="text-blue-100 ml-2">{{ coupon.seo.meta_title|default:"Not set" }}</span>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-blue-400">Meta Description:</span>
-                            <span class="text-blue-100 ml-2">{{ coupon.seo.meta_description|truncatechars:100|default:"Not set" }}</span>
-                        </div>
-                        <div class="mb-2">
-                            <span class="text-blue-400">Keywords:</span>
-                            <span class="text-blue-100 ml-2">{{ coupon.seo.meta_keywords|default:"Not set" }}</span>
-                        </div>
-                        <div class="mt-4">
-                            <a href="{% url 'admin_panel:seo_edit' coupon.seo.id %}" 
-                               class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
-                                <i class="fas fa-edit mr-2"></i> Edit SEO
-                            </a>
-                        </div>
-                    {% else %}
-                        <p class="text-blue-100 mb-4">No SEO metadata has been set for this coupon.</p>
-                        <a href="{% url 'admin_panel:seo_create_for_coupon' coupon.slug %}" 
-                           class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
-                            <i class="fas fa-plus mr-2"></i> Add SEO
+    
+    <div class="mt-6">
+        <div class="mb-4">
+            <h3 class="text-lg font-semibold text-blue-300 mb-2">SEO Settings</h3>
+            <div class="bg-blue-900/30 p-4 rounded-lg">
+                {% if offer.seo %}
+                    <div class="mb-2">
+                        <span class="text-blue-400">Meta Title:</span>
+                        <span class="text-blue-100 ml-2">{{ offer.seo.meta_title|default:"Not set" }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-blue-400">Meta Description:</span>
+                        <span class="text-blue-100 ml-2">{{ offer.seo.meta_description|truncatechars:100|default:"Not set" }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <span class="text-blue-400">Keywords:</span>
+                        <span class="text-blue-100 ml-2">{{ offer.seo.meta_keywords|default:"Not set" }}</span>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'admin_panel:seo_edit' offer.seo.id %}" 
+                           class="bg-blue-700 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                            <i class="fas fa-edit mr-2"></i> Edit SEO
                         </a>
-                    {% endif %}
-                </div>
+                    </div>
+                {% else %}
+                    <p class="text-blue-100 mb-4">No SEO metadata has been set for this offer.</p>
+                    <a href="{% url 'admin_panel:seo_create_for_offer' offer.slug %}" 
+                       class="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition">
+                        <i class="fas fa-plus mr-2"></i> Add SEO
+                    </a>
+                {% endif %}
             </div>
-            
-            {% if analytics %}
-            <div class="mt-4">
-                <h3 class="text-lg font-semibold text-blue-300 mb-2">Analytics</h3>
-                <div class="bg-blue-900/30 p-4 rounded-lg">
-                    <div class="mb-2">
-                        <span class="text-blue-400">Views:</span>
-                        <span class="text-blue-100 ml-2">{{ analytics.views }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-blue-400">Saves:</span>
-                        <span class="text-blue-100 ml-2">{{ analytics.saves }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-blue-400">Uses:</span>
-                        <span class="text-blue-100 ml-2">{{ analytics.uses }}</span>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-blue-400">Copy Events:</span>
-                        <span class="text-blue-100 ml-2">{{ analytics.copy_events }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
         </div>
+        
+        {% if analytics %}
+        <div class="mt-4">
+            <h3 class="text-lg font-semibold text-blue-300 mb-2">Analytics</h3>
+            <div class="bg-blue-900/30 p-4 rounded-lg">
+                <div class="mb-2">
+                    <span class="text-blue-400">Views:</span>
+                    <span class="text-blue-100 ml-2">{{ analytics.views }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-blue-400">Saves:</span>
+                    <span class="text-blue-100 ml-2">{{ analytics.saves }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-blue-400">Uses:</span>
+                    <span class="text-blue-100 ml-2">{{ analytics.uses }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-blue-400">Copy Events:</span>
+                    <span class="text-blue-100 ml-2">{{ analytics.copy_events }}</span>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
     
     {% if analytics %}
     <div class="mt-8 pt-6 border-t border-blue-800">

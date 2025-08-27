@@ -5,7 +5,7 @@ from django.db.models import Count, Sum, Avg, F, ExpressionWrapper, DurationFiel
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models.functions import TruncDate, TruncHour, TruncWeek, TruncMonth
-from .models import PageView, Event, Session, CouponAnalytics, StoreAnalytics, CategoryAnalytics, UserActivity
+from .models import PageView, Event, Session, OfferAnalytics, StoreAnalytics, CategoryAnalytics, UserActivity
 from coupons.models import Coupon, Store, Category
 import json
 from django.http import JsonResponse
@@ -13,7 +13,6 @@ from django.http import JsonResponse
 def is_admin_user(user):
     return user.is_authenticated and user.is_staff
 
-# In your analytics/views.py file
 @login_required
 @user_passes_test(is_admin_user)
 def analytics_dashboard(request):
@@ -80,9 +79,9 @@ def analytics_dashboard(request):
         count=Count('id')
     ).order_by('-count')
     
-    # Top coupons
-    top_coupons = CouponAnalytics.objects.annotate(
-        coupon_title=F('coupon__title')
+    # Top offers (renamed from coupons)
+    top_offers = OfferAnalytics.objects.annotate(
+        offer_title=F('offer__title')
     ).order_by('-views')[:10]
     
     # Top stores
@@ -142,7 +141,7 @@ def analytics_dashboard(request):
         'device_stats_json': json.dumps(device_stats_data),
         'browser_stats_json': json.dumps(browser_stats_data),
         'event_stats_json': json.dumps(event_stats_data),
-        'top_coupons': top_coupons,
+        'top_offers': top_offers,  # Renamed from top_coupons
         'top_stores': top_stores,
         'top_categories': top_categories,
         'active_users': active_users,
@@ -151,27 +150,25 @@ def analytics_dashboard(request):
     
     return render(request, 'analytics/dashboard.html', context)
 
-# In your analytics/views.py file
-# analytics/views.py
 @login_required
 @user_passes_test(is_admin_user)
-def coupon_analytics(request):
+def offer_analytics(request):  # Renamed from coupon_analytics
     # Get date range (default: last 30 days)
     days = int(request.GET.get('days', 30))
     end_date = timezone.now()
     start_date = end_date - timedelta(days=days)
     
-    # Get all coupons with their analytics
-    coupon_stats = []
-    coupons = Coupon.objects.all()
+    # Get all offers with their analytics
+    offer_stats = []
+    offers = Coupon.objects.all()  # Still using Coupon model
     
-    for coupon in coupons:
+    for offer in offers:
         try:
-            analytics = CouponAnalytics.objects.get(coupon=coupon)
+            analytics = OfferAnalytics.objects.get(offer=offer)  # Changed from coupon to offer
             stats = {
-                'id': coupon.slug,
-                'title': coupon.title,
-                'store': coupon.store.name,
+                'id': offer.slug,
+                'title': offer.title,
+                'store': offer.store.name,
                 'views': analytics.views,
                 'saves': analytics.saves,
                 'code_copies': analytics.code_copies,
@@ -183,33 +180,32 @@ def coupon_analytics(request):
             if stats['views'] > 0:
                 stats['conversion_rate'] = round((stats['saves'] / stats['views']) * 100, 2)
             
-            coupon_stats.append(stats)
-        except CouponAnalytics.DoesNotExist:
+            offer_stats.append(stats)
+        except OfferAnalytics.DoesNotExist:  # Changed from CouponAnalytics
             # If no analytics record exists, create one with default values
-            analytics = CouponAnalytics.objects.create(coupon=coupon)
+            analytics = OfferAnalytics.objects.create(offer=offer)  # Changed from coupon to offer
             stats = {
-                'id': coupon.slug,
-                'title': coupon.title,
-                'store': coupon.store.name,
+                'id': offer.slug,
+                'title': offer.title,
+                'store': offer.store.name,
                 'views': 0,
                 'saves': 0,
                 'code_copies': 0,
                 'uses': 0,
                 'conversion_rate': 0,
             }
-            coupon_stats.append(stats)
+            offer_stats.append(stats)
     
     # Sort by views
-    coupon_stats.sort(key=lambda x: x['views'], reverse=True)
+    offer_stats.sort(key=lambda x: x['views'], reverse=True)
     
     context = {
         'days': days,
-        'coupon_stats': coupon_stats,
+        'offer_stats': offer_stats,  # Renamed from coupon_stats
     }
     
-    return render(request, 'analytics/coupon_analytics.html', context)
+    return render(request, 'analytics/offer_analytics.html', context)  # Updated template name
 
-# In your analytics/views.py file
 @login_required
 @user_passes_test(is_admin_user)
 def store_analytics(request):
@@ -228,13 +224,13 @@ def store_analytics(request):
                 'id': store.id,
                 'name': store.name,
                 'views': analytics.views,
-                'coupon_clicks': analytics.coupon_clicks,
-                'coupon_count': store.coupons.count(),
+                'offer_clicks': analytics.offer_clicks,  # Changed from coupon_clicks
+                'offer_count': store.coupons.count(),  # Renamed from coupon_count
             }
             
             # Calculate click-through rate
             if stats['views'] > 0:
-                stats['ctr'] = round((stats['coupon_clicks'] / stats['views']) * 100, 2)
+                stats['ctr'] = round((stats['offer_clicks'] / stats['views']) * 100, 2)  # Changed from coupon_clicks
             else:
                 stats['ctr'] = 0
             
@@ -244,8 +240,8 @@ def store_analytics(request):
                 'id': store.id,
                 'name': store.name,
                 'views': 0,
-                'coupon_clicks': 0,
-                'coupon_count': store.coupons.count(),
+                'offer_clicks': 0,  # Changed from coupon_clicks
+                'offer_count': store.coupons.count(),  # Renamed from coupon_count
                 'ctr': 0,
             })
     
@@ -277,13 +273,13 @@ def category_analytics(request):
                 'id': category.id,
                 'name': category.name,
                 'views': analytics.views,
-                'coupon_clicks': analytics.coupon_clicks,
-                'coupon_count': category.coupons.count(),
+                'offer_clicks': analytics.offer_clicks,  # Changed from coupon_clicks
+                'offer_count': category.coupons.count(),  # Renamed from coupon_count
             }
             
             # Calculate click-through rate
             if stats['views'] > 0:
-                stats['ctr'] = round((stats['coupon_clicks'] / stats['views']) * 100, 2)
+                stats['ctr'] = round((stats['offer_clicks'] / stats['views']) * 100, 2)  # Changed from coupon_clicks
             else:
                 stats['ctr'] = 0
             
@@ -293,8 +289,8 @@ def category_analytics(request):
                 'id': category.id,
                 'name': category.name,
                 'views': 0,
-                'coupon_clicks': 0,
-                'coupon_count': category.coupons.count(),
+                'offer_clicks': 0,  # Changed from coupon_clicks
+                'offer_count': category.coupons.count(),  # Renamed from coupon_count
                 'ctr': 0,
             })
     
@@ -308,7 +304,6 @@ def category_analytics(request):
     
     return render(request, 'analytics/category_analytics.html', context)
 
-# In your analytics/views.py file
 @login_required
 @user_passes_test(is_admin_user)
 def user_analytics(request):
@@ -344,15 +339,8 @@ def user_analytics(request):
     
     return render(request, 'analytics/user_analytics.html', context)
 
-# In analytics/views.py, update the track_event function
-# analytics/views.py
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
-from django.views import View
-import json
 
-# analytics/views.py
 @csrf_exempt
 def track_event(request):
     if request.method == 'POST':
@@ -406,19 +394,19 @@ def track_event(request):
                         try:
                             import uuid
                             uuid.UUID(slug)
-                            coupon = Coupon.objects.get(slug=slug)
+                            offer = Coupon.objects.get(slug=slug)
                         except (ValueError, TypeError):
                             # If not a valid UUID, try to find by code
-                            coupon = Coupon.objects.get(code=slug)
+                            offer = Coupon.objects.get(code=slug)
                         
-                        if coupon:
-                            analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
+                        if offer:
+                            analytics, created = OfferAnalytics.objects.get_or_create(offer=offer)  # Changed from CouponAnalytics and coupon
                             analytics.increment_code_copies()
                     except Exception as e:
-                        print(f"Error updating coupon analytics: {e}")
+                        print(f"Error updating offer analytics: {e}")
             
             # Handle other event types
-            elif event_type == 'save_coupon':
+            elif event_type == 'save_offer':  # Changed from save_coupon
                 slug = event_data.get('slug')
                 if slug:
                     try:
@@ -426,18 +414,18 @@ def track_event(request):
                         try:
                             import uuid
                             uuid.UUID(slug)
-                            coupon = Coupon.objects.get(slug=slug)
+                            offer = Coupon.objects.get(slug=slug)
                         except (ValueError, TypeError):
                             # If not a valid UUID, try to find by code
-                            coupon = Coupon.objects.get(code=slug)
+                            offer = Coupon.objects.get(code=slug)
                         
-                        if coupon:
-                            analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
+                        if offer:
+                            analytics, created = OfferAnalytics.objects.get_or_create(offer=offer)  # Changed from CouponAnalytics and coupon
                             analytics.increment_saves()
                     except Exception as e:
-                        print(f"Error updating coupon analytics: {e}")
+                        print(f"Error updating offer analytics: {e}")
             
-            elif event_type == 'use_coupon':
+            elif event_type == 'use_offer':  # Changed from use_coupon
                 slug = event_data.get('slug')
                 if slug:
                     try:
@@ -445,16 +433,16 @@ def track_event(request):
                         try:
                             import uuid
                             uuid.UUID(slug)
-                            coupon = Coupon.objects.get(slug=slug)
+                            offer = Coupon.objects.get(slug=slug)
                         except (ValueError, TypeError):
                             # If not a valid UUID, try to find by code
-                            coupon = Coupon.objects.get(code=slug)
+                            offer = Coupon.objects.get(code=slug)
                         
-                        if coupon:
-                            analytics, created = CouponAnalytics.objects.get_or_create(coupon=coupon)
+                        if offer:
+                            analytics, created = OfferAnalytics.objects.get_or_create(offer=offer)  # Changed from CouponAnalytics and coupon
                             analytics.increment_uses()
                     except Exception as e:
-                        print(f"Error updating coupon analytics: {e}")
+                        print(f"Error updating offer analytics: {e}")
             
             return JsonResponse({'status': 'success'})
         

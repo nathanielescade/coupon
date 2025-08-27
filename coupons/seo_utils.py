@@ -36,7 +36,7 @@ def get_meta_title(instance, request=None):
             pass
             
         # Fall back to generated title with optimization
-        coupon_count = instance.coupons.filter(is_active=True).count()
+        coupon_count = Coupon.objects.filter(store=instance, is_active=True).count()
         
         if coupon_count > 0:
             return f"{instance.name} Coupons: {coupon_count} Promo Codes for {timezone.now().strftime('%B %Y')}"
@@ -52,7 +52,7 @@ def get_meta_title(instance, request=None):
             pass
             
         # Fall back to generated title with optimization
-        coupon_count = instance.coupons.filter(is_active=True).count()
+        coupon_count = Coupon.objects.filter(category=instance, is_active=True).count()
         
         if coupon_count > 0:
             return f"{instance.name} Coupons: {coupon_count} Deals for {timezone.now().strftime('%B %Y')}"
@@ -88,7 +88,7 @@ def get_meta_description(instance, request=None):
             pass
             
         # Fall back to generated description with optimization
-        coupon_count = instance.coupons.filter(is_active=True).count()
+        coupon_count = Coupon.objects.filter(store=instance, is_active=True).count()
         
         # Create a compelling description with social proof
         return f"Find {coupon_count} verified {instance.name} coupons, promo codes and deals for {timezone.now().strftime('%B %Y')}. Save money today with our exclusive discounts!"
@@ -102,7 +102,7 @@ def get_meta_description(instance, request=None):
             pass
             
         # Fall back to generated description with optimization
-        coupon_count = instance.coupons.filter(is_active=True).count()
+        coupon_count = Coupon.objects.filter(category=instance, is_active=True).count()
         
         # Create a compelling description with urgency
         return f"Browse {coupon_count} {instance.name} coupons and deals from top brands. Limited time offers - save money today!"
@@ -221,10 +221,19 @@ def get_open_graph_data(instance, request):
         if not twitter_image:
             twitter_image = og_image
         
+        # Determine section based on coupon type
+        section = 'coupons'  # Default section
+        if instance.source == 'AMAZON':
+            section = 'amazon'
+        elif instance.is_special:
+            section = 'special'
+        elif instance.coupon_type == 'DEAL':
+            section = 'deals'
+        
         return {
             'og_title': og_title,
             'og_description': og_description,
-            'og_url': f"{site_url}{reverse('coupon_detail', kwargs={'slug': instance.id})}",
+            'og_url': f"{site_url}{reverse('deal_detail', kwargs={'section': section, 'slug': instance.slug})}",
             'og_image': og_image,
             'og_type': 'website',
             'og_site_name': 'CouPradise',
@@ -274,7 +283,7 @@ def get_open_graph_data(instance, request):
             pass
         
         # If no custom data, generate it
-        coupon_count = instance.coupons.filter(is_active=True).count()
+        coupon_count = Coupon.objects.filter(store=instance, is_active=True).count()
         
         if not og_title:
             og_title = f"{instance.name} Coupons & Promo Codes - {coupon_count} Active Offers"
@@ -354,7 +363,7 @@ def get_open_graph_data(instance, request):
             pass
         
         # If no custom data, generate it
-        coupon_count = instance.coupons.filter(is_active=True).count()
+        coupon_count = Coupon.objects.filter(category=instance, is_active=True).count()
         
         if not og_title:
             og_title = f"{instance.name} Coupons & Deals - {coupon_count} Active Offers"
@@ -412,12 +421,21 @@ def get_breadcrumbs(instance):
 def get_structured_data(instance):
     """Generate structured data (JSON-LD) for different models"""
     if isinstance(instance, Coupon):
+        # Determine section based on coupon type
+        section = 'coupons'  # Default section
+        if instance.source == 'AMAZON':
+            section = 'amazon'
+        elif instance.is_special:
+            section = 'special'
+        elif instance.coupon_type == 'DEAL':
+            section = 'deals'
+            
         return {
             "@context": "https://schema.org/",
             "@type": "Offer",
             "name": instance.title,
             "description": strip_tags(instance.description),
-            "url": f"{settings.SITE_URL}{reverse('coupon_detail', kwargs={'slug': instance.id})}",
+            "url": f"{settings.SITE_URL}{reverse('deal_detail', kwargs={'section': section, 'slug': instance.slug})}",
             "availability": "https://schema.org/InStock" if instance.is_active and not instance.is_expired else "https://schema.org/OutOfStock",
             "validFrom": instance.start_date.isoformat(),
             "validThrough": instance.expiry_date.isoformat() if instance.expiry_date else None,
@@ -473,7 +491,16 @@ def get_canonical_url(instance, request):
         site_url = settings.SITE_URL if hasattr(settings, 'SITE_URL') else 'https://coupradise.com'
     
     if isinstance(instance, Coupon):
-        return f"{site_url}{reverse('coupon_detail', kwargs={'slug': instance.id})}"
+        # Determine section based on coupon type
+        section = 'coupons'  # Default section
+        if instance.source == 'AMAZON':
+            section = 'amazon'
+        elif instance.is_special:
+            section = 'special'
+        elif instance.coupon_type == 'DEAL':
+            section = 'deals'
+            
+        return f"{site_url}{reverse('deal_detail', kwargs={'section': section, 'slug': instance.slug})}"
     elif isinstance(instance, Store):
         return f"{site_url}{reverse('store_detail', kwargs={'store_slug': instance.slug})}"
     elif isinstance(instance, Category):

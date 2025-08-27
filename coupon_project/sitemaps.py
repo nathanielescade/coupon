@@ -1,14 +1,14 @@
 from django.contrib.sitemaps import views as sitemap_views
 from coupons.sitemaps import (
-    CouponSitemap, StoreSitemap, CategorySitemap, StaticViewSitemap,
-    FeaturedCouponsSitemap, ExpiringCouponsSitemap
+    OfferSitemap, StoreSitemap, CategorySitemap, StaticViewSitemap,
+    FeaturedOffersSitemap, ExpiringOffersSitemap
 )
 
 sitemaps = {
-    'coupons': CouponSitemap,
+    'offers': OfferSitemap,  # Updated from 'coupons'
     'stores': StoreSitemap,
     'categories': CategorySitemap,
     'static': StaticViewSitemap,
-    'featured': FeaturedCouponsSitemap,
-    'expiring': ExpiringCouponsSitemap,
+    'featured': FeaturedOffersSitemap,
+    'expiring': ExpiringOffersSitemap,
 }

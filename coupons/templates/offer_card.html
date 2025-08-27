@@ -1,12 +1,33 @@
 {% load coupon_extras %}
-<div class="coupon-card card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700" itemscope itemtype="https://schema.org/Offer">
+<div class="offer-card card-bg rounded-xl shadow-xl overflow-hidden border border-blue-700 transform transition-transform duration-300 hover:scale-[1.02]" itemscope itemtype="https://schema.org/Offer">
+    <!-- Deal Type Badge -->
+    <div class="absolute top-3 right-3 z-10">
+        {% if offer.section == 'special' %}
+            <span class="bg-purple-600 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                <i class="fas fa-star mr-1"></i> Special
+            </span>
+        {% elif offer.section == 'amazon' %}
+            <span class="bg-yellow-600 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                <i class="fab fa-amazon mr-1"></i> Amazon
+            </span>
+        {% elif offer.section == 'deals' %}
+            <span class="bg-red-600 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                <i class="fas fa-fire mr-1"></i> Hot Deal
+            </span>
+        {% elif offer.section == 'coupons' %}
+            <span class="bg-green-600 text-white text-xs px-2 py-1 rounded-full flex items-center">
+                <i class="fas fa-ticket-alt mr-1"></i> Coupon
+            </span>
+        {% endif %}
+    </div>
+    
     <div class="p-5">
         <div class="flex justify-between items-start mb-3">
             <div class="flex items-center">
-                {% if coupon.store.logo %}
-                <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }} logo" class="w-10 h-10 object-contain mr-2" itemprop="provider" itemscope itemtype="https://schema.org/Organization">
-                    <meta itemprop="name" content="{{ coupon.store.name }}">
-                    <meta itemprop="url" content="{{ coupon.store.website }}">
+                {% if offer.store.logo %}
+                <img src="{{ offer.store.logo.url }}" alt="{{ offer.store.name }} logo" class="w-10 h-10 object-contain mr-2" itemprop="provider" itemscope itemtype="https://schema.org/Organization">
+                    <meta itemprop="name" content="{{ offer.store.name }}">
+                    <meta itemprop="url" content="{{ offer.store.website }}">
                 </img>
                 {% else %}
                 <div class="w-10 h-10 bg-blue-900/50 rounded-lg flex items-center justify-center mr-2">
@@ -15,44 +36,44 @@
                 {% endif %}
                 <div>
                     <h3 class="font-bold text-blue-200 text-sm" itemprop="seller" itemscope itemtype="https://schema.org/Organization">
-                        <a href="{% url 'store_detail' coupon.store.slug %}" class="hover:text-blue-100 transition" itemprop="name">{{ coupon.store.name }}</a>
+                        <a href="{% url 'store_detail' offer.store.slug %}" class="hover:text-blue-100 transition" itemprop="name">{{ offer.store.name }}</a>
                     </h3>
                     <p class="text-xs text-blue-400" itemprop="category">
-                        <a href="{% url 'category_detail' coupon.category.slug %}" class="hover:text-blue-300 transition">{{ coupon.category.name }}</a>
+                        <a href="{% url 'category_detail' offer.category.slug %}" class="hover:text-blue-300 transition">{{ offer.category.name }}</a>
                     </p>
                 </div>
             </div>
            <div class="flex gap-1">
-    {% if show_expiry and coupon.is_expired %}
-        <span class="bg-red-900/50 text-red-300 text-xs px-2 py-1 rounded-full">Expired</span>
-    {% elif coupon.expiry_date|is_expiring_soon %}
-        <span class="bg-orange-900/50 text-orange-300 text-xs px-2 py-1 rounded-full">Expiring Soon</span>
-    {% else %}
-        {% if coupon.is_featured %}
-            <span class="bg-yellow-900/50 text-yellow-300 text-xs px-2 py-1 rounded-full">Featured</span>
-        {% endif %}
-        {% if coupon.is_verified %}
-            <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
-        {% endif %}
-    {% endif %}
-</div>
+                {% if show_expiry and offer.is_expired %}
+                    <span class="bg-red-900/50 text-red-300 text-xs px-2 py-1 rounded-full">Expired</span>
+                {% elif offer.expiry_date|is_expiring_soon %}
+                    <span class="bg-orange-900/50 text-orange-300 text-xs px-2 py-1 rounded-full">Expiring Soon</span>
+                {% else %}
+                    <!-- {% if offer.is_featured %}
+                        <span class="bg-yellow-900/50 text-yellow-300 text-xs px-2 py-1 rounded-full">Featured</span>
+                    {% endif %}
+                    {% if offer.is_verified %}
+                        <span class="bg-green-900/50 text-green-300 text-xs px-2 py-1 rounded-full">Verified</span>
+                    {% endif %} -->
+                {% endif %}
+            </div>
         </div>
         
-        <h3 class="font-bold text-blue-100 mb-2 {% if small_text %}text-sm{% endif %}" itemprop="name">{{ coupon.title }}</h3>
-        <p class="text-blue-300 mb-3 {% if small_text %}text-xs{% else %}text-sm{% endif %}" itemprop="description">{{ coupon.description|truncatewords:15 }}</p>
+        <h3 class="font-bold text-blue-100 mb-2 {% if small_text %}text-sm{% else %}text-base{% endif %}" itemprop="name">{{ offer.title }}</h3>
+        <p class="text-blue-300 mb-3 {% if small_text %}text-xs{% else %}text-sm{% endif %}" itemprop="description">{{ offer.description|truncatewords:15 }}</p>
         
-        <!-- Coupon Code Section (only for coupons with codes) -->
-        {% if coupon.code and show_code|default:True %}
+        <!-- Offer Code Section (only for offers with codes) -->
+        {% if offer.code and show_code|default:True %}
         <div class="mb-4 p-3 bg-black/30 rounded-lg border border-blue-700">
             <div class="flex justify-between items-center">
                 <div>
-                    <div class="text-xs text-blue-400 mb-1">Coupon Code</div>
-                    <div class="font-mono font-bold text-blue-100" id="code-{{ coupon.slug }}" itemprop="couponCode" style="display:none;">{{ coupon.code }}</div>
-                    <div id="code-placeholder-{{ coupon.slug }}" class="font-mono font-bold text-blue-400 flex items-center">
+                    <div class="text-xs text-blue-400 mb-1">Offer Code</div>
+                    <div class="font-mono font-bold text-blue-100" id="code-{{ offer.slug }}" itemprop="couponCode" style="display:none;">{{ offer.code }}</div>
+                    <div id="code-placeholder-{{ offer.slug }}" class="font-mono font-bold text-blue-400 flex items-center">
                         <i class="fas fa-cut mr-2"></i> Click to reveal
                     </div>
                 </div>
-                <button id="get-code-btn-{{ coupon.slug }}" onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.slug }}', '{{ coupon.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
+                <button id="get-code-btn-{{ offer.slug }}" onclick="copyCodeAndOpenStore('{{ offer.affiliate_link }}', '{{ offer.code }}', '{{ offer.slug }}', '{{ offer.store.name }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition flex items-center">
                     <i class="fas fa-ticket-alt mr-1"></i> GET CODE
                 </button>
             </div>
@@ -61,23 +82,23 @@
         
         <div class="flex justify-between items-center mb-4">
             <div class="text-lg font-bold text-gradient {% if small_text %}text-base{% endif %}" itemprop="price">
-                {% if coupon.discount_display %}
-                    {{ coupon.discount_display }}
+                {% if offer.discount_display %}
+                    {{ offer.discount_display }}
                 {% else %}
-                    {{ coupon.get_coupon_type_display }}
+                    {{ offer.get_coupon_type_display }}
                 {% endif %}
             </div>
             <div class="text-xs text-blue-400">
-                {% if coupon.expiry_date %}
-                    {% if coupon.is_expired %}
+                {% if offer.expiry_date %}
+                    {% if offer.is_expired %}
                         <span class="text-red-400">Expired</span>
                     {% else %}
-                        {% if coupon.expiry_date|countdown_from_3_days %}
-                            Expires in: <span class="text-orange-400">{{ coupon.expiry_date|countdown_from_3_days }}</span>
+                        {% if offer.expiry_date|countdown_from_3_days %}
+                            Expires in: <span class="text-orange-400">{{ offer.expiry_date|countdown_from_3_days }}</span>
                         {% elif show_expiry %}
-                            Expires: <time datetime="{{ coupon.expiry_date|date:'c' }}">{{ coupon.expiry_date|date:"M d, Y" }}</time>
+                            Expires: <time datetime="{{ offer.expiry_date|date:'c' }}">{{ offer.expiry_date|date:"M d, Y" }}</time>
                         {% else %}
-                            <time datetime="{{ coupon.expiry_date|date:'c' }}">{{ coupon.expiry_date|date:"M d" }}</time>
+                            <time datetime="{{ offer.expiry_date|date:'c' }}">{{ offer.expiry_date|date:"M d" }}</time>
                         {% endif %}
                     {% endif %}
                 {% endif %}
@@ -85,46 +106,45 @@
         </div>
         
         <meta itemprop="priceCurrency" content="USD">
-        <meta itemprop="availability" content="https://schema.org/InStock" if coupon.is_active and not coupon.is_expired else "https://schema.org/OutOfStock">
-        <meta itemprop="validFrom" content="{{ coupon.start_date|date:'c' }}">
-        {% if coupon.expiry_date %}
-        <meta itemprop="validThrough" content="{{ coupon.expiry_date|date:'c' }}">
+        <meta itemprop="availability" content="https://schema.org/InStock" if offer.is_active and not offer.is_expired else "https://schema.org/OutOfStock">
+        <meta itemprop="validFrom" content="{{ offer.start_date|date:'c' }}">
+        {% if offer.expiry_date %}
+        <meta itemprop="validThrough" content="{{ offer.expiry_date|date:'c' }}">
         {% endif %}
-        <link itemprop="url" href="{% url 'coupon_detail' coupon.slug %}">
+        <link itemprop="url" href="{% url 'deal_detail' offer.section offer.slug %}">
         
         <div class="flex space-x-2">
-            {% if coupon.affiliate_link %}
-                {% if coupon.code %}
-                    <button onclick="copyCodeAndOpenStore('{{ coupon.affiliate_link }}', '{{ coupon.code }}', '{{ coupon.slug }}', '{{ coupon.store.name }}')" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
+            {% if offer.affiliate_link %}
+                {% if offer.code %}
+                    <button onclick="copyCodeAndOpenStore('{{ offer.affiliate_link }}', '{{ offer.code }}', '{{ offer.slug }}', '{{ offer.store.name }}')" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
                         <i class="fas fa-ticket-alt mr-1"></i> GET CODE
                     </button>
                 {% else %}
-                    <button onclick="goToStore('{{ coupon.affiliate_link }}', '{{ coupon.slug }}', '{{ coupon.store.name }}')" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
+                    <button onclick="goToStore('{{ offer.affiliate_link }}', '{{ offer.slug }}', '{{ offer.store.name }}')" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90" itemprop="url">
                         <i class="fas fa-shopping-cart mr-1"></i> GET DEAL
                     </button>
                 {% endif %}
             {% else %}
-                <a href="{% url 'coupon_detail' coupon.slug %}" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
+                <a href="{% url 'deal_detail' offer.section offer.slug %}" class="flex-1 btn-gradient text-white text-center py-2 rounded-lg {% if small_text %}text-sm{% endif %} font-medium transition hover:opacity-90">
                     View Details
                 </a>
             {% endif %}
             
             {% if user.is_authenticated %}
-            <a href="{% url 'save_coupon' coupon.slug %}" class="w-10 h-8 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+            <a href="{% url 'save_offer' offer.slug %}" class="w-10 h-8 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
                 <i class="far fa-heart text-blue-300 {% if small_text %}text-sm{% endif %}"></i>
             </a>
             {% endif %}
         </div>
     </div>
 </div>
-
-<!-- Coupon Code Modal (only for coupons with codes) -->
-{% if coupon.code and show_code|default:True %}
-<div id="coupon-modal-{{ coupon.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+<!-- Offer Code Modal (only for offers with codes) -->
+{% if offer.code and show_code|default:True %}
+<div id="offer-modal-{{ offer.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-white">Your Coupon Code</h3>
-            <button onclick="closeCouponModal('{{ coupon.slug }}')" class="text-blue-300 hover:text-white">
+            <h3 class="text-xl font-bold text-white">Your Offer Code</h3>
+            <button onclick="closeOfferModal('{{ offer.slug }}')" class="text-blue-300 hover:text-white">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -132,12 +152,12 @@
         <div class="mb-6">
             <p class="text-blue-200 mb-2">Use this code at checkout:</p>
             <div class="bg-black/30 p-4 rounded-lg border border-blue-600 flex justify-between items-center">
-                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ coupon.slug }}">{{ coupon.code }}</span>
-                <button onclick="copyCodeFromModal('{{ coupon.code }}', '{{ coupon.slug }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ offer.slug }}">{{ offer.code }}</span>
+                <button onclick="copyCodeFromModal('{{ offer.code }}', '{{ offer.slug }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
                     <i class="fas fa-copy mr-1"></i> Copy
                 </button>
             </div>
-            <div id="copy-feedback-{{ coupon.slug }}" class="mt-2 text-green-400 text-sm hidden">
+            <div id="copy-feedback-{{ offer.slug }}" class="mt-2 text-green-400 text-sm hidden">
                 <i class="fas fa-check-circle mr-1"></i> Code copied to clipboard!
             </div>
         </div>
@@ -145,8 +165,8 @@
         <div class="mb-6">
             <p class="text-blue-200 text-sm mb-2">This code is valid until:</p>
             <p class="text-white font-medium">
-                {% if coupon.expiry_date %}
-                {{ coupon.expiry_date|date:"F d, Y" }}
+                {% if offer.expiry_date %}
+                {{ offer.expiry_date|date:"F d, Y" }}
                 {% else %}
                 No expiration date
                 {% endif %}
@@ -154,28 +174,27 @@
         </div>
         
         <div class="flex space-x-3">
-            <button onclick="goToStore('{{ coupon.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
-                <i class="fas fa-shopping-cart mr-2"></i> Shop at {{ coupon.store.name }}
+            <button onclick="goToStore('{{ offer.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
+                <i class="fas fa-shopping-cart mr-2"></i> Shop at {{ offer.store.name }}
             </button>
-            <button onclick="closeCouponModal('{{ coupon.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+            <button onclick="closeOfferModal('{{ offer.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
                 <i class="fas fa-times text-blue-300"></i>
             </button>
         </div>
         
         <div class="mt-4 text-xs text-blue-400 text-center">
-            <p>By using this coupon, you may be supporting our site through affiliate links</p>
+            <p>By using this offer, you may be supporting our site through affiliate links</p>
         </div>
     </div>
 </div>
 {% endif %}
-
 <!-- Deal Confirmation Modal (for deals without codes) -->
-{% if not coupon.code and coupon.affiliate_link %}
-<div id="deal-modal-{{ coupon.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+{% if not offer.code and offer.affiliate_link %}
+<div id="deal-modal-{{ offer.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
     <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xl font-bold text-white">Deal Activated</h3>
-            <button onclick="closeDealModal('{{ coupon.slug }}')" class="text-blue-300 hover:text-white">
+            <h3 class="text-xl font-bold text-white">Redirecting to Store</h3>
+            <button onclick="closeDealModal('{{ offer.slug }}')" class="text-blue-300 hover:text-white">
                 <i class="fas fa-times"></i>
             </button>
         </div>
@@ -183,46 +202,28 @@
         <div class="mb-6">
             <div class="bg-black/30 p-4 rounded-lg border border-blue-600 mb-4">
                 <div class="flex items-center mb-2">
-                    {% if coupon.store.logo %}
-                    <img src="{{ coupon.store.logo.url }}" alt="{{ coupon.store.name }}" class="w-12 h-12 object-contain mr-3">
+                    {% if offer.store.logo %}
+                    <img src="{{ offer.store.logo.url }}" alt="{{ offer.store.name }}" class="w-12 h-12 object-contain mr-3">
                     {% else %}
                     <div class="w-12 h-12 bg-blue-900/50 rounded-lg flex items-center justify-center mr-3">
                         <i class="fas fa-store text-blue-400"></i>
                     </div>
                     {% endif %}
                     <div>
-                        <h4 class="font-bold text-white">{{ coupon.store.name }}</h4>
-                        <p class="text-blue-300 text-sm">{{ coupon.title }}</p>
+                        <h4 class="font-bold text-white">{{ offer.store.name }}</h4>
+                        <p class="text-blue-300 text-sm">{{ offer.title }}</p>
                     </div>
                 </div>
             </div>
             
-            <p class="text-blue-200 mb-4">You've been redirected to {{ coupon.store.name }}. The discount should be automatically applied at checkout.</p>
-            
-            <div class="bg-blue-900/30 p-4 rounded-lg border border-blue-700">
-                <h4 class="font-bold text-blue-200 mb-2">Tips for the best savings:</h4>
-                <ul class="text-blue-300 text-sm space-y-1">
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
-                        <span>Check if the deal is already applied in your cart</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
-                        <span>Look for additional promo codes at checkout</span>
-                    </li>
-                    <li class="flex items-start">
-                        <i class="fas fa-check-circle text-green-400 mt-1 mr-2"></i>
-                        <span>Sign up for the store's newsletter for extra discounts</span>
-                    </li>
-                </ul>
-            </div>
+            <p class="text-blue-200 mb-4">You've been redirected to {{ offer.store.name }}. Check out their latest deals and promotions!</p>
         </div>
         
         <div class="flex space-x-3">
-            <button onclick="goToStore('{{ coupon.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
+            <button onclick="goToStore('{{ offer.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
                 <i class="fas fa-shopping-cart mr-2"></i> Continue Shopping
             </button>
-            <button onclick="closeDealModal('{{ coupon.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+            <button onclick="closeDealModal('{{ offer.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
                 <i class="fas fa-times text-blue-300"></i>
             </button>
         </div>
@@ -233,20 +234,18 @@
     </div>
 </div>
 {% endif %}
-
 <script>
 // Check if user is returning from a store visit
 document.addEventListener('DOMContentLoaded', function() {
-    checkForPendingCouponReveal();
+    checkForPendingOfferReveal();
     checkForPendingDealConfirmation();
     
     // Listen for window focus event to detect when user returns from store
     window.addEventListener('focus', function() {
-        checkForPendingCouponReveal();
+        checkForPendingOfferReveal();
         checkForPendingDealConfirmation();
     });
 });
-
 function copyCodeAndOpenStore(affiliateLink, code, slug, storeName) {
     // Get the button to disable it temporarily
     const button = document.getElementById("get-code-btn-" + slug);
@@ -268,7 +267,6 @@ function copyCodeAndOpenStore(affiliateLink, code, slug, storeName) {
         fallbackCopyTextToClipboard(code, slug, affiliateLink, storeName);
     }
 }
-
 function goToStore(affiliateLink, slug, storeName) {
     // For deals without codes, store information in sessionStorage and open store
     sessionStorage.setItem('pendingDeal', JSON.stringify({
@@ -298,11 +296,10 @@ function goToStore(affiliateLink, slug, storeName) {
         }, 500);
     }, 3000);
 }
-
 function showCopyNotification() {
     const notification = document.createElement('div');
     notification.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
-    notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Coupon code copied to clipboard!';
+    notification.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Offer code copied to clipboard!';
     document.body.appendChild(notification);
     
     // Remove notification after 3 seconds
@@ -316,10 +313,9 @@ function showCopyNotification() {
         }, 500);
     }, 3000);
 }
-
 function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
-    // Store coupon information in sessionStorage
-    sessionStorage.setItem('pendingCoupon', JSON.stringify({
+    // Store offer information in sessionStorage
+    sessionStorage.setItem('pendingOffer', JSON.stringify({
         code: code,
         slug: slug,
         storeName: storeName,
@@ -354,9 +350,8 @@ function scheduleStoreOpen(affiliateLink, code, slug, storeName) {
         revealCodeAndChangeButton(code, slug);
     }, 1500);
 }
-
 function revealCodeAndChangeButton(code, slug) {
-    // Update the original coupon card to show the code
+    // Update the original offer card to show the code
     const originalCodeElement = document.getElementById("code-" + slug);
     const originalPlaceholder = document.getElementById("code-placeholder-" + slug);
     const getButton = document.getElementById("get-code-btn-" + slug);
@@ -373,7 +368,6 @@ function revealCodeAndChangeButton(code, slug) {
         };
     }
 }
-
 function copyCodeAgain(code, slug) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
@@ -386,7 +380,6 @@ function copyCodeAgain(code, slug) {
         fallbackCopyTextToClipboard(code, slug);
     }
 }
-
 function fallbackCopyTextToClipboard(text, slug, affiliateLink, storeName) {
     var textArea = document.createElement("textarea");
     textArea.value = text;
@@ -430,41 +423,39 @@ function fallbackCopyTextToClipboard(text, slug, affiliateLink, storeName) {
     
     document.body.removeChild(textArea);
 }
-
-function checkForPendingCouponReveal() {
-    const pendingCoupon = sessionStorage.getItem('pendingCoupon');
+function checkForPendingOfferReveal() {
+    const pendingOffer = sessionStorage.getItem('pendingOffer');
     
-    if (pendingCoupon) {
+    if (pendingOffer) {
         try {
-            const couponData = JSON.parse(pendingCoupon);
+            const offerData = JSON.parse(pendingOffer);
             
             // Check if the reveal happened within the last 30 minutes
             const thirtyMinutesAgo = new Date().getTime() - (30 * 60 * 1000);
-            if (couponData.timestamp > thirtyMinutesAgo) {
+            if (offerData.timestamp > thirtyMinutesAgo) {
                 // If code was already copied, just show the modal
-                if (couponData.codeCopied) {
-                    showCouponModal(couponData.slug, couponData.code);
+                if (offerData.codeCopied) {
+                    showOfferModal(offerData.slug, offerData.code);
                 } else {
                     // Otherwise, copy the code and show the modal
-                    copyCodeAndOpenStore(couponData.affiliateLink, couponData.code, couponData.slug, couponData.storeName);
+                    copyCodeAndOpenStore(offerData.affiliateLink, offerData.code, offerData.slug, offerData.storeName);
                 }
                 
-                // Clear the pending coupon
-                sessionStorage.removeItem('pendingCoupon');
+                // Clear the pending offer
+                sessionStorage.removeItem('pendingOffer');
                 
                 // Track the reveal event
-                trackRevealEvent(couponData.slug, couponData.code);
+                trackRevealEvent(offerData.slug, offerData.code);
             } else {
                 // Expired, remove it
-                sessionStorage.removeItem('pendingCoupon');
+                sessionStorage.removeItem('pendingOffer');
             }
         } catch (e) {
-            console.error('Error parsing pending coupon data', e);
-            sessionStorage.removeItem('pendingCoupon');
+            console.error('Error parsing pending offer data', e);
+            sessionStorage.removeItem('pendingOffer');
         }
     }
 }
-
 function checkForPendingDealConfirmation() {
     const pendingDeal = sessionStorage.getItem('pendingDeal');
     
@@ -490,7 +481,6 @@ function checkForPendingDealConfirmation() {
         }
     }
 }
-
 function setupModalCloseOnClickOutside(modalId, modalType) {
     const modal = document.getElementById(`${modalType}-modal-${modalId}`);
     if (!modal) return;
@@ -499,23 +489,22 @@ function setupModalCloseOnClickOutside(modalId, modalType) {
     modal.addEventListener('click', function(event) {
         // Check if the clicked element is the modal overlay (the background)
         if (event.target === modal) {
-            if (modalType === 'coupon') {
-                closeCouponModal(modalId);
+            if (modalType === 'offer') {
+                closeOfferModal(modalId);
             } else if (modalType === 'deal') {
                 closeDealModal(modalId);
             }
         }
     });
 }
-
-function showCouponModal(slug, code) {
-    const modal = document.getElementById('coupon-modal-' + slug);
+function showOfferModal(slug, code) {
+    const modal = document.getElementById('offer-modal-' + slug);
     if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden'; // Prevent scrolling
         
         // Setup click outside to close functionality
-        setupModalCloseOnClickOutside(slug, 'coupon');
+        setupModalCloseOnClickOutside(slug, 'offer');
         
         // Auto-select the code for easier copying
         const codeElement = document.getElementById('modal-code-' + slug);
@@ -527,19 +516,17 @@ function showCouponModal(slug, code) {
             window.getSelection().addRange(range);
         }
         
-        // Also update the original coupon card to show the code
+        // Also update the original offer card to show the code
         revealCodeAndChangeButton(code, slug);
     }
 }
-
-function closeCouponModal(slug) {
-    const modal = document.getElementById('coupon-modal-' + slug);
+function closeOfferModal(slug) {
+    const modal = document.getElementById('offer-modal-' + slug);
     if (modal) {
         modal.classList.add('hidden');
         document.body.style.overflow = ''; // Restore scrolling
     }
 }
-
 function showDealModal(slug) {
     const modal = document.getElementById('deal-modal-' + slug);
     if (modal) {
@@ -550,7 +537,6 @@ function showDealModal(slug) {
         setupModalCloseOnClickOutside(slug, 'deal');
     }
 }
-
 function closeDealModal(slug) {
     const modal = document.getElementById('deal-modal-' + slug);
     if (modal) {
@@ -558,7 +544,6 @@ function closeDealModal(slug) {
         document.body.style.overflow = ''; // Restore scrolling
     }
 }
-
 function copyCodeFromModal(code, slug) {
     if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(code).then(function() {
@@ -571,7 +556,6 @@ function copyCodeFromModal(code, slug) {
         fallbackCopyTextToClipboard(code, slug);
     }
 }
-
 function showCopyFeedback(slug) {
     const feedbackElement = document.getElementById('copy-feedback-' + slug);
     if (feedbackElement) {
@@ -581,13 +565,12 @@ function showCopyFeedback(slug) {
         }, 3000);
     }
 }
-
 function trackRevealEvent(slug, code) {
     // Track the reveal_code event with proper parameters
     if (typeof trackEvent === 'function') {
         trackEvent('reveal_code', window.location.pathname, 'reveal_button', {
             slug: slug,
-            coupon_code: code
+            offer_code: code
         });
     }
 }

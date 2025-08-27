@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from .models import Coupon, Store, Category
 
-class CouponSitemap(Sitemap):
+class OfferSitemap(Sitemap):  
     changefreq = "daily"
     priority = 0.8
     
@@ -20,7 +20,8 @@ class CouponSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('coupon_detail', kwargs={'slug': obj.slug})
+        # Updated to use deal_detail URL with section
+        return reverse('deal_detail', kwargs={'section': obj.section, 'slug': obj.slug})
 
 class StoreSitemap(Sitemap):
     changefreq = "weekly"
@@ -100,10 +101,10 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         return [
             'home', 
-            'all_coupons', 
-            'featured_coupons', 
-            'expiring_coupons', 
-            'latest_coupons', 
+            'all_offers',  # Updated from all_coupons
+            'featured_offers',  # Updated from featured_coupons
+            'expiring_offers',  # Updated from expiring_coupons
+            'latest_offers',  # Updated from latest_coupons
             'all_stores', 
             'all_categories', 
             'about', 
@@ -121,24 +122,24 @@ class StaticViewSitemap(Sitemap):
             return 1.0
         
         # Tier 2: Main Business Pages
-        elif item in ['all_coupons', 'featured_coupons']:
+        elif item in ['all_offers', 'featured_offers']:
             return 0.9
         
         # Tier 3: Secondary Business Pages  
-        elif item in ['expiring_coupons', 'latest_coupons', 'all_stores', 'all_categories']:
+        elif item in ['expiring_offers', 'latest_offers', 'all_stores', 'all_categories']:
             return 0.7
         
         # Tier 4: Legal/Info Pages (Lower Priority)
         else:  # about, contact, privacy_policy, terms_of_service
             return 0.3
 
-class FeaturedCouponsSitemap(Sitemap):
+class FeaturedOffersSitemap(Sitemap):  # Renamed from FeaturedCouponsSitemap
     changefreq = "daily"
     priority = 0.8
     
     def items(self):
         # Try to get from cache first
-        cache_key = 'sitemap_featured_coupons'
+        cache_key = 'sitemap_featured_offers'  # Updated cache key
         cached_items = cache.get(cache_key)
         
         if cached_items is not None:
@@ -160,15 +161,16 @@ class FeaturedCouponsSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('coupon_detail', kwargs={'slug': obj.slug})
+        # Updated to use deal_detail URL with section
+        return reverse('deal_detail', kwargs={'section': obj.section, 'slug': obj.slug})
 
-class ExpiringCouponsSitemap(Sitemap):
+class ExpiringOffersSitemap(Sitemap):  # Renamed from ExpiringCouponsSitemap
     changefreq = "hourly"
     priority = 0.75
     
     def items(self):
         # Try to get from cache first
-        cache_key = 'sitemap_expiring_coupons'
+        cache_key = 'sitemap_expiring_offers'  # Updated cache key
         cached_items = cache.get(cache_key)
         
         if cached_items is not None:
@@ -191,4 +193,5 @@ class ExpiringCouponsSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        return reverse('coupon_detail', kwargs={'slug': obj.slug})
+        # Updated to use deal_detail URL with section
+        return reverse('deal_detail', kwargs={'section': obj.section, 'slug': obj.slug})

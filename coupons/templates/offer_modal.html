@@ -1,0 +1,48 @@
+<!-- templates/offers/_offer_modal.html -->
+<div id="offer-modal-{{ offer.slug }}" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 border border-blue-600 modal-content">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-white">Your Offer Code</h3>
+            <button onclick="closeOfferModal('{{ offer.slug }}')" class="text-blue-300 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-blue-200 mb-2">Use this code at checkout:</p>
+            <div class="bg-black/30 p-4 rounded-lg border border-blue-600 flex justify-between items-center">
+                <span class="font-mono text-xl font-bold text-white" id="modal-code-{{ offer.slug }}">{{ offer.code }}</span>
+                <button onclick="copyCodeFromModal('{{ offer.code }}', '{{ offer.slug }}')" class="bg-blue-700 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                    <i class="fas fa-copy mr-1"></i> Copy
+                </button>
+            </div>
+            <div id="copy-feedback-{{ offer.slug }}" class="mt-2 text-green-400 text-sm hidden">
+                <i class="fas fa-check-circle mr-1"></i> Code copied to clipboard!
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <p class="text-blue-200 text-sm mb-2">This code is valid until:</p>
+            <p class="text-white font-medium">
+                {% if offer.expiry_date %}
+                {{ offer.expiry_date|date:"F d, Y" }}
+                {% else %}
+                No expiration date
+                {% endif %}
+            </p>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button onclick="goToStore('{{ offer.affiliate_link }}')" class="flex-1 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white py-3 rounded-lg font-medium transition flex items-center justify-center">
+                <i class="fas fa-shopping-cart mr-2"></i> Shop at {{ offer.store.name }}
+            </button>
+            <button onclick="closeOfferModal('{{ offer.slug }}')" class="w-12 h-12 flex items-center justify-center bg-blue-900/50 hover:bg-blue-800/50 rounded-lg transition">
+                <i class="fas fa-times text-blue-300"></i>
+            </button>
+        </div>
+        
+        <div class="mt-4 text-xs text-blue-400 text-center">
+            <p>By using this offer, you may be supporting our site through affiliate links</p>
+        </div>
+    </div>
+</div>

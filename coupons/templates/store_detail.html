@@ -61,18 +61,17 @@
         </div>
         {% endif %}
         
-        <!-- Coupon Section -->
+        <!-- Offer Section -->
         <div class="border-t border-blue-800 pt-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-blue-200">Available Coupons ({{ coupons|length }})</h2>
+                <h2 class="text-xl font-bold text-blue-200">Available Offers ({{ offers|length }})</h2>
             </div>
             
-            {% include 'filter_controls.html' %}
             
-            {% if coupons %}
+            {% if offers %}
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-                {% for coupon in coupons %}
-                {% include 'coupon_card.html' with coupon=coupon %}
+                {% for offer in offers %}
+                {% include 'offer_card.html' with offer=offer %}
                 {% endfor %}
             </div>
             {% else %}
@@ -80,8 +79,8 @@
                 <div class="mb-4">
                     <i class="fas fa-tag text-blue-400/50 text-5xl"></i>
                 </div>
-                <h3 class="text-xl font-semibold text-blue-200 mb-2">No coupons available</h3>
-                <p class="text-blue-400 mb-6">There are currently no coupons available for {{ store.name }}. Check back later for new deals.</p>
+                <h3 class="text-xl font-semibold text-blue-200 mb-2">No offers available</h3>
+                <p class="text-blue-400 mb-6">There are currently no offers available for {{ store.name }}. Check back later for new deals.</p>
                 <a href="{% url 'home' %}" class="btn-gradient text-white px-6 py-2 rounded-lg font-medium transition hover:opacity-90">
                     Browse Other Stores
                 </a>

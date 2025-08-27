@@ -2,15 +2,16 @@
 {% block meta_title %}{{ meta_title }}{% endblock %}
 {% block meta_description %}{{ meta_description }}{% endblock %}
 {% block meta_keywords %}{{ meta_keywords }}{% endblock %}
+
 {% block content %}
-<!-- Hero Section -->
+<!-- Section Header -->
 <section class="card-bg rounded-xl shadow-xl overflow-hidden mb-10 border border-blue-700">
     <div class="p-8 md:p-12">
         <div class="max-w-3xl">
-            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">{{ hero_title }}</h1>
-            <p class="text-xl text-blue-200 mb-6">{{ hero_description }}</p>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 text-gradient">{{ section_title }}</h1>
+            <p class="text-xl text-blue-200 mb-6">Discover the best {{ section_title|lower }} from top stores and save money on your purchases.</p>
             <form action="{% url 'search' %}" method="GET" class="flex">
-                <input type="text" name="q" placeholder="Search for offers, stores, or categories..." class="px-4 py-3 w-full rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" name="q" placeholder="Search for offers..." class="px-4 py-3 w-full rounded-l-lg bg-black/30 border border-blue-600 text-blue-100 placeholder-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button type="submit" class="btn-gradient text-white px-6 py-3 rounded-r-lg font-semibold hover:opacity-90 transition">Search</button>
             </form>
         </div>
@@ -35,29 +36,17 @@
     </div>
 </section>
 
-<!-- Categories Section -->
-<section class="mb-8">
-    <h2 class="text-2xl font-bold text-blue-300 mb-4">Popular Categories</h2>
-    <div class="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
-        {% for category in categories %}
-        {% include 'category_tag.html' with category=category %}
-        {% empty %}
-        <div class="text-center py-4 w-full">
-            <p class="text-blue-400">No categories available.</p>
-        </div>
-        {% endfor %}
-    </div>
-</section>
 
 
 
 <!-- Offers Grid -->
-<div class="offer-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-    {% for offer in offers %}
-    {% include 'offer_card.html' with offer=offer small_text=True %}
+<div class="offer-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+    {% for offer in page_obj %}
+    {% include 'offer_card.html' with offer=offer show_expiry=True %}
     {% empty %}
     <div class="col-span-full text-center py-10">
-        <p class="text-blue-400">No offers available at the moment.</p>
+        <p class="text-blue-400">No offers available in this section at the moment.</p>
+        <a href="{% url 'home' %}" class="text-blue-300 hover:text-blue-200 mt-4 inline-block">Return to Homepage</a>
     </div>
     {% endfor %}
 </div>
@@ -88,7 +77,7 @@
             <i class="fas fa-angle-right"></i>
         </a>
         <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="py-2 px-4 card-bg border-t border-b border-r border-blue-700 rounded-r-md text-blue-300 hover:bg-blue-900/50">
-            <i class="fas fa-angle-double-left"></i>
+            <i class="fas fa-angle-double-right"></i>
         </a>
         {% endif %}
     </nav>
@@ -103,7 +92,7 @@
     </div>
     
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        {% for store in stores %}
+        {% for store in stores|slice:":12" %}
         {% include 'store_card.html' with store=store %}
         {% empty %}
         <div class="col-span-full text-center py-10">

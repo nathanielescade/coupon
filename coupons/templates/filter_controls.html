@@ -1,22 +1,79 @@
-<div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-2">
-    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'newest' or not request.GET.sort %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('newest')">
+<div class="flex space-x-2 overflow-x-auto scrollbar-hide pb-1">
+    <button class="filter-btn flex-shrink-0 px-3 py-1 text-xs rounded-lg {% if request.GET.sort == 'newest' or not request.GET.sort %}bg-blue-700 text-white{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" data-sort="newest">
         <i class="fas fa-clock mr-1"></i> Newest
     </button>
-    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'expiring' %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('expiring')">
+    <button class="filter-btn flex-shrink-0 px-3 py-1 text-xs rounded-lg {% if request.GET.sort == 'expiring' %}bg-blue-700 text-white{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" data-sort="expiring">
         <i class="fas fa-hourglass-end mr-1"></i> Expiring Soon
     </button>
-    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'popular' %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('popular')">
+    <button class="filter-btn flex-shrink-0 px-3 py-1 text-xs rounded-lg {% if request.GET.sort == 'popular' %}bg-blue-700 text-white{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" data-sort="popular">
         <i class="fas fa-fire mr-1"></i> Popular
     </button>
-    <button class="flex-shrink-0 px-3 py-1 text-sm rounded-lg {% if request.GET.sort == 'discount_high' %}bg-blue-900/50 text-blue-800{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" onclick="applyFilter('discount_high')">
+    <button class="filter-btn flex-shrink-0 px-3 py-1 text-xs rounded-lg {% if request.GET.sort == 'discount_high' %}bg-blue-700 text-white{% else %}bg-blue-900/30 text-blue-300 hover:bg-blue-900/50{% endif %} transition" data-sort="discount_high">
         <i class="fas fa-percentage mr-1"></i> Highest Discount
     </button>
 </div>
 
 <script>
-function applyFilter(sortType) {
-    const urlParams = new URLSearchParams(window.location.search);
-    urlParams.set('sort', sortType);
-    window.location.search = urlParams.toString();
-}
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const sort = this.dataset.sort;
+            
+            // Update active state
+            const container = this.closest('.flex');
+            container.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-700', 'text-white');
+                btn.classList.add('bg-blue-900/30', 'text-blue-300');
+            });
+            this.classList.remove('bg-blue-900/30', 'text-blue-300');
+            this.classList.add('bg-blue-700', 'text-white');
+            
+            // Update URL without page reload
+            const url = new URL(window.location);
+            url.searchParams.set('sort', sort);
+            window.history.pushState({}, '', url);
+            
+            // Get the current section
+            const section = getCurrentSection();
+            
+            // Make AJAX request
+            fetch(`/filter-offers/?section=${section}&sort=${sort}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Update the offer list
+                    const offerList = document.querySelector('.offer-list');
+                    if (offerList && data.html) {
+                        offerList.innerHTML = data.html;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Fallback to page reload if AJAX fails
+                    window.location.href = url.toString();
+                });
+        });
+    });
+    
+    // Function to determine current section
+    function getCurrentSection() {
+        // Check if we're on a specific section page
+        const path = window.location.pathname;
+        if (path.includes('/deals/')) {
+            const parts = path.split('/');
+            if (parts.length >= 3) {
+                return parts[2]; // This should be the section name
+            }
+        }
+        // Default to home section
+        return 'home';
+    }
+});
 </script>
