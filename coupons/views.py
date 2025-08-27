@@ -210,7 +210,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'description']
 
 # Frontend Views
-@method_decorator(cache_page(60 * 10), name='dispatch')
+# @method_decorator(cache_page(60 * 10), name='dispatch')
 class HomeView(ListView):
     model = Coupon
     template_name = 'home.html'
@@ -662,7 +662,7 @@ class CategoryDetailView(DetailView):
         
         return context
 
-@method_decorator(cache_page(60 * 10), name='dispatch')
+# @method_decorator(cache_page(60 * 10), name='dispatch')
 class SearchView(ListView):
     model = Coupon
     template_name = 'search.html'
@@ -915,7 +915,7 @@ def profile_view(request, username=None):
     return render(request, 'registration/profile.html', context)
 
 # Add these new views to your views.py file
-@method_decorator(cache_page(60 * 10), name='dispatch')  
+# @method_decorator(cache_page(60 * 10), name='dispatch')  
 class AllOffersView(ListView):
     model = Coupon
     template_name = 'all_offers.html'
@@ -980,7 +980,7 @@ class AllOffersView(ListView):
         
         return context
 
-@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
+# @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class FeaturedOffersView(ListView):
     model = Coupon
     template_name = 'all_offers.html'
@@ -1115,7 +1115,7 @@ class ExpiringOffersView(ListView):
         
         return context
 
-@method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
+# @method_decorator(cache_page(60 * 10), name='dispatch')  # Cache for 10 minutes
 class LatestOffersView(ListView):
     model = Coupon
     template_name = 'all_offers.html'
