@@ -1,83 +1,64 @@
-# project/templates/robots.txt
 User-agent: *
-Allow: /
-# Sitemap Index
-Sitemap: https://www.coupradise.com/sitemap.xml
-
-# Disallow admin pages
 Disallow: /admin/
-Disallow: /admin-panel/
-Disallow: /analytics/
-
-# Disallow API endpoints
-Disallow: /api/
-Disallow: /api/v1/
-
-# Disallow user-specific pages
-Disallow: /profile/
-Disallow: /my-coupons/
 Disallow: /accounts/
-Disallow: /accounts/login/
-Disallow: /accounts/signup/
-Disallow: /accounts/password/
-
-# Disallow form submissions
-Disallow: /newsletter/subscribe
-Disallow: /contact/submit
+Disallow: /analytics/
+Disallow: /admin-panel/
+Disallow: /offer/new/
+Disallow: /offer/*/edit/
+Disallow: /offer/*/delete/
+Disallow: /my-offers/
+Disallow: /save/
+Disallow: /use/
+Disallow: /profile/
+Disallow: /signup/
+Disallow: /login/
+Disallow: /logout/
+Disallow: /newsletter/subscribe/
 Disallow: /unsubscribe/
+Disallow: /admin/newsletters/
+Disallow: /filter-offers/
 
-# Disallow search results and print pages
-Disallow: /search/
-Disallow: /*/print/
+# Block API endpoints from general crawling
+Disallow: /api/
 
-# Disallow filter URLs with parameters
+# Block search and filter pages with parameters to prevent duplicate content
 Disallow: /*?sort=*
 Disallow: /*?page=*
 Disallow: /*?q=*
-Disallow: /*?category=*
-Disallow: /*?store=*
 
-# Disallow tracking parameters
-Disallow: /*?utm_*
-Disallow: /*?fbclid=*
-Disallow: /*?gclid=*
-Disallow: /*?ref=*
+# Allow specific CSS and JS files for proper rendering
+Allow: /static/css/
+Allow: /static/js/
+Allow: /media/
 
-# Disallow expired coupons pattern
-Disallow: /coupon/expired/
-Disallow: /expired-coupon/
+# Allow all major search engines
+User-agent: Googlebot
+Allow: /
 
-# Crawl delay to prevent server overload (ignored by Google but respected by others)
-Crawl-delay: 1
+User-agent: Bingbot
+Allow: /
 
-# Block aggressive bots with longer delays
+User-agent: Slurp
+Allow: /
+
+# Block aggressive bots
 User-agent: SemrushBot
-Crawl-delay: 10
+Disallow: /
 
 User-agent: AhrefsBot
-Crawl-delay: 10
+Disallow: /
 
 User-agent: MJ12bot
-Crawl-delay: 10
+Disallow: /
 
 User-agent: DotBot
-Crawl-delay: 10
-
-# Block unwanted bots completely
-User-agent: BLEXBot
 Disallow: /
 
-User-agent: CopyRightCheck
+User-agent: Baiduspider
 Disallow: /
 
-User-agent: WebsiteExtractor
-Disallow: /
+# Crawl delay for respectful bots
+Crawl-delay: 1
 
-User-agent: GrabNet
-Disallow: /
-
-User-agent: WWW-Collector-E
-Disallow: /
-
-User-agent: Xaldon WebSpider
-Disallow: /
+# Sitemap location
+Sitemap: {{ protocol }}://{{ domain }}/sitemap.xml

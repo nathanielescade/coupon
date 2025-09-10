@@ -1639,3 +1639,31 @@ def preview_newsletter(request, newsletter_id):
     }
     
     return render(request, 'custom_newsletter_email.html', context)
+
+
+
+
+
+
+# coupons/views.py (add this view)
+def tag_detail(request, tag_slug):
+    tag = get_object_or_404(Tag, slug=tag_slug)
+    
+    offers = Coupon.objects.filter(
+        tags=tag,
+        is_active=True
+    ).order_by('-created_at')
+    
+    paginator = Paginator(offers, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'tag': tag,
+        'page_obj': page_obj,
+        'meta_title': f"{tag.name} Deals & Offers - CouPradise",
+        'meta_description': f"Find the best {tag.name} deals and offers. Save money with our verified {tag.name} discounts.",
+        'meta_keywords': f"{tag.name}, deals, offers, discounts, promo codes",
+    }
+    
+    return render(request, 'tag_detail.html', context)

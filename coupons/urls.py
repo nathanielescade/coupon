@@ -63,7 +63,8 @@ urlpatterns = [
     # All Stores and Categories Pages
     path('stores/', views.AllStoresView.as_view(), name='all_stores'),
     path('categories/', views.AllCategoriesView.as_view(), name='all_categories'),
-    
+    # In your urls.py
+    path('tags/<slug:tag_slug>/', views.tag_detail, name='tag_detail'),
     # AJAX filtering
     path('filter-offers/', views.filter_offers_ajax, name='filter_offers_ajax'),
     

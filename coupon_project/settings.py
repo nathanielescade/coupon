@@ -15,7 +15,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here'
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 # Parse allowed hosts from environment variable
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get(
+    'ALLOWED_HOSTS',
+    '192.168.43.100,localhost,127.0.0.1'
+).split(',')]
+
 
 # Add ngrok URL to allowed hosts if available
 ngrok_url = os.environ.get('NGROK_URL')

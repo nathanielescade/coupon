@@ -1,16 +1,17 @@
+# coupons/sitemaps.py
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from django.core.cache import cache
 from django.db.models import Count, Q
 from django.utils import timezone
-from .models import Coupon, Store, Category
+from .models import Coupon, Store, Category, Tag, User
+from django.contrib.auth.models import User
 
 class OfferSitemap(Sitemap):  
     changefreq = "daily"
     priority = 0.8
     
     def items(self):
-        # Only include active, non-expired coupons in sitemap
         return Coupon.objects.filter(
             is_active=True,
             expiry_date__gte=timezone.now()
@@ -20,7 +21,6 @@ class OfferSitemap(Sitemap):
         return obj.updated_at
     
     def location(self, obj):
-        # Updated to use deal_detail URL with section
         return reverse('deal_detail', kwargs={'section': obj.section, 'slug': obj.slug})
 
 class StoreSitemap(Sitemap):
@@ -28,21 +28,14 @@ class StoreSitemap(Sitemap):
     priority = 0.7
     
     def items(self):
-        # Try to get from cache first
         cache_key = 'sitemap_active_stores'
         cached_items = cache.get(cache_key)
         
         if cached_items is not None:
             return cached_items
             
-        # Get active stores with prefetch related for better performance
-        items = Store.objects.filter(
-            is_active=True
-        ).select_related('seo')
-        
-        # Cache the queryset for 6 hours
+        items = Store.objects.filter(is_active=True)
         cache.set(cache_key, items, 60 * 60 * 6)
-        
         return items
     
     def lastmod(self, obj):
@@ -50,43 +43,20 @@ class StoreSitemap(Sitemap):
     
     def location(self, obj):
         return reverse('store_detail', kwargs={'store_slug': obj.slug})
-    
-    # Add store logo to sitemap
-    def get_urls(self, page=1, site=None, protocol=None):
-        urls = super().get_urls(page=page, site=site, protocol=protocol)
-        
-        # Add logo information for stores that have one
-        for url in urls:
-            item = url['item']
-            if hasattr(item, 'logo') and item.logo:
-                url['images'] = [{
-                    'location': item.logo.url,
-                    'title': item.name,
-                    'caption': item.description or '',
-                }]
-        
-        return urls
 
 class CategorySitemap(Sitemap):
     changefreq = "monthly"
     priority = 0.6
     
     def items(self):
-        # Try to get from cache first
         cache_key = 'sitemap_active_categories'
         cached_items = cache.get(cache_key)
         
         if cached_items is not None:
             return cached_items
             
-        # Get active categories with prefetch related for better performance
-        items = Category.objects.filter(
-            is_active=True
-        ).select_related('seo')
-        
-        # Cache the queryset for 12 hours
+        items = Category.objects.filter(is_active=True)
         cache.set(cache_key, items, 60 * 60 * 12)
-        
         return items
     
     def lastmod(self, obj):
@@ -101,10 +71,10 @@ class StaticViewSitemap(Sitemap):
     def items(self):
         return [
             'home', 
-            'all_offers',  # Updated from all_coupons
-            'featured_offers',  # Updated from featured_coupons
-            'expiring_offers',  # Updated from expiring_coupons
-            'latest_offers',  # Updated from latest_coupons
+            'all_offers', 
+            'featured_offers', 
+            'expiring_offers', 
+            'latest_offers', 
             'all_stores', 
             'all_categories', 
             'about', 
@@ -117,81 +87,170 @@ class StaticViewSitemap(Sitemap):
         return reverse(item)
     
     def priority(self, item):
-        # Tier 1: Homepage - Most Important
         if item == 'home':
             return 1.0
-        
-        # Tier 2: Main Business Pages
         elif item in ['all_offers', 'featured_offers']:
             return 0.9
-        
-        # Tier 3: Secondary Business Pages  
         elif item in ['expiring_offers', 'latest_offers', 'all_stores', 'all_categories']:
             return 0.7
-        
-        # Tier 4: Legal/Info Pages (Lower Priority)
-        else:  # about, contact, privacy_policy, terms_of_service
+        else:
             return 0.3
 
-class FeaturedOffersSitemap(Sitemap):  # Renamed from FeaturedCouponsSitemap
+class FeaturedOffersSitemap(Sitemap):
     changefreq = "daily"
     priority = 0.8
     
     def items(self):
-        # Try to get from cache first
-        cache_key = 'sitemap_featured_offers'  # Updated cache key
+        cache_key = 'sitemap_featured_offers'
         cached_items = cache.get(cache_key)
         
         if cached_items is not None:
             return cached_items
             
-        # Get featured coupons with prefetch related for better performance
         items = Coupon.objects.filter(
             is_active=True,
             is_featured=True,
             expiry_date__gte=timezone.now()
         ).select_related('store', 'category')
-        
-        # Cache the queryset for 3 hours
         cache.set(cache_key, items, 60 * 60 * 3)
-        
         return items
     
     def lastmod(self, obj):
         return obj.updated_at
     
     def location(self, obj):
-        # Updated to use deal_detail URL with section
         return reverse('deal_detail', kwargs={'section': obj.section, 'slug': obj.slug})
 
-class ExpiringOffersSitemap(Sitemap):  # Renamed from ExpiringCouponsSitemap
+class ExpiringOffersSitemap(Sitemap):
     changefreq = "hourly"
     priority = 0.75
     
     def items(self):
-        # Try to get from cache first
-        cache_key = 'sitemap_expiring_offers'  # Updated cache key
+        cache_key = 'sitemap_expiring_offers'
         cached_items = cache.get(cache_key)
         
         if cached_items is not None:
             return cached_items
             
-        # Get coupons expiring within 7 days
         soon = timezone.now() + timezone.timedelta(days=7)
         items = Coupon.objects.filter(
             is_active=True,
             expiry_date__lte=soon,
             expiry_date__gte=timezone.now()
         ).select_related('store', 'category')
-        
-        # Cache the queryset for 1 hour (shorter cache for time-sensitive content)
         cache.set(cache_key, items, 60 * 60)
-        
         return items
     
     def lastmod(self, obj):
         return obj.updated_at
     
     def location(self, obj):
-        # Updated to use deal_detail URL with section
         return reverse('deal_detail', kwargs={'section': obj.section, 'slug': obj.slug})
+
+# New comprehensive sitemap classes
+class DealSectionSitemap(Sitemap):
+    changefreq = "daily"
+    priority = 0.7
+    
+    def items(self):
+        return ['coupons', 'amazon', 'special', 'deals']
+    
+    def location(self, section):
+        return reverse('deal_section', kwargs={'section': section})
+    
+    def priority(self, section):
+        return 0.8 if section == 'special' else 0.7
+
+class TagSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.5
+    
+    def items(self):
+        cache_key = 'sitemap_tags'
+        cached_items = cache.get(cache_key)
+        
+        if cached_items is not None:
+            return cached_items
+            
+        items = Tag.objects.all()
+        cache.set(cache_key, items, 60 * 60 * 24)
+        return items
+    
+    def location(self, obj):
+        return f'/tags/{obj.slug}/'
+
+class UserSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.4
+    
+    def items(self):
+        cache_key = 'sitemap_active_users'
+        cached_items = cache.get(cache_key)
+        
+        if cached_items is not None:
+            return cached_items
+            
+        users_with_offers = User.objects.filter(
+            saved_offers__isnull=False
+        ).distinct()
+        cache.set(cache_key, users_with_offers, 60 * 60 * 12)
+        return users_with_offers
+    
+    def location(self, obj):
+        return reverse('user_profile', kwargs={'username': obj.username})
+
+class StorePageSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.6
+    
+    def items(self):
+        cache_key = 'sitemap_store_pages'
+        cached_items = cache.get(cache_key)
+        
+        if cached_items is not None:
+            return cached_items
+            
+        stores = Store.objects.filter(is_active=True)
+        items = []
+        
+        for store in stores:
+            offer_count = store.offers.filter(is_active=True).count()
+            max_pages = min(10, (offer_count // 12) + 1)
+            
+            for page in range(2, max_pages + 1):
+                items.append((store.slug, page))
+        
+        cache.set(cache_key, items, 60 * 60 * 6)
+        return items
+    
+    def location(self, item):
+        store_slug, page = item
+        return f'/store/{store_slug}/?page={page}'
+
+class CategoryPageSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.5
+    
+    def items(self):
+        cache_key = 'sitemap_category_pages'
+        cached_items = cache.get(cache_key)
+        
+        if cached_items is not None:
+            return cached_items
+            
+        categories = Category.objects.filter(is_active=True)
+        items = []
+        
+        for category in categories:
+            offer_count = category.offers.filter(is_active=True).count()
+            max_pages = min(10, (offer_count // 12) + 1)
+            
+            for page in range(2, max_pages + 1):
+                items.append((category.slug, page))
+        
+        cache.set(cache_key, items, 60 * 60 * 6)
+        return items
+    
+    def location(self, item):
+        category_slug, page = item
+        return f'/category/{category_slug}/?page={page}'
