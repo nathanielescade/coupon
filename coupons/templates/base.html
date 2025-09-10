@@ -12,6 +12,16 @@
     <!-- Impact Verification -->
     <meta name="impact-site-verification" value="59821aa8-3d50-4472-9677-f0f6bef505b1">
 
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-RS9XQ3JMDB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-RS9XQ3JMDB');
+    </script>
+
     <!-- Impact STAT Tag -->
     <script>
         (function(i,m,p,a,c,t){
@@ -37,56 +47,3 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% include 'styles.html' %}
-<style>
-    /* Filter container styles */
-.filter-container {
-    background-color: rgba(15, 23, 42, 0.9); /* bg-blue-900/90 */
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(55, 65, 81, 0.5); /* border-blue-700/50 */
-    padding: 0.25rem 1rem; /* py-1 px-4 */
-    transition: all 0.3s ease;
-}
-
-.filter-container.shadow-md {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* Filter buttons */
-.filter-btn {
-    white-space: nowrap;
-    min-width: fit-content;
-    font-size: 0.75rem; /* text-xs */
-    padding: 0.25rem 0.75rem; /* px-3 py-1 */
-}
-
-/* Active filter button */
-.filter-btn.bg-blue-700 {
-    background-color: rgba(29, 78, 216, 1); /* bg-blue-700 */
-    color: white;
-}
-
-/* Ensure the filter buttons are visible and accessible */
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
-}
-</style>
-</head>
-<body class="gradient-bg">
-    {% include 'header.html' %}
-    {% include 'messages.html' %}
-
-    <!-- Main Content -->
-    <main class="container mx-auto px-4 py-6">
-        {% block content %}{% endblock %}
-    </main>
-
-    {% include 'footer.html' %}
-    {% include 'scripts.html' %}
-
-</body>
-</html>
