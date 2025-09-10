@@ -15,7 +15,7 @@ class OfferSitemap(Sitemap):
         return Coupon.objects.filter(
             is_active=True,
             expiry_date__gte=timezone.now()
-        ).select_related('store', 'category')
+        ).select_related('store', 'category').order_by('-updated_at')
     
     def lastmod(self, obj):
         return obj.updated_at
@@ -34,7 +34,7 @@ class StoreSitemap(Sitemap):
         if cached_items is not None:
             return cached_items
             
-        items = Store.objects.filter(is_active=True)
+        items = Store.objects.filter(is_active=True).order_by('name')
         cache.set(cache_key, items, 60 * 60 * 6)
         return items
     
@@ -55,7 +55,7 @@ class CategorySitemap(Sitemap):
         if cached_items is not None:
             return cached_items
             
-        items = Category.objects.filter(is_active=True)
+        items = Category.objects.filter(is_active=True).order_by('name')
         cache.set(cache_key, items, 60 * 60 * 12)
         return items
     
@@ -111,7 +111,7 @@ class FeaturedOffersSitemap(Sitemap):
             is_active=True,
             is_featured=True,
             expiry_date__gte=timezone.now()
-        ).select_related('store', 'category')
+        ).select_related('store', 'category').order_by('-updated_at')
         cache.set(cache_key, items, 60 * 60 * 3)
         return items
     
@@ -137,7 +137,7 @@ class ExpiringOffersSitemap(Sitemap):
             is_active=True,
             expiry_date__lte=soon,
             expiry_date__gte=timezone.now()
-        ).select_related('store', 'category')
+        ).select_related('store', 'category').order_by('expiry_date')
         cache.set(cache_key, items, 60 * 60)
         return items
     
@@ -172,7 +172,7 @@ class TagSitemap(Sitemap):
         if cached_items is not None:
             return cached_items
             
-        items = Tag.objects.all()
+        items = Tag.objects.all().order_by('name')
         cache.set(cache_key, items, 60 * 60 * 24)
         return items
     
@@ -192,7 +192,7 @@ class UserSitemap(Sitemap):
             
         users_with_offers = User.objects.filter(
             saved_offers__isnull=False
-        ).distinct()
+        ).distinct().order_by('username')
         cache.set(cache_key, users_with_offers, 60 * 60 * 12)
         return users_with_offers
     
@@ -210,7 +210,7 @@ class StorePageSitemap(Sitemap):
         if cached_items is not None:
             return cached_items
             
-        stores = Store.objects.filter(is_active=True)
+        stores = Store.objects.filter(is_active=True).order_by('name')
         items = []
         
         for store in stores:
@@ -238,7 +238,7 @@ class CategoryPageSitemap(Sitemap):
         if cached_items is not None:
             return cached_items
             
-        categories = Category.objects.filter(is_active=True)
+        categories = Category.objects.filter(is_active=True).order_by('name')
         items = []
         
         for category in categories:

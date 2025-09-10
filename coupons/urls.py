@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from django.contrib.auth import views as auth_views
 from django.contrib.sitemaps.views import sitemap
 from . import views
-from .sitemaps import OfferSitemap, StoreSitemap, CategorySitemap, StaticViewSitemap
+from .sitemaps import OfferSitemap, StoreSitemap, CategorySitemap, StaticViewSitemap, FeaturedOffersSitemap, ExpiringOffersSitemap, DealSectionSitemap, TagSitemap, UserSitemap, StorePageSitemap, CategoryPageSitemap
 
 router = DefaultRouter()
 router.register(r'offers', views.OfferViewSet)
@@ -11,12 +11,19 @@ router.register(r'providers', views.CouponProviderViewSet)
 router.register(r'stores', views.StoreViewSet)
 router.register(r'categories', views.CategoryViewSet)
 
-# Sitemaps
+# Sitemaps - using all sitemap classes
 sitemaps = {
     'offers': OfferSitemap,
     'stores': StoreSitemap,
     'categories': CategorySitemap,
     'static': StaticViewSitemap,
+    'featured': FeaturedOffersSitemap,
+    'expiring': ExpiringOffersSitemap,
+    'sections': DealSectionSitemap,
+    'tags': TagSitemap,
+    'users': UserSitemap,
+    'store_pages': StorePageSitemap,
+    'category_pages': CategoryPageSitemap,
 }
 
 urlpatterns = [
@@ -63,8 +70,10 @@ urlpatterns = [
     # All Stores and Categories Pages
     path('stores/', views.AllStoresView.as_view(), name='all_stores'),
     path('categories/', views.AllCategoriesView.as_view(), name='all_categories'),
-    # In your urls.py
+    
+    # Tag detail page
     path('tags/<slug:tag_slug>/', views.tag_detail, name='tag_detail'),
+    
     # AJAX filtering
     path('filter-offers/', views.filter_offers_ajax, name='filter_offers_ajax'),
     
@@ -83,7 +92,7 @@ urlpatterns = [
     path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
     path('contact/submit/', views.contact_submit, name='contact_submit'),
     
-    # Sitemap
+    # Sitemap - using the comprehensive sitemaps dictionary
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     
     # API URLs
